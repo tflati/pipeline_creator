@@ -3,7 +3,7 @@
 # Description: dqadioaoidh aodh ad ai jdoia d
 # Short description: FastQC
 
-# Creation time: 2018-04-10 18:00:26.884233
+# Creation time: 2018-04-10 18:15:26.867024
 
 #SBATCH --job-name=
 #SBATCH -N 1

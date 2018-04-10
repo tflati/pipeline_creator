@@ -178,8 +178,6 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 		if (offset < 0) finalIndex = Math.max(0, index + offset);
 		else finalIndex = Math.min(list.length, index + offset);
 
-		console.log("STEP MOVE", index);
-		
 		list.splice(finalIndex, 0, element);
 		$event.stopPropagation();
 	};
@@ -187,7 +185,10 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 	$scope.save = function(project){
 		apiService.save_project(project, function(result){
 			console.log("[SAVE PROJECT] AJAX RESULT", result);
-			messageService.showMessage(result.data);
+			messageService.showMessage(result.data, "success");
+		}, function(result){
+			console.log("[SAVE PROJECT] AJAX RESULT ERROR", result);
+			messageService.showMessage("Server error: " + result.status, "error");
 		});
 	};
 	
@@ -196,7 +197,6 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 		for(var index in $scope.selected_item.steps)
 		{
 			var s = $scope.selected_item.steps[index];
-			console.log("COPY", s);
 			if (s.hpc_directives.account != "") {copyFrom = s; break;}
 		}
 		
@@ -212,7 +212,10 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 	$scope.produce_scripts = function(project){
 		apiService.produce_scripts(project, function(result){
 			console.log("[PRODUCE SCRIPTS] AJAX RESULT", result);
-			messageService.showMessage(result.data);
+			messageService.showMessage(result.data, "success");
+		}, function(result){
+			console.log("[PRODUCE SCRIPTS] AJAX RESULT ERROR", result);
+			messageService.showMessage("Server error: " + result.status, "error");
 		});
 	};
 	
@@ -233,6 +236,9 @@ app.controller('mainController', function($scope, apiService, messageService, $d
             body.append(downloadLink)
             
 			downloadLink[0].click();
+		}, function(result){
+			console.log("[DOWNLOAD SCRIPTS] AJAX RESULT ERROR", result);
+			messageService.showMessage("Server error: " + result.status, "error");
 		});
 	};
 	

@@ -3,7 +3,7 @@
 # Description: Downloads the sample
 # Short description: Download
 
-# Creation time: 2018-04-10 18:00:26.883858
+# Creation time: 2018-04-10 18:15:26.866657
 
 #SBATCH --job-name=fastq-dump
 #SBATCH -N 1
