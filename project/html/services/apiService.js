@@ -25,6 +25,11 @@ app.factory('apiService', function($http) {
 	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);
   };
   
+  instance.download_scripts = function(project, successFx, errorFx, finallyFx){
+	  var url = SERVER + "download_scripts/";
+	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);
+  };
+  
   instance.get_module_url = function(){
 	  return SERVER + "modules/";   
   };

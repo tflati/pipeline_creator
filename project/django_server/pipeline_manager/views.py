@@ -6,6 +6,7 @@ import time
 import glob
 import datetime
 import stat
+import shutil
 
 def modules(request, prefix = None):
     modules = []
@@ -50,7 +51,7 @@ def save_project(request):
     filepath = os.path.dirname(__file__) + "/data/"+project_id+".json"
     open(filepath, "w").write(json.dumps(data, indent=4, sort_keys=True))
     
-    return HttpResponse("OK")
+    return HttpResponse("Project: '{}' correctly saved.".format(project_id))
 
 def produce_scripts(request):
     project = json.loads(request.body.decode('utf-8'))
@@ -120,6 +121,15 @@ def produce_scripts(request):
         file.close()
         st = os.stat(filepath)
         os.chmod(filepath, st.st_mode | stat.S_IEXEC)
+        
+        shutil.make_archive(os.path.dirname(__file__) + "/scripts/" + project["id"], 'zip', script_dir)
     
-    return HttpResponse("OK")
+    return HttpResponse("Scripts correctly created for project: '{}'".format(project["id"]))
 
+def download_scripts(request):
+    project = json.loads(request.body.decode('utf-8'))
+    return HttpResponse(json.dumps(
+        {
+            "url": "download/" + project["id"] + ".zip",
+            "filename": project["id"] + ".zip"
+         }))

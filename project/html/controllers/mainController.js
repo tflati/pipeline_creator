@@ -1,4 +1,4 @@
-app.controller('mainController', function($scope, apiService, $timeout, $mdDialog, $mdSidenav){
+app.controller('mainController', function($scope, apiService, messageService, $document, $timeout, $mdDialog, $mdSidenav){
 	$scope.projects = undefined;
 	$scope.selected_item = undefined;
 	$scope.selected_step = undefined;
@@ -187,6 +187,7 @@ app.controller('mainController', function($scope, apiService, $timeout, $mdDialo
 	$scope.save = function(project){
 		apiService.save_project(project, function(result){
 			console.log("[SAVE PROJECT] AJAX RESULT", result);
+			messageService.showMessage(result.data);
 		});
 	};
 	
@@ -211,6 +212,27 @@ app.controller('mainController', function($scope, apiService, $timeout, $mdDialo
 	$scope.produce_scripts = function(project){
 		apiService.produce_scripts(project, function(result){
 			console.log("[PRODUCE SCRIPTS] AJAX RESULT", result);
+			messageService.showMessage(result.data);
+		});
+	};
+	
+	$scope.download_scripts = function(project){
+		apiService.download_scripts(project, function(result){
+			console.log("[DOWNLOAD SCRIPTS] AJAX RESULT", result);
+			
+			var url = result.data.url;
+			var filename = result.data.filename;
+			
+			var downloadLink = angular.element('<a target="_self"></a>');
+            downloadLink.attr('href', url);
+            downloadLink.attr('download', filename);
+            
+            console.log(downloadLink, url, filename);
+            
+            var body = $document.find('body').eq(0);
+            body.append(downloadLink)
+            
+			downloadLink[0].click();
 		});
 	};
 	

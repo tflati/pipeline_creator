@@ -3,7 +3,7 @@
 # Description: dqadioaoidh aodh ad ai jdoia d
 # Short description: Trimmomatic
 
-# Creation time: 2018-04-10 17:31:59.783750
+# Creation time: 2018-04-10 18:00:26.884048
 
 #SBATCH --job-name=
 #SBATCH -N 1

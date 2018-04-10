@@ -194,20 +194,24 @@
 		</div>
 		
 		<div style="position: fixed; bottom: 10px; right: 10px;">
-			<md-button class="md-button md-warn md-raised" ng-click="produce_scripts(selected_item)" tooltip="Produces the files on the server" aria-label="Produces the files on the server">
-				<i class="fas fa-terminal"></i>
-				Create scripts
+			<md-button class="md-button md-warn md-raised" ng-click="save(selected_item)" tooltip="Save the steps of this pipeline" aria-label="Save the pipeline">
+				<i class="fas fa-save"></i>
+				1. Save project
 			</md-button>
 			<md-button class="md-button md-warn md-raised" ng-click="add_step(selected_item)" tooltip="Add a step to this pipeline" aria-label="Add a new step">
 	          	<span class="fa-layers fa-fw">
 					<i class="fas fa-list-ol"></i>
-					<i class="fas fa-plus" data-fa-transform="shrink-5 down-10 right-12"></i>
+					<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
 				</span>
-				Add step
+				2. Add step
 			</md-button>
-			<md-button class="md-button md-warn md-raised" ng-click="save(selected_item)" tooltip="Save the steps of this pipeline" aria-label="Save the pipeline">
-				<i class="fas fa-save"></i>
-				Save project
+			<md-button class="md-button md-warn md-raised" ng-click="produce_scripts(selected_item)" tooltip="Produces the files on the server" aria-label="Produces the files on the server">
+				<i class="fas fa-terminal"></i>
+				3. Create scripts
+			</md-button>
+			<md-button class="md-button md-warn md-raised" ng-click="download_scripts(selected_item)" tooltip="Produces the files on the server" aria-label="Download a ZIP file with the project's scripts">
+				<i class="fas fa-download"></i>
+				4. Download
 			</md-button>
 		</div>
 	</div>
