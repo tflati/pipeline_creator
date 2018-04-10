@@ -1,0 +1,119 @@
+{
+    "dataset": {
+        "all_samples_variable": "ALL_SAMPLES",
+        "basedir": "/gpfs/scratch/userinternal/tcastign/rinaldi/input/9_PRJNA322294_AUTOMATIC",
+        "create_per_sample_directory": false,
+        "sample_ids": "SRR3555183\nSRR3555182\nSRR3555181\nSRR3555178\nSRR3555177\nSRR3555176\nSRR3555172\nSRR3555171\nSRR3555168\nSRR3555167\nSRR3555165\nSRR3555162\nSRR3555161\nSRR3555157\nSRR3555156\nSRR3555155\nSRR3555152\nSRR3555151\nSRR3555148\nSRR3555147\nSRR3555143\nSRR3555142\nSRR3555141\nSRR3555138\nSRR3555137\nSRR3555134\nSRR3555133\nSRR3555129\nSRR3555128\nSRR3555124\nSRR3555123\nSRR3555119\nSRR3555115\nSRR3555114\nSRR3555113\nSRR3555109\nSRR3555108\nSRR3555105\nSRR3555104\nSRR3555103\nSRR3555099\nSRR3555098\nSRR3555094\nSRR3555093\nSRR3555089\nSRR3555088\nSRR3555087",
+        "sample_variable": "SAMPLE"
+    },
+    "description": "Analisi topo",
+    "id": "rinaldi1",
+    "img": "imgs/project.png",
+    "steps": [
+        {
+            "commandline": "fastq-dump --split-files $SAMPLE -O $SAMPLE",
+            "description": "Downloads the sample",
+            "description_short": "Download",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 36,
+                "error": "fastq-dump.err",
+                "job_name": "fastq-dump",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "fastq-dump.out",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/bioinf",
+                "sra/2.8.2"
+            ],
+            "title": "Downloading"
+        },
+        {
+            "commandline": "java -Xmx2g -classpath /usr/local/bin/trimmomatic/trimmomatic.jar org.usadellab.trimmomatic.TrimmomaticSE -phred33 $BASEDIR/$SAMPLE/$SAMPLE_1.fastq ILLUMINACLIP:/Volumes/Storage_1/Sequencing_1/References/Contaminants/contaminants.fasta:2:40:12 LEADING:10 TRAILING:10 SLIDINGWINDOW:4:18 MINLEN:18\n\njava -Xmx2g -classpath /usr/local/bin/trimmomatic/trimmomatic.jar org.usadellab.trimmomatic.TrimmomaticSE -phred33 $BASEDIR/$SAMPLE/$SAMPLE_2.fastq ILLUMINACLIP:/Volumes/Storage_1/Sequencing_1/References/Contaminants/contaminants.fasta:2:40:12 LEADING:10 TRAILING:10 SLIDINGWINDOW:4:18 MINLEN:18",
+            "description": "dqadioaoidh aodh ad ai jdoia d",
+            "description_short": "Trimmomatic",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 36,
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/bioinf",
+                "cuda/9.0",
+                "samtools/1.7",
+                "python/2.7.12"
+            ],
+            "title": "Trimming"
+        },
+        {
+            "commandline": "ciao",
+            "description": "dqadioaoidh aodh ad ai jdoia d",
+            "description_short": "FastQC",
+            "hpc_directives": {
+                "account": "",
+                "cpu": 0,
+                "error": "",
+                "group_list": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 0,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "",
+                "walltime": ""
+            },
+            "hpc_directives_text": "",
+            "modules": [],
+            "title": "Quality control"
+        },
+        {
+            "commandline": "ciao",
+            "description": "dqadioaoidh aodh ad ai jdoia d",
+            "description_short": "Samtools",
+            "hpc_directives": {
+                "account": "",
+                "cpu": 0,
+                "error": "",
+                "group_list": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 0,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "",
+                "walltime": ""
+            },
+            "hpc_directives_text": "",
+            "modules": [],
+            "title": "Mapping"
+        }
+    ],
+    "subtitle": "Arianna",
+    "title": "Analisi Rinaldi",
+    "type": "per-step"
+}

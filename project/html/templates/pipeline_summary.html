@@ -1,0 +1,214 @@
+<section layout="column">
+	
+	<div ng-if="sending" layout="column" layout-align="start center" layout-padding>
+		<i class="fas fa-spinner fa-spin fa-3x"></i>		
+	</div>
+	
+	<div ng-if="!sending && selected_item.steps.length == 0" layout="column" layout-align="start center" layout-padding>
+		<h3>It seems this pipeline has not steps defined yet.</h3>
+		<img class="medium-height" width="auto" src="imgs/empty_pipeline.png">
+		<md-button class="md-raised md-warn" ng-click="init_pipeline(selected_item)">Add a step now</md-button>
+	</div>
+	
+	<div ng-if="!sending && selected_item.steps.length > 0">
+		
+		<md-toolbar>
+			<div class="md-toolbar-tools">
+				<h2 flex md-truncate ng-bind="selected_item.title"></h2>
+				
+<!-- 				<md-button class="md-button md-warn md-raised" ng-click="add_step(selected_item)" tooltip="Add a step to this pipeline" aria-label="Add a new step"> -->
+<!-- 		          	<span class="fa-layers fa-fw"> -->
+<!-- 						<i class="fas fa-list-ol"></i> -->
+<!-- 						<i class="fas fa-plus" data-fa-transform="shrink-5 down-10 right-12"></i> -->
+<!-- 					</span> -->
+<!-- 				</md-button> -->
+			 
+			</div>
+		</md-toolbar>
+		
+		<div layout-padding>
+			
+			<section>
+				<h3>Analysis type</h3>
+				<label>How each step of the pipeline will be executed</label>
+	   			<md-select ng-model="selected_item.type" aria-label="Specifies the type of analysis">
+	            	<md-option ng-repeat="type in ['per-step', 'per-sample']" ng-value="type">
+	              		<span>{{type}}</span>
+	              		<span ng-if="type == 'per-step'" style="color: grey">(each step is applied to all samples)</span>
+	              		<span ng-if="type == 'per-sample'" style="color: grey">(all the steps are applied to each sample)</span>
+	            	</md-option>
+         		</md-select>
+       		</section>
+       		
+       		<section>
+				<h3>Dataset</h3>
+				<label>Define your dataset <span style="color: grey;">(<span ng-bind="selected_item.dataset.sample_ids.split('\n').length"></span> sample(s) defined)</span></label>
+				<md-content layout="column" layout-padding>
+					<md-input-container>
+						<label>Sample IDS (one per line)</label>
+	   					<textarea rows="10" label="Sample IDS" ng-model="selected_item.dataset.sample_ids"></textarea>
+   					</md-input-container>
+   					<md-input-container>
+						<label>Base directory</label>
+						<input label="Basedir" type="text" ng-model="selected_item.dataset.basedir">
+						<md-checkbox ng-model="selected_item.dataset.create_per_sample_directory" aria-label="Create a directory for each sample">
+						<span>Create a directory for each sample</span>
+					</md-checkbox>
+					</md-input-container>
+					<md-input-container>
+						<label>Variable to use across scripts to refer to a sample</label>
+						<input label="Sample variable" type="text" ng-model="selected_item.dataset.sample_variable">
+					</md-input-container>
+					<md-input-container>
+						<label>Variable to use across scripts to refer to ALL samples</label>
+						<input label="All-samples variable" type="text" ng-model="selected_item.dataset.all_samples_variable">
+					</md-input-container>
+				</md-content>
+       		</section>
+		
+			<section>
+				<v-accordion class="vAccordion--default" multiple onexpand="select_step(index, id)" control="accordion">
+				  <v-pane ng-repeat="step in selected_item.steps">
+				    <v-pane-header>
+				    	<span md-truncate flex><b>Step {{$index+1}}: {{step.title}}</b></span>
+				    	<md-button class="md-icon-button" ng-click="showDeleteStepDialog($index)">
+					      <ng-md-icon icon="delete" aria-label="Remove step"></ng-md-icon>
+					    </md-button>
+					    
+					    <md-button class="md-icon-button" ng-click="move_item(selected_item.steps, $index, -1, $event)">
+					      <ng-md-icon icon="keyboard_arrow_up" aria-label="Move up this step"></ng-md-icon>
+					    </md-button>
+					    <md-button class="md-icon-button" ng-click="move_item(selected_item.steps, $index, 1, $event)">
+					      <ng-md-icon icon="keyboard_arrow_down" aria-label="Move down this step"></ng-md-icon>
+					    </md-button>
+					    
+				    </v-pane-header>
+				    <v-pane-content>
+				    	<div>
+				    		
+				    		<h3>Title</h3>
+				    		<input ng-model="step.title">
+				    		
+				    		<h3>Description (short)</h3>
+				    		<input ng-model="step.description_short">
+				    		
+				    		<h3>Description</h3>
+				    		<input ng-model="step.description">
+				    		
+				    		<h3>SLURM directives</h3>
+				    		<div layout="column">
+				    			<div layout-padding>
+					    			<md-button class="md-raised md-warn md-icon-button" ng-click="copy_hpc_directives(step)" tooltip="Copy settings from other steps" aria-label="Copy settings from other steps">
+					    				<i class="fas fa-copy"></i>
+								    </md-button>
+								    <span>Copy settings from other steps (if available)</span>
+								</div>
+					    		<div>
+					    			<md-content layout="column" layout-padding>
+										<md-input-container>
+											<label>Walltime</label>
+							    			<input type="text" ng-model="step.hpc_directives.walltime">
+							    		</md-input-container>
+							    		<md-input-container>
+						    				<label>Account name</label>
+						    				<input type="text" ng-model="step.hpc_directives.account">
+					    				</md-input-container>
+					    				<md-input-container>
+						    				<label>Job name</label>
+						    				<input type="text" ng-model="step.hpc_directives.job_name">
+					    				</md-input-container>
+					    				<md-input-container>
+						    				<label>Queue/Partition</label>
+						    				<input type="text" ng-model="step.hpc_directives.queue">
+					    				</md-input-container>
+					    				<md-input-container>
+						    				<label>Group list</label>
+						    				<input type="text" ng-model="step.hpc_directives.group_list">
+					    				</md-input-container>
+					    				<md-input-container>
+						    				<label>Number of nodes</label>
+						    				<input type="number" min="0" ng-model="step.hpc_directives.nodes">
+					    				</md-input-container>
+					    				<md-input-container>
+						    				<label>Number of CPU</label>
+						    				<input type="number" min="0" ng-model="step.hpc_directives.cpu">
+					    				</md-input-container>
+					    				<md-input-container>
+						    				<label>MPI processes</label>
+						    				<input type="number" min="0" ng-model="step.hpc_directives.mpi_procs">
+					    				</md-input-container>
+					    				<md-input-container>
+						    				<label>Memory (RAM)</label>
+						    				<input type="number" min="0" ng-model="step.hpc_directives.memory.quantity">
+					    				</md-input-container>
+					    				<md-input-container>
+						    				<label>Memory (MB, GB, TB)</label>
+						    				<md-select ng-model="step.hpc_directives.memory.size">
+									            <md-option ng-repeat="size in ['MB', 'GB', 'TB']" ng-value="size">
+									              {{size}}
+									            </md-option>
+								          </md-select>
+					    				</md-input-container>
+					    				<md-input-container>
+						    				<label>Standard output</label>
+						    				<input type="text" ng-model="step.hpc_directives.output">
+					    				</md-input-container>
+					    				<md-input-container>
+						    				<label>Standard error</label>
+						    				<input type="text" ng-model="step.hpc_directives.error">
+					    				</md-input-container>
+					    			</md-content>
+					    		</div>
+				    		</div>
+				    		
+				    		<h3>Modules</h3>
+				    		<div layout="row">
+	<!-- 			    			<textarea ng-model="step.modules"></textarea> -->
+								<div layout="row" layout-padding>
+									<my-autocomplete flex on-select="add_module(item)" label="Search in modules" url="module_url"></my-autocomplete>
+									<div layout="column" layout-align="center start">
+										<div ng-repeat="module in step.modules track by $index" layout="row" layout-align="start center">
+											<b ng-bind="module"></b>
+											<span class="fa-layers fa-fw" ng-click="remove_module(step, $index)" layout-margin>
+											    <i class="fas fa-circle" style="color:Tomato"></i>
+											    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i>
+											</span>
+											<md-button class="md-icon-button" ng-click="move_item(step.modules, $index, -1, $event)">
+										      <ng-md-icon icon="keyboard_arrow_up" aria-label="Move up this module"></ng-md-icon>
+										    </md-button>
+										    <md-button class="md-icon-button" ng-click="move_item(step.modules, $index, 1, $event)">
+										      <ng-md-icon icon="keyboard_arrow_down" aria-label="Move down this module"></ng-md-icon>
+										    </md-button>
+										</div>
+									</div>
+			    				</div>
+				    		</div>
+				    		
+				    		<h3>Command line</h3>
+				    		<textarea ng-model="step.commandline" rows="5" style="width: 90%;"></textarea>
+				    	</div>
+				    </v-pane-content>
+				  </v-pane>
+				</v-accordion>
+			</section>
+		</div>
+		
+		<div style="position: fixed; bottom: 10px; right: 10px;">
+			<md-button class="md-button md-warn md-raised" ng-click="produce_scripts(selected_item)" tooltip="Produces the files on the server" aria-label="Produces the files on the server">
+				<i class="fas fa-terminal"></i>
+				Create scripts
+			</md-button>
+			<md-button class="md-button md-warn md-raised" ng-click="add_step(selected_item)" tooltip="Add a step to this pipeline" aria-label="Add a new step">
+	          	<span class="fa-layers fa-fw">
+					<i class="fas fa-list-ol"></i>
+					<i class="fas fa-plus" data-fa-transform="shrink-5 down-10 right-12"></i>
+				</span>
+				Add step
+			</md-button>
+			<md-button class="md-button md-warn md-raised" ng-click="save(selected_item)" tooltip="Save the steps of this pipeline" aria-label="Save the pipeline">
+				<i class="fas fa-save"></i>
+				Save project
+			</md-button>
+		</div>
+	</div>
+</section>

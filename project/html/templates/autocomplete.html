@@ -1,0 +1,38 @@
+<md-content
+	class="md-input-has-placeholder"
+	md-select-on-match>
+	
+	<div ng-if="sending" style="text-align: center; color: cadetblue;">
+		<i class="fas fa-spinner fa-spin fa-3x fa-fw"></i>
+	</div>
+	
+	<md-autocomplete
+	      md-select-on-match
+		  md-match-case-insensitive
+		  placeholder="{{label}}"
+          md-search-text="searchText"
+          md-selected-item="value"
+          md-selected-item-change="selectedItemChange(item)"
+          md-items="item in querySearch(searchText)"
+          md-item-text="item.label"
+          md-min-length="0"
+          style="min-width: 100%"
+        >
+        <md-item-template>
+        	<div ng-class="{'disabled': item.disabled}">
+	        	<img ng-if="item.img" ng-src="{{item.img}}" style="vertical-align: middle;" ng-class="{'img-disabled': item.disabled}">
+	        	<span style="padding-bottom: 5px;" md-highlight-text="searchText" md-highlight-flags="^i">
+	          		{{item.label}}
+				</span>
+				<span ng-if="item.extra" style="margin: 0px; color: grey">({{item.extra}})</span>
+			</div>
+        </md-item-template>
+        <md-not-found>
+			<span ng-if="!sending">No items matching "{{searchText}}" were found.</span>
+         	<span ng-if="sending">
+         		<i class="fas fa-spinner fa-2x fa-spin fa-fw"></i>
+         		Loading data...
+         	</span>
+       </md-not-found>
+      </md-autocomplete>
+</md-content>

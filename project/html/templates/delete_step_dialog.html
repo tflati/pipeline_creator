@@ -1,0 +1,41 @@
+<md-dialog aria-label="Delete dialog">
+	<form ng-cloak>
+	    <md-toolbar class="md-hue-2">
+	      <div class="md-toolbar-tools">
+	        <h2>Delete pipeline step</h2>
+	        <span flex></span>
+	        <md-button class="md-icon-button" ng-click="cancel()">
+	          <ng-md-icon icon="close" aria-label="Close dialog"></ng-md-icon>
+	        </md-button>
+	      </div>
+	    </md-toolbar>
+	</form>
+	<md-dialog-content>
+      <div class="md-dialog-content">
+      
+		<p>You are about to delete the following step:</p>
+		<md-list layout-padding>
+		  <md-list-item class="md-3-line">
+		      <div class="md-list-item-text">
+		        <h2>{{item.title}}</h2>
+		        <p>{{item.description_short}}</p>
+		        <p>{{item.description}}</p>
+		        <code ng-if="item.commandline">{{item.commandline}}</code>
+		      </div>
+		  </md-list-item>
+		</md-list>
+		
+      </div>
+    </md-dialog-content>
+    
+    <md-dialog-actions layout="row">
+      <span flex></span>
+      <md-button ng-click="answer('Cancel')">
+       Cancel
+      </md-button>
+      <md-button ng-click="answer('OK')">
+        OK
+      </md-button>
+    </md-dialog-actions>
+	
+</md-dialog>

@@ -1,0 +1,43 @@
+<md-dialog aria-label="Delete dialog">
+	<form ng-cloak>
+	    <md-toolbar class="md-hue-2">
+	      <div class="md-toolbar-tools">
+	        <h2>Delete project</h2>
+	        <span flex></span>
+	        <md-button class="md-icon-button" ng-click="cancel()">
+	          <ng-md-icon icon="close" aria-label="Close dialog"></ng-md-icon>
+	        </md-button>
+	      </div>
+	    </md-toolbar>
+	</form>
+	<md-dialog-content>
+      <div class="md-dialog-content">
+      
+		<p>You are about to delete the following project:</p>
+		<md-list layout-padding>
+		  <md-list-item class="md-3-line">
+		  	<img ng-src="{{item.img}}" class="md-avatar" alt="{{item.title}}" />
+		      <div class="md-list-item-text">
+		        <h3>{{item.title}}</h3>
+		        <h4>{{item.subtitle}}</h4>
+		        <p>
+		          {{item.description}}
+		        </p>
+		      </div>
+		  </md-list-item>
+		</md-list>
+		
+      </div>
+    </md-dialog-content>
+    
+    <md-dialog-actions layout="row">
+      <span flex></span>
+      <md-button ng-click="answer('Cancel')">
+       Cancel
+      </md-button>
+      <md-button ng-click="answer('OK')">
+        OK
+      </md-button>
+    </md-dialog-actions>
+	
+</md-dialog>
