@@ -1,0 +1,70 @@
+<section>
+	<md-subheader class="md-primary">Analysis type</md-subheader>
+	<label>How each step of the pipeline will be executed</label>
+	<md-select ng-model="project.type" aria-label="Specifies the type of analysis">
+       	<md-option ng-repeat="type in ['per-step', 'per-sample']" ng-value="type">
+         		<span>{{type}}</span>
+         		<span ng-if="type == 'per-step'" style="color: grey">(each step is applied to all samples)</span>
+         		<span ng-if="type == 'per-sample'" style="color: grey">(all the steps are applied to each sample)</span>
+       	</md-option>
+	</md-select>
+</section>
+    		
+<section>
+	<md-subheader class="md-primary">Dataset</md-subheader>
+	<label>Dataset information</label>
+	<md-content layout="column" layout-padding>
+		<md-input-container>
+			<label>Project ID</label>
+			<input label="Project ID" type="text" ng-model="subproject.dataset.id">
+		</md-input-container>
+		<md-input-container>
+			<label>Sample IDS (one per line) <span style="color: grey;">(<span ng-bind="subproject.dataset.sample_ids.split('\n').length"></span> sample(s) defined)</span></label>
+ 					<textarea rows="10" label="Sample IDS" ng-model="subproject.dataset.sample_ids"></textarea>
+					</md-input-container>
+					<md-input-container>
+			<label>Base directory</label>
+			<input label="Basedir" type="text" ng-model="subproject.dataset.basedir">
+			<md-checkbox ng-model="subproject.dataset.create_per_sample_directory" aria-label="Create a directory for each sample">
+			<span>Create a directory for each sample</span>
+		</md-checkbox>
+		</md-input-container>
+		<md-input-container>
+			<label>Variable to use across scripts to refer to this project</label>
+			<input label="Project variable" type="text" ng-model="subproject.dataset.project_variable">
+		</md-input-container>
+		<md-input-container>
+			<label>Variable to use across scripts to refer to a sample in this project</label>
+			<input label="Sample variable" type="text" ng-model="subproject.dataset.sample_variable">
+		</md-input-container>
+		<md-input-container>
+			<label>Variable to use across scripts to refer to ALL samples in this project</label>
+			<input label="All-samples variable" type="text" ng-model="subproject.dataset.all_samples_variable">
+		</md-input-container>
+	</md-content>
+    		</section>
+
+<section>
+	<md-subheader class="md-primary">Steps</md-subheader>
+	<v-accordion multiple onexpand="select_step(index)">
+	  <v-pane ng-repeat="step in subproject.steps">
+	    <v-pane-header>
+	    	<span md-truncate flex><b>Step {{$index+1}}: {{step.title}}</b></span>
+	    	<md-button class="md-icon-button" ng-click="showDeleteStepDialog($index, $event)">
+		      <ng-md-icon icon="delete" aria-label="Remove step"></ng-md-icon>
+		    </md-button>
+		    
+		    <md-button class="md-icon-button" ng-click="move_item(subproject.steps, $index, -1, $event)">
+		      <ng-md-icon icon="keyboard_arrow_up" aria-label="Move up this step"></ng-md-icon>
+		    </md-button>
+		    <md-button class="md-icon-button" ng-click="move_item(subproject.steps, $index, 1, $event)">
+		      <ng-md-icon icon="keyboard_arrow_down" aria-label="Move down this step"></ng-md-icon>
+		    </md-button>
+		    
+	    </v-pane-header>
+	    <v-pane-content>
+	    	<div ng-include="'templates/step.html'"></div>
+	    </v-pane-content>
+	  </v-pane>
+	</v-accordion>
+</section>

@@ -20,6 +20,11 @@ app.factory('apiService', function($http) {
 	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);
   };
   
+  instance.delete_project = function(project, successFx, errorFx, finallyFx){
+	  var url = SERVER + "delete_project/";
+	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);
+  };
+  
   instance.produce_scripts = function(project, successFx, errorFx, finallyFx){
 	  var url = SERVER + "produce_scripts/";
 	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);

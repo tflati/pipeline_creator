@@ -1,6 +1,7 @@
 app.controller('mainController', function($scope, apiService, messageService, $document, $timeout, $mdDialog, $mdSidenav){
 	$scope.projects = undefined;
-	$scope.selected_item = undefined;
+	$scope.selected_project = undefined;
+	$scope.selected_subproject = undefined;
 	$scope.selected_step = undefined;
 	
 	$scope.keep_sidenav_open = true;
@@ -12,15 +13,22 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 			"subtitle": "",
 	        "description": "",
 	        "type": "",
-        	"steps": [],
-        	"dataset": {
-                "basedir": "",
-                "create_per_sample_directory": true,
-                "sample_ids": "",
-                "sample_variable": "SAMPLE",
-                "all_samples_variable": "ALL_SAMPLES",
-            },
+	        "projects": [
+            ]
 	    };
+	
+	var subproject_template = {
+    	"steps": [],
+    	"dataset": {
+    		"id": "",
+            "basedir": "",
+            "create_per_sample_directory": true,
+            "sample_ids": "",
+            "sample_variable": "SAMPLE",
+            "all_samples_variable": "ALL_SAMPLES",
+            "project_variable": "PROJECT"
+        }
+	};
 	
 	var step_template = {
 			"title": "",
@@ -58,18 +66,30 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 		$mdSidenav('sidenav').toggle();
 	};
 	
-//	$scope.get_module_data = function(){
-//		return {
-//			"label": "Modules",
-//			"url": apiService.get_module_url()
-//		}
-//	};
+// $scope.get_module_data = function(){
+// return {
+// "label": "Modules",
+// "url": apiService.get_module_url()
+// }
+// };
 	
 	$scope.module_url = apiService.get_module_url();
 	
 	$scope.select_project = function(item){
-		$scope.selected_item = item;
+		console.log("SELECTING PROJECT", item, $scope);
+		$scope.selected_project = item;
 		$mdSidenav('sidenav').close();
+	};
+	
+	$scope.select_subproject = function(item){
+		console.log("SELECTING SUBPROJECT", item,  $scope);
+		$scope.selected_subproject = $scope.selected_project.projects[item];
+	};
+	
+	$scope.cloneSubproject = function(index, $event){
+		$event.stopPropagation();
+		console.log("[CLONE SUBPROJECT]", index, $scope.selected_project.projects[index]);
+		$scope.selected_project.projects.push(angular.copy($scope.selected_project.projects[index]));
 	};
 	
 	$scope.add_module = function(item){
@@ -87,14 +107,14 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 	$scope.showAddProjectDialog = function(ev) {
 	    var confirm = {
 	    	controller: DialogController,
-			templateUrl: 'templates/add_project_dialog.html',
+			templateUrl: 'templates/dialogs/add_project_dialog.html',
 			parent: angular.element(document.body),
 			targetEvent: ev,
 			clickOutsideToClose:true,
 			fullscreen: $scope.customFullscreen,
 			resolve: {
 				item: function(){
-					return Object.assign({}, project_template);
+					return angular.copy(project_template);
 				}
 			}
 	    };
@@ -110,12 +130,12 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 	    });
 	};
 	
-	$scope.showDeleteDialog = function(i, ev) {
+	$scope.showDeleteProjectDialog = function(i, $event) {
 	    var confirm = {
 	    	controller: DialogController,
-			templateUrl: 'templates/delete_project_dialog.html',
+			templateUrl: 'templates/dialogs/delete_project_dialog.html',
 			parent: angular.element(document.body),
-			targetEvent: ev,
+			targetEvent: $event,
 			clickOutsideToClose:true,
 			fullscreen: $scope.customFullscreen,
 			resolve: {
@@ -126,45 +146,94 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 	    };
 
 	    $mdDialog.show(confirm).then(function(answer) {
-	    	if (answer == "OK"){
-		    	console.log("DIALOG ANSWER", answer);
-		    	$scope.projects.splice(i, 1);
+	    	console.log("DIALOG ANSWER", answer);
+	    	
+	    	if (answer == "OK") {
+	    		var project = $scope.projects[i];
+	    		
+	    		apiService.delete_project(project, function(result){
+	    			console.log("[DELETE PROJECT] AJAX RESULT", result);
+	    			messageService.showMessage(result.data, "success");
+	    			
+	    			$scope.projects.splice(i, 1);
+		    		if($scope.selected_project == project)
+		    			$scope.selected_project = undefined;
+		    		
+	    		}, function(result){
+	    			console.log("[DELETE PROJECT] AJAX RESULT ERROR", result);
+	    			messageService.showMessage("Server error: " + result.status, "error");
+	    		});
 	    	}
 	    }, function() {
 	    });
+	    
+	    $event.stopPropagation();
 	};
 	
-	$scope.showDeleteStepDialog = function(i, ev) {
+	$scope.showDeleteSubprojectDialog = function(i, $event) {
+		$scope.select_subproject(i);
+		
 	    var confirm = {
 	    	controller: DialogController,
-			templateUrl: 'templates/delete_step_dialog.html',
+			templateUrl: 'templates/dialogs/delete_subproject_dialog.html',
 			parent: angular.element(document.body),
-			targetEvent: ev,
+			targetEvent: $event,
 			clickOutsideToClose:true,
 			fullscreen: $scope.customFullscreen,
 			resolve: {
 		      item: function () {
-		        return $scope.selected_item.steps[i];
+		    	  console.log("[DIALOG DELETE SUBPROJECT]", $scope.selected_subproject);
+		        return $scope.selected_subproject;
 		      }
 		    }
 	    };
 
 	    $mdDialog.show(confirm).then(function(answer) {
-	    	if (answer == "OK"){
-		    	console.log("DIALOG ANSWER", answer);
-		    	$scope.remove_step($scope.selected_item, i);
-	    	}
+	    	console.log("DIALOG ANSWER", answer);
+	    	
+	    	if (answer == "OK") $scope.remove_subproject($scope.selected_project, i);
 	    }, function() {
 	    });
+	    
+	    $event.stopPropagation();
 	};
 	
-	$scope.init_pipeline = function(project){
-		project.steps = [];
-		$scope.add_step(project);
+	$scope.remove_subproject = function(project, index){
+		project.projects.splice(index, 1);
+	};
+	
+	$scope.showDeleteStepDialog = function(i, $event) {
+		
+	    var confirm = {
+	    	controller: DialogController,
+			templateUrl: 'templates/dialogs/delete_step_dialog.html',
+			parent: angular.element(document.body),
+			targetEvent: $event,
+			clickOutsideToClose:true,
+			fullscreen: $scope.customFullscreen,
+			resolve: {
+		      item: function () {
+		        return $scope.selected_subproject.steps[i];
+		      }
+		    }
+	    };
+
+	    $mdDialog.show(confirm).then(function(answer) {
+	    	console.log("DIALOG ANSWER", answer);
+	    	if (answer == "OK") $scope.remove_step($scope.selected_subproject, i);
+	    }, function() {
+	    });
+	    
+	    $event.stopPropagation();
+	};
+	
+	$scope.add_subproject = function(project){
+		console.log("[ADD SUBPROJECT]", project, subproject_template);
+		project.projects.push(angular.copy(subproject_template));
 	};
 	
 	$scope.add_step = function(project){
-		project.steps.push(Object.assign({}, step_template));
+		project.steps.push(angular.copy(step_template));
 	};
 	
 	$scope.remove_step = function(project, index){
@@ -194,19 +263,19 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 	
 	$scope.copy_hpc_directives = function(step){
 		var copyFrom = undefined;
-		for(var index in $scope.selected_item.steps)
+		for(var index in $scope.selected_subproject.steps)
 		{
-			var s = $scope.selected_item.steps[index];
+			var s = $scope.selected_subproject.steps[index];
 			if (s.hpc_directives.account != "") {copyFrom = s; break;}
 		}
 		
 		if(copyFrom != undefined)
-			step.hpc_directives = Object.assign({}, copyFrom.hpc_directives);
+			step.hpc_directives = angular.copy(copyFrom.hpc_directives);
 	};
 	
 	$scope.select_step = function(index){
 		console.log("STEP SELECTED", index);
-		$scope.selected_step = $scope.selected_item.steps[index];
+		$scope.selected_step = $scope.selected_subproject.steps[index];
 	};
 	
 	$scope.produce_scripts = function(project){

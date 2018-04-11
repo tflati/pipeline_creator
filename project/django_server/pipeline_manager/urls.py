@@ -20,6 +20,7 @@ urlpatterns = [
     path('projects/', views.projects),
     path('load_project/<project_id>/', views.load_project),
     path('save_project/', views.save_project),
+    path('delete_project/', views.delete_project),
     path('produce_scripts/', views.produce_scripts),
     path('download_scripts/', views.download_scripts),
     path('modules/<prefix>/', views.modules),
