@@ -15,7 +15,7 @@ app.controller("autocompleteController", function($scope, $http, $q, $filter, $t
 
 			$timeout(function() {
 	        	
-	        	console.log("AUTOCOMPLETE AJAX [PRE]", $scope.url + query);
+//	        	console.log("AUTOCOMPLETE AJAX [PRE]", $scope.url + query);
 	        	
 	        	var url = $scope.url
 	        	if (query != "") url += query + "/"
@@ -50,9 +50,11 @@ app.controller("autocompleteController", function($scope, $http, $q, $filter, $t
 	};
 	
 	$scope.selectedItemChange = function(x){
-		console.log("AUTOCOMPLETE SELECTED", x);
-		$scope.onSelect({item: x});
-		$scope.value = undefined;
-		
+		if(x != undefined){
+			console.log("AUTOCOMPLETE SELECTED", x, $scope);
+			$scope.onSelect({elem: x, list: $scope.target});
+			
+			$scope.value = undefined;
+		}
 	}
 });

@@ -1,99 +1,148 @@
-<h3>Title</h3>
+<div layout="row">
+	<div>
+		<label>Title</label>
 		<input ng-model="step.title">
-		
-		<h3>Description (short)</h3>
+	</div>
+	
+	<div>
+		<label>Description (short)</label>
 		<input ng-model="step.description_short">
-		
-		<h3>Description</h3>
+	</div>
+	
+	<div>
+		<label>Description</label>
 		<input ng-model="step.description">
+	</div>
+</div>
+
+<h3>How this step of the pipeline will be executed</h3>
+<md-select ng-model="step.type" aria-label="Specifies the type of analysis for this step">
+   	<md-option ng-repeat="type in ['per-step', 'per-sample']" ng-value="type">
+   		<div flex layout="row">
+	   		<div>
+	   			<img ng-if="type == 'per-step'"   height="50px" src="imgs/per_step.png">
+	   			<img ng-if="type == 'per-sample'" height="50px" src="imgs/per_sample.png">
+	   		</div>
+	   		<div flex layout="row" layout-align="left center" layout-padding>
+		   		<span ng-if="type == 'per-step'" style="color: grey">{{type}}: 1 script - all samples</span>
+	     		<span ng-if="type == 'per-sample'" style="color: grey">{{type}}: 1 script - 1 sample</span>
+	     		
+	     		<span ng-if="type == 'per-step'" style="color: grey">(each step is applied to all samples)</span>
+	     		<span ng-if="type == 'per-sample'" style="color: grey">(each step is applied to each sample)</span>
+	   		</div>
+	   	</div>
+   	</md-option>
+</md-select>
+
+<h3>Skip this step if the following conditions are satisfied</h3>
+<md-button class="md-icon-button" ng-click="create_condition(step.conditions)" tooltip="Add condition" aria-label="Add condition">
+<!--   <i class="fas fa-plus-circle"></i> -->
+	<ng-md-icon icon="add_circle" style="fill:lightsalmon;"></ng-md-icon>
+</md-button>
+<div ng-repeat="condition in step.conditions">
+	<label><b>Condition {{$index+1}}.</b></label>
+	<md-button class="md-icon-button" ng-click="delete_condition(step.conditions, $index)" tooltip="Delete condition" aria-label="Delete condition">
+<!--   		<i class="fas fa-minus-circle"></i> -->
+		<ng-md-icon icon="remove_circle" style="fill:red;"></ng-md-icon>
+	</md-button>
+	<textarea class="code padding-10" ng-model="condition.command" rows="3" style="width: 90%;"></textarea>
+</div>
+
+<h3>Command line</h3>
+<textarea ng-model="step.commandline" rows="5" style="width: 90%;"></textarea>
+
+<h3>SLURM directives</h3>
+<div layout="column">
+	<div layout-padding>
+		<md-button class="md-raised md-warn md-icon-button" ng-click="copy_hpc_directives(step)" tooltip="Copy settings from other steps" aria-label="Copy settings from other steps">
+			<i class="fas fa-copy"></i>
+ 		</md-button>
+  		<span>Copy settings from other steps (if available)</span>
+	</div>
+<div>
+
+<md-input-container layout="row">
+	<label>Dependencies</label>
+	<md-select ng-model="step.hpc_directives.dependencies" multiple>
+        <md-option ng-repeat="s in subproject.steps" ng-value="s.title" ng-if="s != step">
+          {{s.title}}
+        </md-option>
+  		</md-select>
+</md-input-container>
 		
-		<h3>SLURM directives</h3>
-		<div layout="column">
-			<div layout-padding>
- 			<md-button class="md-raised md-warn md-icon-button" ng-click="copy_hpc_directives(step)" tooltip="Copy settings from other steps" aria-label="Copy settings from other steps">
- 				<i class="fas fa-copy"></i>
-    		</md-button>
-    		<span>Copy settings from other steps (if available)</span>
-			</div>
- 		<div>
- 			<md-content layout="column" layout-padding>
-		<md-input-container>
-			<label>Walltime</label>
-   			<input type="text" ng-model="step.hpc_directives.walltime">
-   		</md-input-container>
-   		<md-input-container>
-  				<label>Account name</label>
-  				<input type="text" ng-model="step.hpc_directives.account">
- 				</md-input-container>
- 				<md-input-container>
-  				<label>Job name</label>
-  				<input type="text" ng-model="step.hpc_directives.job_name">
- 				</md-input-container>
- 				<md-input-container>
-  				<label>Queue/Partition</label>
-  				<input type="text" ng-model="step.hpc_directives.queue">
- 				</md-input-container>
- 				<md-input-container>
-  				<label>Group list</label>
-  				<input type="text" ng-model="step.hpc_directives.group_list">
- 				</md-input-container>
- 				<md-input-container>
-  				<label>Number of nodes</label>
-  				<input type="number" min="0" ng-model="step.hpc_directives.nodes">
- 				</md-input-container>
- 				<md-input-container>
-  				<label>Number of CPU</label>
-  				<input type="number" min="0" ng-model="step.hpc_directives.cpu">
- 				</md-input-container>
- 				<md-input-container>
-  				<label>MPI processes</label>
-  				<input type="number" min="0" ng-model="step.hpc_directives.mpi_procs">
- 				</md-input-container>
- 				<md-input-container>
-  				<label>Memory (RAM)</label>
-  				<input type="number" min="0" ng-model="step.hpc_directives.memory.quantity">
- 				</md-input-container>
- 				<md-input-container>
-  				<label>Memory (MB, GB, TB)</label>
-  				<md-select ng-model="step.hpc_directives.memory.size">
-	            <md-option ng-repeat="size in ['MB', 'GB', 'TB']" ng-value="size">
-	              {{size}}
-	            </md-option>
-          </md-select>
- 				</md-input-container>
- 				<md-input-container>
-  				<label>Standard output</label>
-  				<input type="text" ng-model="step.hpc_directives.output">
- 				</md-input-container>
- 				<md-input-container>
-  				<label>Standard error</label>
-  				<input type="text" ng-model="step.hpc_directives.error">
- 				</md-input-container>
- 			</md-content>
- 		</div>
-		</div>
+<md-content layout="row" layout-padding layout-wrap>
+	<md-input-container>
+		<label>Walltime</label>
+  			<input type="text" ng-model="step.hpc_directives.walltime">
+  		</md-input-container>
+	<md-input-container>
+		<label>Account name</label>
+		<input type="text" ng-model="step.hpc_directives.account">
+	</md-input-container>
+	<md-input-container>
+		<label>Job name</label>
+		<input type="text" ng-model="step.hpc_directives.job_name">
+	</md-input-container>
+	<md-input-container>
+		<label>Queue/Partition</label>
+		<input type="text" ng-model="step.hpc_directives.queue">
+	</md-input-container>
+	<md-input-container>
+		<label>Group list</label>
+		<input type="text" ng-model="step.hpc_directives.group_list">
+	</md-input-container>
+	<md-input-container>
+		<label>Number of nodes</label>
+		<input type="number" min="0" ng-model="step.hpc_directives.nodes">
+	</md-input-container>
+	<md-input-container>
+		<label>Number of CPU</label>
+		<input type="number" min="0" ng-model="step.hpc_directives.cpu">
+	</md-input-container>
+	<md-input-container>
+		<label>MPI processes</label>
+		<input type="number" min="0" ng-model="step.hpc_directives.mpi_procs">
+	</md-input-container>
+	<md-input-container>
+		<label>Memory (RAM)</label>
+		<input type="number" min="0" ng-model="step.hpc_directives.memory.quantity">
+	</md-input-container>
+	<md-input-container>
+		<label>Memory (MB, GB, TB)</label>
+		<md-select ng-model="step.hpc_directives.memory.size">
+            <md-option ng-repeat="size in ['MB', 'GB', 'TB']" ng-value="size">
+              {{size}}
+            </md-option>
+      		</md-select>
+	</md-input-container>
+	<md-input-container>
+		<label>Standard output</label>
+		<input type="text" ng-model="step.hpc_directives.output">
+	</md-input-container>
+	<md-input-container>
+		<label>Standard error</label>
+		<input type="text" ng-model="step.hpc_directives.error">
+	</md-input-container>
+</md-content>
 		
-		<h3>Modules</h3>
-		<div layout="row">
-			<div layout="row" layout-padding>
-				<my-autocomplete flex on-select="add_module(item)" label="Search in modules" url="module_url"></my-autocomplete>
-				<div layout="column" layout-align="center start">
-					<div ng-repeat="module in step.modules track by $index" layout="row" layout-align="start center">
-						<b ng-bind="module"></b>
-						<span class="fa-layers fa-fw" ng-click="remove_module(step, $index)" layout-margin>
-						    <i class="fas fa-circle" style="color:Tomato"></i>
-						    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i>
-						</span>
-						<md-button class="md-icon-button" ng-click="move_item(step.modules, $index, -1, $event)">
-					      <ng-md-icon icon="keyboard_arrow_up" aria-label="Move up this module"></ng-md-icon>
-					    </md-button>
-					    <md-button class="md-icon-button" ng-click="move_item(step.modules, $index, 1, $event)">
-					      <ng-md-icon icon="keyboard_arrow_down" aria-label="Move down this module"></ng-md-icon>
-					    </md-button>
+<h3>Modules</h3>
+<div layout="row">
+	<div layout="row" layout-padding>
+		<my-autocomplete flex on-select="add_module(elem, list)" target="step.modules" label="Search in modules" url="module_url"></my-autocomplete>
+		<div layout="column" layout-align="center start">
+			<div ng-repeat="module in step.modules track by $index" layout="row" layout-align="start center">
+				<b ng-bind="module"></b>
+				<span class="fa-layers fa-fw" ng-click="remove_module(step, $index)" layout-margin>
+				    <i class="fas fa-circle" style="color:Tomato"></i>
+				    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i>
+				</span>
+				<md-button class="md-icon-button" ng-click="move_item(step.modules, $index, -1, $event)">
+			      <ng-md-icon icon="keyboard_arrow_up" aria-label="Move up this module"></ng-md-icon>
+			    </md-button>
+			    <md-button class="md-icon-button" ng-click="move_item(step.modules, $index, 1, $event)">
+			      <ng-md-icon icon="keyboard_arrow_down" aria-label="Move down this module"></ng-md-icon>
+			    </md-button>
 			</div>
 		</div>
 	</div>
 </div>
-		
-<h3>Command line</h3>
-<textarea ng-model="step.commandline" rows="5" style="width: 90%;"></textarea>

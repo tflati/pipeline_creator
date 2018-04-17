@@ -1,1 +1,2 @@
-project/django_server/pipeline_manager/scripts/
+project/django_server/pipeline_manager/scripts/*
+*pyc

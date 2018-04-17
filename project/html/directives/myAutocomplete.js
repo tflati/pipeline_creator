@@ -6,7 +6,8 @@ app.directive('myAutocomplete', function() {
 	scope: {
 		label: '@',
         url: '=',
-        onSelect: '&'
+        onSelect: '&',
+        target: '='
     }
   };
 });

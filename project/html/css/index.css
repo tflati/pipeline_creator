@@ -28,12 +28,32 @@ md-sidenav {
    min-height: 100%;
 }
 
-code {
+.code {
 	display:block;
 	background-color: black;
 	color: white;
 	font-weight: bold;
-	padding: 30px;
 	margin-top: 10px;
 	margin-bottom: 10px;
+}
+
+.padding-10 {
+	padding: 10px;
+}
+
+.padding-30 {
+	padding: 30px;
+}
+
+spacer {
+	display: block;
+	height: 75px;
+	width: 100%;	
+}
+
+.disabled_step {
+	background-color: lightsalmon;
+	fill: bisque !important;
+	color: bisque !important;
+	padding: 0 0 0 200px !important;
 }

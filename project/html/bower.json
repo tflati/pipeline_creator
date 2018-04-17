@@ -24,6 +24,7 @@
     "angular-sanitize": "^1.6.9",
     "angular-tooltips": "tooltips-angular#^1.0.5",
     "v-accordion": "^1.6.0",
-    "font-awesome": "^5.0.9"
+    "font-awesome": "^5.0.9",
+    "angular-moment": "^1.2.0"
   }
 }

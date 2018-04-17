@@ -4,32 +4,76 @@
 		<i class="fas fa-spinner fa-spin fa-3x"></i>		
 	</div>
 	
-<!-- 	<div ng-if="!sending && selected_project.projects.length == 0" layout="column" layout-align="start center" layout-padding> -->
-<!-- 		<h3>It seems this pipeline has not steps defined yet.</h3> -->
-<!-- 		<img class="medium-height" width="auto" src="imgs/empty_pipeline.png"> -->
-<!-- 		<md-button class="md-raised md-warn" ng-click="add_subproject(selected_project)">Add a step now</md-button> -->
-<!-- 	</div> -->
-	
 	<div ng-if="!sending && selected_project != undefined">
 		
 		<md-toolbar>
 			<div class="md-toolbar-tools">
 				<h2 flex md-truncate ng-bind="selected_project.title"></h2>
 				
-<!-- 				<md-button class="md-button md-warn md-raised" ng-click="add_step(selected_item)" tooltip="Add a step to this pipeline" aria-label="Add a new step"> -->
-<!-- 		          	<span class="fa-layers fa-fw"> -->
-<!-- 						<i class="fas fa-list-ol"></i> -->
-<!-- 						<i class="fas fa-plus" data-fa-transform="shrink-5 down-10 right-12"></i> -->
-<!-- 					</span> -->
-<!-- 				</md-button> -->
-			 
 			</div>
 		</md-toolbar>
 		
 		<div layout-padding>
 			
 			<section>
-			<md-subheader class="md-primary">Projects</md-subheader>
+				<md-subheader class="md-primary">Information</md-subheader>
+				<div layout="column">
+					<div layout="row">
+						<md-input-container>
+							<label>ID</label>
+				   			<input type="text" ng-model="selected_project.id">
+				   		</md-input-container>
+						<md-input-container>
+							<label>Title</label>
+				   			<input type="text" ng-model="selected_project.title">
+				   		</md-input-container>
+				   		<md-input-container>
+							<label>Subtitle</label>
+				   			<input type="text" ng-model="selected_project.subtitle">
+				   		</md-input-container>
+				   		<md-input-container>
+							<label>Creator</label>
+				   			<input type="text" ng-model="selected_project.creator">
+				   		</md-input-container>
+				   	</div>
+				   	
+				   	<div layout="column" style="margin-bottom: 2em;">
+			   			<div style="color: grey;">Creation date</div>
+			   			<div ng-if="selected_project.creation_date == undefined">No date available</div>
+			   			<div ng-if="selected_project.creation_date != undefined" layout="row">
+			   				<div>{{selected_project.creation_date | amDateFormat:'DD MMMM YYYY'}}</div>
+			   				<div style="color: grey;" tooltip="Exact date: {{selected_project.creation_date | amDateFormat:'DD MMMM YYYY HH:mm:ss'}}">
+			   					&nbsp;(<span am-time-ago="selected_project.creation_date"></span>)
+			   				</div>
+			   			</div>
+		   			</div>
+		   			
+				   	<div layout="column">
+				   		<md-input-container>
+							<label>Description</label>
+				   			<textarea ng-model="selected_project.description" rows="3"></textarea>
+				   		</md-input-container>
+				   	</div>
+			   	</div>
+			</section>
+			
+			<section>
+			<md-subheader class="md-primary">Summary</md-subheader>
+			
+				<div>
+					<div layout-padding>
+						<b>Total projects:</b>
+						<span>{{selected_project.projects.length}}</span>
+					</div>
+					<div layout-padding>
+						<b>Total samples:</b>
+						<span ng-bind="get_total_samples(selected_project)"></span>
+					</div>
+				</div>
+			</section>
+			
+			<section>
+				<md-subheader class="md-primary">Projects</md-subheader>
 			
 				<div ng-if="selected_project.projects == undefined" layout="column" layout-align="start center" layout-padding>
 					<h3>No subprojects have been defined yet for this project.</h3>
@@ -40,6 +84,13 @@
 				  <v-pane ng-repeat="subproject in selected_project.projects">
 				    <v-pane-header>
 				    	<span md-truncate flex><b>Project {{$index+1}}: {{subproject.dataset.id}}</b></span>
+				    	
+				    	<span ng-if="subproject.dataset.pairedend == true" md-truncate flex style="color: grey;"><b>(PE)</b></span>
+				    	<span ng-if="subproject.dataset.pairedend == false" md-truncate flex style="color: grey;"><b>(SE)</b></span>
+				    	
+				    	<span style="color: grey;"><b>({{subproject.dataset.genome}})</b></span>
+				    	
+				    	<span md-truncate flex style="color: grey;"><b> {{subproject.dataset.sample_ids.split('\n').length}} sample(s)</b></span>
 				    	
 				    	<md-button class="md-icon-button" ng-click="showDeleteSubprojectDialog($index, $event)" tooltip="Delete project" aria-label="Delete project">
 					      <ng-md-icon icon="delete"></ng-md-icon>
@@ -60,13 +111,14 @@
 				    </v-pane-header>
 				    <v-pane-content>
 				    	
-				    	<div ng-include="'templates/subproject.html'"></div>
+				    <div ng-include="'templates/subproject.html'"></div>
 				    	
 				    </v-pane-content>
 				  </v-pane>
 				</v-accordion>
 			</section>
 			
+			<spacer></spacer>			
 		</div>
 		
 		<div style="position: fixed; bottom: 10px; right: 10px;">

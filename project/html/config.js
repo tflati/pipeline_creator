@@ -9,7 +9,8 @@ var app = angular.module('pipelineCreator',
 			'tooltips',
 			'ngMeta',
 			'ngFileUpload',
-			'vAccordion'
+			'vAccordion',
+			'angularMoment'
 		]);
 
 app.config(function($mdThemingProvider, $httpProvider) {

@@ -1,4 +1,4 @@
-app.controller('mainController', function($scope, apiService, messageService, $document, $timeout, $mdDialog, $mdSidenav){
+app.controller('mainController', function($scope, apiService, moment, messageService, $document, $timeout, $mdDialog, $mdSidenav){
 	$scope.projects = undefined;
 	$scope.selected_project = undefined;
 	$scope.selected_subproject = undefined;
@@ -12,7 +12,8 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 			"title": "",
 			"subtitle": "",
 	        "description": "",
-	        "type": "",
+	        "creator": "",
+	        "creation_date": "",
 	        "projects": [
             ]
 	    };
@@ -21,16 +22,20 @@ app.controller('mainController', function($scope, apiService, messageService, $d
     	"steps": [],
     	"dataset": {
     		"id": "",
+    		"genome": "",
             "basedir": "",
             "create_per_sample_directory": true,
             "sample_ids": "",
             "sample_variable": "SAMPLE",
+            "genome_variable": "GENOME",
             "all_samples_variable": "ALL_SAMPLES",
-            "project_variable": "PROJECT"
+            "project_variable": "PROJECT",
+            "project_index_variable": "PROJECT_INDEX"
         }
 	};
 	
 	var step_template = {
+			"type": "",
 			"title": "",
 	        "description": "",
 	        "description_short": "",
@@ -48,10 +53,46 @@ app.controller('mainController', function($scope, apiService, messageService, $d
                     "size": 'GB'
                 },
                 "error": "",
-                "output": ""
+                "output": "",
+                "dependencies": []
             },
-	        "modules": []
+	        "modules": [],
+	        "skip": false,
+	        "conditions": [],
 	    };
+	
+	var condition_template = {
+		"command": ""	
+	};
+	
+	$scope.genomes = [
+		{
+			id: "ig_Mus_musculus/mm10",
+			organism: "Topo",
+			name: "Mus musculus (10)",
+			img: "imgs/genomes/mus_musculus.png"
+		},
+		{
+			id: "ig_Mus_musculus/mm9",
+			organism: "Topo",
+			name: "Mus musculus (9)",
+			img: "imgs/genomes/mus_musculus.png"
+		},
+		{
+			id: "ig_Rattus_norvegicus/rn6",
+			organism: "Ratto",
+			name: "Rattus norvegicus (rn6)",
+			img: "imgs/genomes/rattus.png"
+		}
+	];
+	
+//	var condition_template = {
+//			"conditions": [],
+//			"condition": {},
+//			"op": ""
+//	    };
+//	
+//	var ops = ["OR", "AND", "NOT"];
 	
 	$scope.sending = false;
 	
@@ -82,8 +123,9 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 	};
 	
 	$scope.select_subproject = function(item){
-		console.log("SELECTING SUBPROJECT", item,  $scope);
-		$scope.selected_subproject = $scope.selected_project.projects[item];
+		var subproject = $scope.selected_project.projects[item];
+		console.log("SELECTING SUBPROJECT", subproject,  $scope);
+		$scope.selected_subproject = subproject;
 	};
 	
 	$scope.cloneSubproject = function(index, $event){
@@ -92,10 +134,19 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 		$scope.selected_project.projects.push(angular.copy($scope.selected_project.projects[index]));
 	};
 	
-	$scope.add_module = function(item){
+	$scope.copy_steps = function(subproject){
+		for(var i=0; i<$scope.selected_project.projects.length; i++){
+			var subproj = $scope.selected_project.projects[i];
+			if (subproj == subproject) continue;
+			
+			subproj.steps = angular.copy(subproject.steps);
+		}
+	};
+	
+	$scope.add_module = function(item, list){
 		if(item != undefined){
-			console.log("ADDED MODULE", item, $scope);
-			$scope.selected_step.modules.push(item.label);
+			console.log("ADDED MODULE", item, list, $scope);
+			list.push(item.label);
 		}
 	};
 	
@@ -121,6 +172,9 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 
 	    $mdDialog.show(confirm).then(function(project) {
 	    	if (project != undefined){
+	    		
+	    		project.creation_date = moment();
+	    		
 		    	console.log("NEW PROJECT", project);
 		    	$scope.projects.push(project);
 		    	$scope.save(project);
@@ -128,6 +182,25 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 	    	}
 	    }, function() {
 	    });
+	};
+	
+	$scope.onChangeLibrary = function(state){
+		
+	};
+	
+	$scope.toggleStep = function(index, $event){
+		var step = $scope.selected_subproject.steps[index];
+		step.skip = !step.skip;
+		$event.stopPropagation();
+	};
+	
+	$scope.get_total_samples = function(selected_project){
+		var total = 0;
+		
+		for(var k=0; k<selected_project.projects.length; k++)
+			total += selected_project.projects[k].dataset.sample_ids.split('\n').length;
+		
+		return total;
 	};
 	
 	$scope.showDeleteProjectDialog = function(i, $event) {
@@ -240,6 +313,14 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 		project.steps.splice(index, 1);
 	};
 	
+	$scope.create_condition = function(list){
+		list.push(angular.copy(condition_template));
+	};
+	
+	$scope.delete_condition = function(list, $index){
+		list.splice($index, 1);
+	};
+	
 	$scope.move_item = function(list, index, offset, $event){
 		var element = list.splice(index, 1)[0];
 		
@@ -274,7 +355,7 @@ app.controller('mainController', function($scope, apiService, messageService, $d
 	};
 	
 	$scope.select_step = function(index){
-		console.log("STEP SELECTED", index);
+		console.log("STEP SELECTED", index, $scope);
 		$scope.selected_step = $scope.selected_subproject.steps[index];
 	};
 	

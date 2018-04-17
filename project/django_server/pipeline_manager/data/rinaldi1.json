@@ -8,7 +8,11 @@
                 "all_samples_variable": "ALL_SAMPLES",
                 "basedir": "/gpfs/scratch/userinternal/tcastign/rinaldi/input/9_PRJNA322294_AUTOMATIC",
                 "create_per_sample_directory": false,
-                "id": "9_PRJNA322294_AUTOMATIC",
+                "genome": "ig_Mus_musculus/mm10",
+                "genome_variable": "GENOME",
+                "id": "9_PRJNA322294_NEW",
+                "pairedend": true,
+                "project_index_variable": "PROJECT_INDEX",
                 "project_variable": "PROJECT",
                 "sample_ids": "SRR3555183\nSRR3555182\nSRR3555181\nSRR3555178\nSRR3555177\nSRR3555176\nSRR3555172\nSRR3555171\nSRR3555168\nSRR3555167\nSRR3555165\nSRR3555162\nSRR3555161\nSRR3555157\nSRR3555156\nSRR3555155\nSRR3555152\nSRR3555151\nSRR3555148\nSRR3555147\nSRR3555143\nSRR3555142\nSRR3555141\nSRR3555138\nSRR3555137\nSRR3555134\nSRR3555133\nSRR3555129\nSRR3555128\nSRR3555124\nSRR3555123\nSRR3555119\nSRR3555115\nSRR3555114\nSRR3555113\nSRR3555109\nSRR3555108\nSRR3555105\nSRR3555104\nSRR3555103\nSRR3555099\nSRR3555098\nSRR3555094\nSRR3555093\nSRR3555089\nSRR3555088\nSRR3555087",
                 "sample_variable": "SAMPLE"
@@ -16,119 +20,346 @@
             "steps": [
                 {
                     "commandline": "fastq-dump --split-files $SAMPLE -O $SAMPLE",
-                    "description": "Downloads the sample",
-                    "description_short": "Download",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE/${SAMPLE}_1.fastq ] && [ -s $SAMPLE/${SAMPLE}_2.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
                     "hpc_directives": {
                         "account": "cin_staff",
                         "cpu": 36,
-                        "error": "fastq-dump.err",
-                        "job_name": "fastq-dump",
+                        "dependencies": [],
+                        "error": "trimm.err",
+                        "job_name": "download_${PROJECT}_${GENOME}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
                         },
                         "mpi_procs": 0,
                         "nodes": 1,
-                        "output": "fastq-dump.out",
+                        "output": "trimm.out",
                         "queue": "gll_usr_prod",
-                        "walltime": "02:00:00"
+                        "walltime": "03:00:00"
                     },
                     "hpc_directives_text": "",
                     "modules": [
                         "profile/bioinf",
                         "sra/2.8.2"
                     ],
-                    "title": "Downloading"
+                    "skip": false,
+                    "title": "Download",
+                    "type": "per-step"
                 },
                 {
-                    "commandline": "java -Xmx2g -classpath /usr/local/bin/trimmomatic/trimmomatic.jar org.usadellab.trimmomatic.TrimmomaticSE -phred33 $BASEDIR/$SAMPLE/$SAMPLE_1.fastq ILLUMINACLIP:/Volumes/Storage_1/Sequencing_1/References/Contaminants/contaminants.fasta:2:40:12 LEADING:10 TRAILING:10 SLIDINGWINDOW:4:18 MINLEN:18\n\njava -Xmx2g -classpath /usr/local/bin/trimmomatic/trimmomatic.jar org.usadellab.trimmomatic.TrimmomaticSE -phred33 $BASEDIR/$SAMPLE/$SAMPLE_2.fastq ILLUMINACLIP:/Volumes/Storage_1/Sequencing_1/References/Contaminants/contaminants.fasta:2:40:12 LEADING:10 TRAILING:10 SLIDINGWINDOW:4:18 MINLEN:18",
-                    "description": "dqadioaoidh aodh ad ai jdoia d",
-                    "description_short": "Trimmomatic",
+                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar PE -threads 36 -phred33 $SAMPLE/${SAMPLE}_1.fastq $SAMPLE/${SAMPLE}_2.fastq $SAMPLE/${SAMPLE}_1.trim.paired.fastq $SAMPLE/${SAMPLE}_1.trim.unpaired.fastq $SAMPLE/${SAMPLE}_2.trim.paired.fastq $SAMPLE/${SAMPLE}_2.trim.unpaired.fastq ILLUMINACLIP:/cineca/prod/applications/trimmomatic/0.36/jre--1.8.0_111--binary/adapters/TruSeq3-PE.fa:2:30:10 LEADING:5 TRAILING:5 SLIDINGWINDOW:4:18 MINLEN:36",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE/${SAMPLE}_1.trim.paired.fastq ] && [ -s $SAMPLE/${SAMPLE}_2.trim.paired.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
                     "hpc_directives": {
                         "account": "cin_staff",
                         "cpu": 36,
-                        "error": "",
-                        "job_name": "",
+                        "dependencies": [
+                            "Download"
+                        ],
+                        "error": "trimm.err",
+                        "job_name": "trimm_${PROJECT}__${GENOME",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
                         },
                         "mpi_procs": 0,
                         "nodes": 1,
-                        "output": "",
+                        "output": "trimm.out",
                         "queue": "gll_usr_prod",
-                        "walltime": "02:00:00"
+                        "walltime": "03:00:00"
                     },
                     "hpc_directives_text": "",
                     "modules": [
                         "profile/bioinf",
-                        "cuda/9.0",
-                        "samtools/1.7",
-                        "python/2.7.12"
+                        "trimmomatic/0.36"
                     ],
-                    "title": "Trimming"
+                    "skip": false,
+                    "title": "Trimming",
+                    "type": "per-step"
                 },
                 {
-                    "commandline": "ciao",
-                    "description": "dqadioaoidh aodh ad ai jdoia d",
-                    "description_short": "FastQC",
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/rn6/genome -1 $SAMPLE/$SAMPLE_1.trim.paired.fastq $SAMPLE/$SAMPLE_2.trim.paired.fastq $SAMPLE/$SAMPLE_1.trim.unpaired.fastq $SAMPLE/$SAMPLE_2.trim.unpaired.fastq -S $SAMPLE/$SAMPLE.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE/$SAMPLE.sam ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
                     "hpc_directives": {
                         "account": "cin_staff",
                         "cpu": 36,
-                        "error": "fastq-dump.err",
-                        "job_name": "fastq-dump",
+                        "dependencies": [
+                            "Trimming"
+                        ],
+                        "error": "",
+                        "job_name": "hisat2_$PROJECT_ratto",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
                         },
                         "mpi_procs": 0,
                         "nodes": 1,
-                        "output": "fastq-dump.out",
-                        "queue": "gll_usr_prod",
-                        "walltime": "02:00:00"
-                    },
-                    "hpc_directives_text": "",
-                    "modules": [],
-                    "title": "Quality control"
-                },
-                {
-                    "commandline": "ciao",
-                    "description": "dqadioaoidh aodh ad ai jdoia d",
-                    "description_short": "Samtools",
-                    "hpc_directives": {
-                        "account": "",
-                        "cpu": 0,
-                        "error": "",
-                        "group_list": "",
-                        "job_name": "",
-                        "memory": {
-                            "quantity": 0,
-                            "size": "GB"
-                        },
-                        "mpi_procs": 0,
-                        "nodes": 1,
                         "output": "",
-                        "queue": "",
-                        "walltime": ""
+                        "queue": "gll_usr_prod",
+                        "walltime": "06:00:00"
                     },
                     "hpc_directives_text": "",
-                    "modules": [],
-                    "title": "Mapping"
+                    "modules": [
+                        "profile/bioinf",
+                        "hisat2/2.1.0"
+                    ],
+                    "skip": true,
+                    "title": "Mapping",
+                    "type": "per-sample"
                 }
-            ],
-            "type": "per-step"
+            ]
         },
         {
             "dataset": {
                 "all_samples_variable": "ALL_SAMPLES",
                 "basedir": "",
                 "create_per_sample_directory": true,
-                "id": "10. PRJNA267703.NEW",
+                "genome": "ig_Mus_musculus/mm10",
+                "id": "10_PRJNA267703_NEW",
+                "pairedend": true,
                 "project_variable": "PROJECT",
                 "sample_ids": "SRR1656681\nSRR1656680\nSRR1656679\nSRR1656678\nSRR1656677\nSRR1656676\nSRR1656675\nSRR1656674\nSRR1656673\nSRR1656672\nSRR1656671\nSRR1656670\nSRR1656669\nSRR1656668\nSRR1656667",
                 "sample_variable": "SAMPLE"
             },
-            "steps": []
+            "steps": [
+                {
+                    "commandline": "fastq-dump --split-files $SAMPLE -O $SAMPLE",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE/${SAMPLE}_1.fastq ] && [ -s $SAMPLE/${SAMPLE}_2.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [],
+                        "error": "trimm.err",
+                        "job_name": "download_${PROJECT}_${GENOME",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "trimm.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "03:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "sra/2.8.2"
+                    ],
+                    "skip": false,
+                    "title": "Download",
+                    "type": "per-step"
+                },
+                {
+                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar PE -threads 36 -phred33 $SAMPLE/${SAMPLE}_1.fastq $SAMPLE/${SAMPLE}_2.fastq $SAMPLE/${SAMPLE}_1.trim.paired.fastq $SAMPLE/${SAMPLE}_1.trim.unpaired.fastq $SAMPLE/${SAMPLE}_2.trim.paired.fastq $SAMPLE/${SAMPLE}_2.trim.unpaired.fastq ILLUMINACLIP:/cineca/prod/applications/trimmomatic/0.36/jre--1.8.0_111--binary/adapters/TruSeq3-PE.fa:2:30:10 LEADING:5 TRAILING:5 SLIDINGWINDOW:4:18 MINLEN:36",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE/${SAMPLE}_1.trim.paired.fastq ] && [ -s $SAMPLE/${SAMPLE}_2.trim.paired.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Download"
+                        ],
+                        "error": "trimm.err",
+                        "job_name": "trimm_${PROJECT}_${GENOME",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "trimm.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "03:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "trimmomatic/0.36"
+                    ],
+                    "skip": false,
+                    "title": "Trimming",
+                    "type": "per-step"
+                },
+                {
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/rn6/genome -1 $SAMPLE/$SAMPLE_1.trim.paired.fastq $SAMPLE/$SAMPLE_2.trim.paired.fastq $SAMPLE/$SAMPLE_1.trim.unpaired.fastq $SAMPLE/$SAMPLE_2.trim.unpaired.fastq -S $SAMPLE/$SAMPLE.sam",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Trimming"
+                        ],
+                        "error": "",
+                        "job_name": "hisat2_$PROJECT_${GENOME",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "",
+                        "queue": "gll_usr_prod",
+                        "walltime": "06:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "hisat2/2.1.0"
+                    ],
+                    "skip": true,
+                    "title": "Mapping",
+                    "type": "per-sample"
+                }
+            ]
+        },
+        {
+            "dataset": {
+                "all_samples_variable": "ALL_SAMPLES",
+                "basedir": "",
+                "create_per_sample_directory": true,
+                "genome": "ig_Rattus_norvegicus/rn6",
+                "id": "11_PRJNA341670_NEW",
+                "pairedend": true,
+                "project_index_variable": "PROJECT_INDEX",
+                "project_variable": "PROJECT",
+                "sample_ids": "SRR4123959\nSRR4123958\nSRR4123957\nSRR4123956\nSRR4123955\nSRR4123954",
+                "sample_variable": "SAMPLE"
+            },
+            "steps": [
+                {
+                    "commandline": "fastq-dump --split-files $SAMPLE -O $SAMPLE",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE/${SAMPLE}_1.fastq ] && [ -s $SAMPLE/${SAMPLE}_2.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [],
+                        "error": "trimm.err",
+                        "job_name": "download_${PROJECT}_${GENOME",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "trimm.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "03:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "sra/2.8.2"
+                    ],
+                    "skip": false,
+                    "title": "Download",
+                    "type": "per-step"
+                },
+                {
+                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar PE -threads 36 -phred33 $SAMPLE/${SAMPLE}_1.fastq $SAMPLE/${SAMPLE}_2.fastq $SAMPLE/${SAMPLE}_1.trim.paired.fastq $SAMPLE/${SAMPLE}_1.trim.unpaired.fastq $SAMPLE/${SAMPLE}_2.trim.paired.fastq $SAMPLE/${SAMPLE}_2.trim.unpaired.fastq ILLUMINACLIP:/cineca/prod/applications/trimmomatic/0.36/jre--1.8.0_111--binary/adapters/TruSeq3-PE.fa:2:30:10 LEADING:5 TRAILING:5 SLIDINGWINDOW:4:18 MINLEN:36",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE/${SAMPLE}_1.trim.paired.fastq ] && [ -s $SAMPLE/${SAMPLE}_2.trim.paired.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Download"
+                        ],
+                        "error": "trimm.err",
+                        "job_name": "trimm_${PROJECT}_${GENOME",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "trimm.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "03:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "trimmomatic/0.36"
+                    ],
+                    "skip": false,
+                    "title": "Trimming",
+                    "type": "per-step"
+                },
+                {
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/rn6/genome -1 $SAMPLE/$SAMPLE_1.trim.paired.fastq $SAMPLE/$SAMPLE_2.trim.paired.fastq $SAMPLE/$SAMPLE_1.trim.unpaired.fastq $SAMPLE/$SAMPLE_2.trim.unpaired.fastq -S $SAMPLE/$SAMPLE.sam",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Trimming"
+                        ],
+                        "error": "hisat.err",
+                        "job_name": "hisat2_$PROJECT_${GENOME",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "hisat.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "06:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "hisat2/2.1.0"
+                    ],
+                    "skip": false,
+                    "title": "Mapping",
+                    "type": "per-sample"
+                }
+            ]
         }
     ],
     "subtitle": "Arianna",

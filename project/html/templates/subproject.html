@@ -1,15 +1,25 @@
 <section>
 	<md-subheader class="md-primary">Analysis type</md-subheader>
-	<label>How each step of the pipeline will be executed</label>
-	<md-select ng-model="project.type" aria-label="Specifies the type of analysis">
-       	<md-option ng-repeat="type in ['per-step', 'per-sample']" ng-value="type">
-         		<span>{{type}}</span>
-         		<span ng-if="type == 'per-step'" style="color: grey">(each step is applied to all samples)</span>
-         		<span ng-if="type == 'per-sample'" style="color: grey">(all the steps are applied to each sample)</span>
+	
+	<md-switch md-invert ng-model="subproject.dataset.pairedend" aria-label="Library" ng-change="onChangeLibrary(subproject.dataset.pairedend)">
+    	Paired-end library {{ pairedend }}
+  	</md-switch>
+  	
+  	<label>Select the genome</label>
+	<md-select ng-model="subproject.dataset.genome" aria-label="Specifies the genome">
+       	<md-option ng-repeat="genome in genomes" ng-value="genome.id">
+       		<div flex layout="row">
+       			<div>
+       				<img width="50px" ng-src="{{genome.img}}">
+       			</div>
+	       		<div layout="row" layout-align="left center">
+					<span>{{genome.organism}} - {{genome.name}} &nbsp;</span><span style="color: grey;">({{genome.id}})</span>
+	       		</div>
+	       	</div>
        	</md-option>
 	</md-select>
 </section>
-    		
+
 <section>
 	<md-subheader class="md-primary">Dataset</md-subheader>
 	<label>Dataset information</label>
@@ -30,9 +40,13 @@
 		</md-checkbox>
 		</md-input-container>
 		<md-input-container>
-			<label>Variable to use across scripts to refer to this project</label>
+			<label>Variable to use across scripts to refer to this project ID</label>
 			<input label="Project variable" type="text" ng-model="subproject.dataset.project_variable">
 		</md-input-container>
+		<md-input-container>
+			<label>Variable to use across scripts to refer to the index of this project</label>
+			<input label="Project index variable" type="text" ng-model="subproject.dataset.project_index_variable">
+		</md-input-container>		
 		<md-input-container>
 			<label>Variable to use across scripts to refer to a sample in this project</label>
 			<input label="Sample variable" type="text" ng-model="subproject.dataset.sample_variable">
@@ -42,23 +56,42 @@
 			<input label="All-samples variable" type="text" ng-model="subproject.dataset.all_samples_variable">
 		</md-input-container>
 	</md-content>
-    		</section>
+</section>
 
 <section>
 	<md-subheader class="md-primary">Steps</md-subheader>
+	<div layout="column">
+		<div layout-padding>
+			<md-button class="md-raised md-warn md-icon-button" ng-click="copy_steps(subproject)" tooltip="Copy these steps to ALL other projects" aria-label="Copy these steps to ALL other projects">
+				<i class="fas fa-copy"></i>
+   			</md-button>
+   			<span>Copy these steps to ALL other projects</span>
+		</div>
+	<div>
 	<v-accordion multiple onexpand="select_step(index)">
 	  <v-pane ng-repeat="step in subproject.steps">
-	    <v-pane-header>
-	    	<span md-truncate flex><b>Step {{$index+1}}: {{step.title}}</b></span>
-	    	<md-button class="md-icon-button" ng-click="showDeleteStepDialog($index, $event)">
-		      <ng-md-icon icon="delete" aria-label="Remove step"></ng-md-icon>
+	    <v-pane-header ng-class="{disabled_step: step.skip}">
+	    
+	    	<md-button ng-if="step.skip" class="md-icon-button">
+		      <ng-md-icon icon="low_priority"></ng-md-icon>
+		    </md-button>
+	    	
+	    	<span md-truncate flex><b ng-if="step.skip">(skipped)&nbsp;</b><b>Step {{$index+1}}: {{step.title}}</b></span>
+	    	
+	    	<md-button class="md-icon-button" ng-click="showDeleteStepDialog($index, $event)" tooltip="Delete this step" aria-label="Remove step">
+		      <ng-md-icon icon="delete"></ng-md-icon>
 		    </md-button>
 		    
-		    <md-button class="md-icon-button" ng-click="move_item(subproject.steps, $index, -1, $event)">
-		      <ng-md-icon icon="keyboard_arrow_up" aria-label="Move up this step"></ng-md-icon>
+		    <md-button class="md-icon-button" ng-click="toggleStep($index, $event)" tooltip="Exclude/include this step" aria-label="Exclude/include step">
+		      <ng-md-icon icon="highlight_off"></ng-md-icon>
 		    </md-button>
-		    <md-button class="md-icon-button" ng-click="move_item(subproject.steps, $index, 1, $event)">
-		      <ng-md-icon icon="keyboard_arrow_down" aria-label="Move down this step"></ng-md-icon>
+		    
+		    
+		    <md-button class="md-icon-button" ng-click="move_item(subproject.steps, $index, -1, $event)" tooltip="Move up this step" aria-label="Move up this step">
+		      <ng-md-icon icon="keyboard_arrow_up"></ng-md-icon>
+		    </md-button>
+		    <md-button class="md-icon-button" ng-click="move_item(subproject.steps, $index, 1, $event)" tooltip="Move down this step" aria-label="Move down this step">
+		      <ng-md-icon icon="keyboard_arrow_down"></ng-md-icon>
 		    </md-button>
 		    
 	    </v-pane-header>
