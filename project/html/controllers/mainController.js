@@ -21,6 +21,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	
 	var subproject_template = {
     	"steps": [],
+    	"disabled": false,
     	"dataset": {
     		"id": "",
     		"cluster": "",
@@ -61,6 +62,8 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	        "modules": [],
 	        "skip": false,
 	        "sequential": true,
+	        "write_stdout_log": true,
+	        "write_stderr_log": true,
 	        "conditions": [],
 	    };
 	

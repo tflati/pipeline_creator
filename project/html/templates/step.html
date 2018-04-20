@@ -51,8 +51,14 @@
 <h3>Command line</h3>
 <textarea ng-model="step.commandline" rows="5" style="width: 90%;"></textarea>
 <md-switch ng-model="step.sequential" aria-label="Analysis mode">
-    	Sequential analysis: {{ step.sequential }} <span style="color: grey;">(each sample is analyzed after the other)</span>
-  	</md-switch>
+	Sequential analysis: {{ step.sequential }} <span style="color: grey;">(each sample is analyzed after the other)</span>
+</md-switch>
+<md-switch ng-model="step.write_stdout_log" aria-label="Stdout to log">
+	Write stdout of this command to log: {{ step.write_stdout_log }}
+</md-switch>
+<md-switch ng-model="step.write_stderr_log" aria-label="Stderr to log">
+	Write stderr of this command to log: {{ step.write_stderr_log }}
+</md-switch>
 
 <h3>SLURM directives</h3>
 

@@ -10,17 +10,22 @@ import shutil
 from graph_tool.all import *
 
 class MyBFSVisitor(graph_tool.search.BFSVisitor):
-    def __init__(self, int2step, file, dataset, vertex_names):
-        self.int2step = int2step
+    def __init__(self, vertex2step, file, dataset, vertex2name):
+        self.vertex2step = vertex2step
         self.file = file
         self.dataset = dataset
-        self.vertex_names = vertex_names
+        self.vertex2name = vertex2name
         
     def examine_vertex(self, u):
         """
         Called when edge is checked
         """
-        step = self.int2step[u]
+        if self.vertex2name[u] == "ROOT":
+            print("VISITING SPECIAL ROOT")
+            return
+        
+        step = self.vertex2step[u]
+        print("VISITING", self.vertex2name[u], step["title"], step["type"])
         
         if step["type"] == "per-step":
             single_step_allsamples_writer(step, self, u)
@@ -28,6 +33,9 @@ class MyBFSVisitor(graph_tool.search.BFSVisitor):
             single_step_singlesample_writer(step, self, u)
         
 def single_step_allsamples_writer(step, self, u):
+    
+    sample_variable = self.dataset["sample_variable"]
+    
     sh_file = step["title"]+".sh"
         
     self.file.write("##########################\n######  {}  ########\n##########################\n".format(step["title"]))
@@ -43,12 +51,12 @@ def single_step_allsamples_writer(step, self, u):
 """
 # Checking skip conditions
 execute=0
-for SAMPLE in `cat "dataset.txt"`
+for {} in `cat "dataset.txt"`
 do
     {}
     step_condition=$?
     echo "{}"
-    echo {} $SAMPLE $step_condition
+    echo {} ${} $step_condition
     if [ "$step_condition" -eq 1 ]
     then
         execute=1
@@ -56,24 +64,24 @@ do
     fi
 done
 
-""".format(condition["command"], condition["command"], step["title"]))
+""".format(sample_variable, condition["command"], condition["command"], step["title"], sample_variable))
 
     # TODO - clearer: eventually write explicit variables called like: trimmomatic_job_long_name and concatenate
     # these to form the depend=afterany string
     self.file.write("DEPS=()\n")
     for dep in u.in_neighbors():
-        dep_step = self.int2step[dep]
+        dep_name = self.vertex2name[dep]
         
         dep_script = """
 DEP_JOB_NAME="{}"
 echo $DEP_JOB_NAME
 DEP_JOB_ID=${{JOB_IDS["$DEP_JOB_NAME"]}}
-echo $DEP_JOB_ID
+echo "DEPJOBID="$DEP_JOB_ID
 
 if [ ! -z $DEP_JOB_ID ]
 then
     DEPS+=($DEP_JOB_ID)
-fi """.format(dep_step["title"])
+fi """.format(dep_name)
                 
         self.file.write(dep_script)
             
@@ -82,13 +90,13 @@ sh_file="{}"
 echo $sh_file "execute="$execute
 if [ $execute -eq 1 ]
 then
-    echo ${{DEPS[@]}}
+    echo "DEPENDENCIES($sh_file)=" ${{DEPS[@]}}
     set -o xtrace
     if [[ ! -z "$DEPS" ]]
     then
-        job_long_name=$(sbatch --depend=afterany$(printf ":%s" "${{DEPS[@]}}") ./$sh_file)
+        job_long_name=$(sbatch --depend=afterany$(printf ":%s" "${{DEPS[@]}}") ./"$sh_file")
     else
-        job_long_name=$(sbatch ./$sh_file)
+        job_long_name=$(sbatch ./"$sh_file")
     fi
     
     job_id=$(echo $job_long_name | cut -d' ' -f4)
@@ -105,8 +113,10 @@ fi
     
 def single_step_singlesample_writer(step, self, u):
     
+    sample_variable = self.dataset["sample_variable"]
+    
     for sample in self.dataset["sample_ids"].split("\n"):
-        v_name = self.vertex_names[u]
+        v_name = self.vertex2name[u]
         name = step["title"] + "-" + sample
         if v_name != name: continue
         
@@ -121,7 +131,7 @@ def single_step_singlesample_writer(step, self, u):
         if conditions:
             for condition in conditions:
                 command = condition["command"]
-                command = command.replace("${SAMPLE}", sample)
+                command = command.replace("${{{}}}".format(sample_variable), sample)
                     
                 self.file.write(
 """
@@ -143,22 +153,22 @@ fi
         # these to form the depend=afterany string
         self.file.write("DEPS=()\n")
         for dep in u.in_neighbors():
-            dep_step = self.int2step[dep]
+            dep_name = self.vertex2name[dep]
             
             dep_script = """
 DEP_JOB_NAME="{}"
 echo $DEP_JOB_NAME
 DEP_JOB_ID=${{JOB_IDS["$DEP_JOB_NAME"]}}
-echo $DEP_JOB_ID
+echo "DEPJOBID="$DEP_JOB_ID
 
 if [ ! -z $DEP_JOB_ID ]
 then
     DEPS+=($DEP_JOB_ID)
 fi
 
-""".format(dep_step["title"])
+""".format(dep_name)
                 
-        self.file.write(dep_script)
+            self.file.write(dep_script)
             
         script = """
 sh_file="{}"
@@ -169,9 +179,9 @@ then
     set -o xtrace
     if [[ ! -z "$DEPS" ]]
     then
-        job_long_name=$(sbatch --depend=afterany$(printf ":%s" "${{DEPS[@]}}") ./$sh_file)
+        job_long_name=$(sbatch --depend=afterany$(printf ":%s" "${{DEPS[@]}}") ./"$sh_file")
     else
-        job_long_name=$(sbatch ./$sh_file)
+        job_long_name=$(sbatch ./"$sh_file")
     fi
     
     job_id=$(echo $job_long_name | cut -d' ' -f4)
@@ -290,7 +300,6 @@ def save_project(request):
 
 def delete_project(request):
     data = json.loads(request.body.decode('utf-8'))
-    
     project_id = data["id"]
     filepath = os.path.dirname(__file__) + "/data/"+project_id+".json"
     os.remove(filepath)
@@ -319,75 +328,124 @@ def produce_scripts(request):
         subproject_dir = script_dir + "/" + subproject_id
         if not os.path.exists(subproject_dir):
             os.makedirs(subproject_dir)
-            
+        
+        # Create a file with all the sample ids
         dataset_writer = open(subproject_dir + "/dataset.txt", "w")
         for sample in dataset["sample_ids"].split("\n"):
             dataset_writer.write(sample + "\n")
         dataset_writer.close()
         
+        # Generate single scripts (per-sample or per-step)
         for step in subproject["steps"]:
             if step["skip"]: continue
             
             if step["type"] == "per-step":
-                create_step_all_samples(subproject_id, subproject_dir, genome, step)
+                create_step_all_samples(subproject_id, subproject_dir, genome, step, dataset)
             elif step["type"] == "per-sample":
-                create_allsteps_single_sample(subproject_id, subproject_dir, genome, step, dataset["sample_ids"].split("\n"))
+                create_allsteps_single_sample(subproject_id, subproject_dir, genome, step, dataset)
         
+        
+#         for step in subproject["steps"]:
+#             if step["type"] == "per-step":
+#                 name = step["title"]
+#                 vertexname2step[name] = step
+#             elif step["type"] == "per-sample":
+#                 for sample in dataset["sample_ids"].split("\n"):
+#                     name = step["title"] + "-" + sample
+#                     vertexname2step[name] = step
+        
+        # Initial graph setup
         g = Graph()
-        step2int = {}
-        vertex_names = g.new_vertex_property("string")
+        name2vertex = {}
+        vertexname2step = {}
+        stepname2step = {}
+        vertex2name = g.new_vertex_property("string")
         for step in subproject["steps"]:
+            stepname2step[step["title"]] = step
+            
             if step["type"] == "per-step":
                 v = g.add_vertex()
                 name = step["title"]
-                step2int[name] = v
-                vertex_names[v] = name
+                name2vertex[name] = v
+                vertex2name[v] = name
+                vertexname2step[name] = step
+                
             elif step["type"] == "per-sample":
                 for sample in dataset["sample_ids"].split("\n"):
                     v = g.add_vertex()
                     name = step["title"] + "-" + sample
-                    step2int[name] = v
-                    vertex_names[v] = name
-            
+                    name2vertex[name] = v
+                    vertex2name[v] = name
+                    vertexname2step[name] = step
+        
         for step in subproject["steps"]:
             if step["type"] == "per-step":
                 name = step["title"]
-                v = step2int[name]
+                v = name2vertex[name]
                 for dep in step["hpc_directives"]["dependencies"]:
-                     u = step2int[dep]
-                     g.add_edge(u, v)
+                    dep_step = stepname2step[dep]
+                    if dep_step["skip"]: continue
+                    
+                    # 1 -> 1
+                    if dep_step["type"] == "per-step":
+                        name = dep_step["title"]
+                        u = name2vertex[name]
+                        g.add_edge(u, v)
+                    
+                    # molti -> 1     
+                    elif dep_step["type"] == "per-sample":
+                        name = dep_step["title"] + "-" + sample
+                        for sample in dataset["sample_ids"].split("\n"):
+                            name = dep_step["title"] + "-" + sample
+                            u = name2vertex[name]
+                            g.add_edge(u, v)
+                    
             elif step["type"] == "per-sample":
                 for sample in dataset["sample_ids"].split("\n"):
                     name = step["title"] + "-" + sample
-                    v = step2int[name]
+                    v = name2vertex[name]
                     for dep in step["hpc_directives"]["dependencies"]:
-                        u = step2int[dep]
-                        g.add_edge(u, v)
-        
+                        dep_step = stepname2step[dep]
+                        if dep_step["skip"]: continue
+                        
+                        # 1 -> 1
+                        if dep_step["type"] == "per-step":
+                            name = dep_step["title"]
+                            u = name2vertex[name]
+                            g.add_edge(u, v)
+                        
+                        # molti -> 1     
+                        elif dep_step["type"] == "per-sample":
+                            name = dep_step["title"] + "-" + sample
+                            u = name2vertex[name]
+                            g.add_edge(u, v)
+                            
         print("#" * 100)
         
-        print("Subproject", dataset["id"])         
-        vertices = []
-        for v in g.vertices():
-#             s = int2step[v]
-            s = vertex_names[v]
-            vertices.append(s)
-        print("V=", vertices)
-        edges = []
-        for e in g.edges():
-            u = vertex_names[e.source()]
-            v = vertex_names[e.target()]
-            edges.append(u+"->"+v)
-        print("E=\n", "\n".join(edges))
-        print("STEP2INT",step2int)
-            
         # Simplify by removing skip nodes
         for step in subproject["steps"]:
             if step["skip"]:
                 if step["type"] == "per-step":
                     name = step["title"]
-                    v = step2int[name]
-                    
+                    v = name2vertex[name]
+
+#                     if v.in_degree() == v.out_degree() and v.in_degree() > 0:
+#                         for e_in in v.in_edges():
+#                             fr = e_in.source()
+#                             g.remove_edge(e_in)
+#                             
+#                             fr_name = vertex2name[fr]
+#                             sample_fr = fr_name.split("-")[-1]
+#                             
+#                             for e_out in v.out_edges():
+#                                 to = e_out.target()
+#                                 to_name = vertex2name[to]
+#                                 sample_to = to_name.split("-")[-1]
+#                                 if sample_to != sample_fr: continue
+#                                 
+#                                 g.remove_edge(e_out)
+#                                 g.add_edge(fr, to)
+#                     else:                
                     for e_in in v.in_edges():
                         fr = e_in.source()
                         g.remove_edge(e_in)
@@ -395,7 +453,7 @@ def produce_scripts(request):
                         for e_out in v.out_edges():
                             to = e_out.target()
                             g.remove_edge(e_out)
-                            g.add_edge(fr, to)                
+                            g.add_edge(fr, to)
                     
                     print("Removing", name, v)
                     g.remove_vertex(v)
@@ -406,8 +464,8 @@ def produce_scripts(request):
                         name = step["title"] + "-" + sample
                         print("Trying to remove this step for sample=", sample, name)
                         
-                        v = step2int[name]
-                    
+                        v = name2vertex[name]
+                        
                         for e_in in v.in_edges():
                             fr = e_in.source()
                             print("Edge source", fr)
@@ -423,23 +481,58 @@ def produce_scripts(request):
                     for v in reversed(sorted(vertices_to_remove)):
                         g.remove_vertex(v)
         
-        title2step = {}
-        for step in subproject["steps"]:
-            if step["type"] == "per-step":
-                name = step["title"]
-                title2step[name] = step
-            elif step["type"] == "per-sample":
-                for sample in dataset["sample_ids"].split("\n"):
-                    name = step["title"] + "-" + sample
-                    title2step[name] = step
-            
-        int2step = {}
+        vertex2step = {}
+        roots = []
         for v in g.vertices():
-            name = vertex_names[v]
-            int2step[v] = title2step[name]
+            name = vertex2name[v]
+            step = vertexname2step[name]
+            vertex2step[v] = step
+            if v.in_degree() == 0:
+                roots.append(v)
         
-        # Draw the graph
-        graph_draw(GraphView(g, directed=True), pos=sfdp_layout(g), vertex_text=vertex_names, vertex_font_size=18, output=subproject_dir + "/" + subproject_id + ".svg")
+        fake_root = g.add_vertex()
+        vertex2name[fake_root] = "ROOT"
+        for root in roots:
+            g.add_edge(fake_root, root)
+            
+        #digraph {
+        #     a -> b;
+        #     b -> c;
+        #     c -> d;
+        #     d -> a;
+        # }
+        dot_file = open(subproject_dir + "/graph.dot", "w")
+        dot_file.write("digraph {\n")
+        print("Subproject", dataset["id"])
+        vertices = []
+        for v in g.vertices():
+            s = vertex2name[v]
+            vertices.append(s)
+        print("V=", vertices)
+        for vertex in vertices:
+            dot_file.write("\"{}\"\n".format(vertex))
+        
+        edges = []
+        for e in g.edges():
+            u = vertex2name[e.source()]
+            v = vertex2name[e.target()]
+            edges.append(u+"->"+v)
+            dot_file.write("\"{}\" -> \"{}\";\n".format(u, v))
+        print("E=\n", "\n".join(edges))
+        dot_file.write("\n}")
+#         print("STEP2INT",name2vertex)
+        
+        # Save the graph as an image
+        layout = sfdp_layout(g)
+#         layout = planar_layout(g)
+        graph_draw(GraphView(g, directed=True),
+                   pos=layout,
+                   vertex_text=vertex2name,
+                   vertex_font_size=80,
+                   output_size=(10000, 10000),
+                   output=subproject_dir + "/" + subproject_id + ".svg")
+        
+#         interactive_window(g, pos=sfdp_layout(g), vertex_text=vertex2name, vertex_font_size=20, geometry=(1000, 1000))
         
         # Subproject .sh
         filepath = subproject_dir + "/" + subproject_id +".sh"
@@ -454,13 +547,14 @@ def produce_scripts(request):
         
         file.write("declare -A JOB_IDS\n\n")
         
-        # Concrete job writer
-        bfs_search(g, visitor=MyBFSVisitor(int2step, file, dataset, vertex_names))
+        # Graph BFS-search
+        bfs_search(g, source=fake_root, visitor=MyBFSVisitor(vertex2step, file, dataset, vertex2name))
+        
         file.close()
         st = os.stat(filepath)
         os.chmod(filepath, st.st_mode | stat.S_IEXEC)
         
-    # Project .sh
+    # Master script
     filepath = script_dir + "/" + project["id"] +".sh"
     file = open(filepath, "w")
     file.write("#!/bin/bash\n\n")
@@ -483,9 +577,10 @@ def produce_scripts(request):
     
     return HttpResponse("Scripts correctly created for project: '{}'".format(project["id"]))
 
-def create_step_all_samples(subproject_id, subproject_dir, genome, step):
+def create_step_all_samples(subproject_id, subproject_dir, genome, step, dataset):
     directives = step["hpc_directives"]
-                
+    sample_variable = dataset["sample_variable"]
+    
     sh_name = step["title"]+".sh"
     filepath = subproject_dir + "/" + sh_name
     
@@ -507,8 +602,10 @@ def create_step_all_samples(subproject_id, subproject_dir, genome, step):
     file.write("#SBATCH --mem={}{}\n".format(directives["memory"]["quantity"], directives["memory"]["size"]))
     file.write("#SBATCH --time {}\n".format(directives["walltime"]))
     file.write("#SBATCH --account {}\n".format(directives["account"]))
-    file.write("#SBATCH --error {}\n".format(directives["error"]))
-    file.write("#SBATCH --output {}\n".format(directives["output"]))
+    if "error" not in directives or directives["error"] == "": directives["error"] = step["title"] + ".err"
+    file.write("#SBATCH --error {}\n".format(directives["error"].replace(" ", "-")))
+    if "output" not in directives or directives["output"] == "": directives["output"] = step["title"] + ".out"
+    file.write("#SBATCH --output {}\n".format(directives["output"].replace(" ", "-")))
     
     file.write("cd $SLURM_SUBMIT_DIR\n\n")
     
@@ -520,9 +617,9 @@ def create_step_all_samples(subproject_id, subproject_dir, genome, step):
     file.write("\n\n# Command line(s)\n\n")
     
     file.write("""
-for SAMPLE in `cat "dataset.txt"`
+for {} in `cat "dataset.txt"`
 do\n
-""")
+""".format(sample_variable))
                 
     conditions = step["conditions"]
     if conditions:
@@ -531,20 +628,27 @@ do\n
     {}
     step_condition=$?
     echo "{}"
-    echo {} $SAMPLE $step_condition
+    echo {} ${} $step_condition
     if [ "$step_condition" -eq 0 ]
     then
         continue
     fi
     
-""".format(condition["command"], condition["command"], step["title"]))
+""".format(sample_variable, condition["command"], condition["command"], step["title"], sample_variable))
     
-    file.write("    if [ ! -d $SAMPLE ] ; then mkdir $SAMPLE; fi\n")
+    file.write("    if [ ! -d ${} ] ; then mkdir ${}; fi\n".format(sample_variable, sample_variable))
     
-    file.write("    {} >$SAMPLE/{}.out 2>$SAMPLE/{}.err".format(step["commandline"], step["title"], step["title"]))
+    file.write("set +o xtrace;    {}".format(step["commandline"]))
+    
+    if "write_stdout_log" in step and step["write_stdout_log"]:
+        file.write(" >\"${}/{}.out\"".format(sample_variable, step["title"]))
+
+    if "write_stderr_log" in step and step["write_stderr_log"]:
+        file.write(" 2>\"${}/{}.err\"".format(sample_variable, step["title"]))
     
     if "sequential" not in step or step["sequential"] == False:
         file.write(" &")
+        
     file.write("\n")
     
     file.write("""
@@ -559,8 +663,9 @@ wait
 
 def create_allsteps_single_sample(subproject_id, subproject_dir, genome, step, dataset):
     directives = step["hpc_directives"]
+    sample_variable = dataset["sample_variable"]
     
-    for sample in dataset:
+    for sample in dataset["sample_ids"].split("\n"):
         sh_name = step["title"] + "-" + sample + ".sh"
         
         filepath = subproject_dir + "/" + sh_name
@@ -575,7 +680,8 @@ def create_allsteps_single_sample(subproject_id, subproject_dir, genome, step, d
         job_name = directives["job_name"]
         job_name = job_name.replace("${PROJECT}", subproject_id)
         job_name = job_name.replace("${GENOME}", genome)
-        job_name += "-" + sample
+        job_name = job_name.replace("${{{}}}".format(sample_variable), sample)
+#         job_name += "-" + sample
         
         file.write("#SBATCH --job-name={}\n".format(job_name))
         file.write("#SBATCH -N {}\n".format(directives["nodes"]))
@@ -586,11 +692,11 @@ def create_allsteps_single_sample(subproject_id, subproject_dir, genome, step, d
         file.write("#SBATCH --time {}\n".format(directives["walltime"]))
         file.write("#SBATCH --account {}\n".format(directives["account"]))
         
-        if directives["error"]:
-            file.write("#SBATCH --error {}\n".format(sample + "-err-" + directives["error"]))
+        if "error" not in directives or directives["error"] == "": directives["error"] = step["title"]
+        file.write("#SBATCH --error {}\n".format(sample + "-" + directives["error"].replace(" ", "-")))
             
-        if directives["output"]:
-            file.write("#SBATCH --output {}\n".format(sample + "-out-" + directives["output"]))
+        if "output" not in directives or directives["output"] == "": directives["output"] = step["title"]
+        file.write("#SBATCH --output {}\n".format(sample + "-" + directives["output"].replace(" ", "-")))
         
         file.write("cd $SLURM_SUBMIT_DIR\n\n")
         
@@ -601,14 +707,14 @@ def create_allsteps_single_sample(subproject_id, subproject_dir, genome, step, d
         
         file.write("\n\n# Command line(s)\n\n")
         
-        file.write("SAMPLE=\"{}\"\n\n".format(sample))
+        file.write("{}=\"{}\"\n\n".format(sample_variable, sample))
         
         conditions = step["conditions"]
         if conditions:
             for condition in conditions:
                 
                 command = condition["command"]
-                command = command.replace("${SAMPLE}", sample)
+                #command = command.replace("${SAMPLE}", sample)
                 
                 file.write("""
 {}
@@ -620,9 +726,17 @@ then
     exit
 fi
 """.format(command, sample, command, step["title"]))
+        
+        file.write("if [ ! -d ${} ] ; then mkdir ${}; fi\n".format(sample_variable, sample_variable))
+        
+        file.write("set +o xtrace; {}".format(step["commandline"]))
+    
+        if "write_stdout_log" in step and step["write_stdout_log"]:
+            file.write(" >\"${}/{}.out\"".format(sample_variable, step["title"]))
+
+        if "write_stderr_log" in step and step["write_stderr_log"]:
+            file.write(" 2>\"${}/{}.err\"".format(sample_variable, step["title"]))
                             
-        file.write("{} >$SAMPLE/{}.out 2>$SAMPLE/{}.err".format(step["commandline"], step["title"], step["title"]))
-                    
         file.close()
         
         st = os.stat(filepath)

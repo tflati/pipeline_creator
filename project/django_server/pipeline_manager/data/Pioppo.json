@@ -1,0 +1,296 @@
+{
+    "creation_date": "2018-04-20T10:01:29.864Z",
+    "creator": "Tiziano Flati",
+    "description": "",
+    "id": "Pioppo",
+    "img": "imgs/project.png",
+    "projects": [
+        {
+            "dataset": {
+                "all_samples_variable": "ALL_SAMPLES",
+                "basedir": "",
+                "cluster": "galileo",
+                "create_per_sample_directory": true,
+                "genome": "",
+                "genome_variable": "GENOME",
+                "id": "group1",
+                "pairedend": true,
+                "project_index_variable": "PROJECT_INDEX",
+                "project_variable": "PROJECT",
+                "sample_ids": "BHP_01_A\nBHP_02_A\nBHP_03_A\nBHP_04_A\nBHP_05_A\nBHP_06_A\nBHP_07_A\nBHP_08_A\nBHP_09_A\nBHP_10_A\nBHP_11_A\nBHP_12_A\nBHP_13_A\nBHP_14_A\nBHP_15_A\nBHP_16_A\nBHP_17_A\nBHP_18_A\nBHP_19_A\nBHP_20_A\nBHP_21_A\nBHP_22_A\nBHP_23_A\nBHP_24_A\nBHP_25_A\nBHP_26_A\nBHP_27_A\nBHP_28_A\nBHP_29_A\nBHP_30_A\nBHP_31_A\nBHP_32_A\nBLP_01_A\nBLP_02_A\nBLP_03_A\nBLP_04_A\nBLP_05_A\nBLP_06_A\nBLP_07_A\nBLP_08_A\nBLP_09_A\nBLP_10_A\nBLP_11_A\nBLP_12_A\nBLP_13_A\nBLP_14_A\nBLP_15_A\nBLP_16_A\nBLP_17_A\nBLP_18_A\nBLP_19_A\nBLP_20_A\nBLP_21_A\nBLP_22_A\nBLP_23_A\nBLP_24_A\nBLP_25_A\nBLP_26_A\nBLP_27_A\nBLP_28_A\nBLP_29_A\nBLP_30_A\nBLP_31_A\nBLP_32_A",
+                "sample_variable": "input_seed"
+            },
+            "steps": [
+                {
+                    "commandline": "cp \"/gss/gss_work/DRES_StructB/gchillem/Pop_eQTL/library DNA pioppo/\"${input_seed}* ${input_seed}/",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [],
+                        "error": "rsync-err",
+                        "job_name": "rsync-${input_seed}",
+                        "memory": {
+                            "quantity": 2,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "rsync-out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "00:30:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [],
+                    "sequential": false,
+                    "skip": true,
+                    "title": "Copying",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar PE -phred33 \\\n    ${input_seed}/${input_seed}.1.fq.gz ${input_seed}/${input_seed}.2.fq.gz ${input_seed}/${input_seed}_paired_forward.fastq \\\n    ${input_seed}/${input_seed}_unpaired_forward.fastq ${input_seed}/${input_seed}_paired_reverse.fastq \\\n    ${input_seed}/${input_seed}_unpaired_reverse.fastq \\\n    ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-PE.fa:2:30:10 \\\n    LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36",
+                    "conditions": [
+                        {
+                            "command": "[ -s ${input_seed}/${input_seed}_paired_forward.fastq ] && [ -s ${input_seed}/${input_seed}_paired_reverse.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 18,
+                        "dependencies": [
+                            "Copying"
+                        ],
+                        "error": "trimm-err",
+                        "job_name": "trimm-${input_seed}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "trimm-out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "12:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "trimmomatic/0.36",
+                        "profile/bioinf"
+                    ],
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Trimming",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "commandline": "bwa mem -t 20 -M /gpfs/work/cin_staff/tcastign/pioppo/Populus_trichocarpa/genome/GCF_000002775.4_Pop_tri_v3_genomic.fna \\\n    ${input_seed}/${input_seed}_paired_forward.fastq \\\n    ${input_seed}/${input_seed}_paired_reverse.fastq \\\n    > ${input_seed}/${input_seed}.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -s ${input_seed}/${input_seed}.sam ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 20,
+                        "dependencies": [
+                            "Trimming"
+                        ],
+                        "error": "mapp-err",
+                        "job_name": "mapp-${input_seed}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "mapp-out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "12:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "bwa/0.7.17"
+                    ],
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Mapping",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": false
+                },
+                {
+                    "commandline": "java -Xmx2g -Djava.io.tmpdir=tmp \\\n    -jar $PICARDTOOLS_HOME/bin/picard.jar SortSam \\\n    I=${input_seed}/${input_seed}.sam \\\n    O=${input_seed}/${input_seed}_sorted.bam \\\n    SO=coordinate",
+                    "conditions": [
+                        {
+                            "command": "[ -s ${input_seed}/${input_seed}_sorted.bam ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [
+                            "Mapping"
+                        ],
+                        "error": "",
+                        "job_name": "sort-${input_seed}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "jre/1.8.0_111--binary",
+                        "picardtools/2.3.0"
+                    ],
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Sort",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "commandline": "java -Xmx2g -Djava.io.tmpdir=tmp \\\n    -jar $PICARDTOOLS_HOME/bin/picard.jar AddOrReplaceReadGroups \\\n    I=${input_seed}/${input_seed}_sorted.bam \\\n    O=${input_seed}/${input_seed}_dedupAdd.bam \\\n    RGID=${input_seed}.1.fq \\\n    RGLB=lib1 \\\n    RGPL=illumina \\\n    RGPU=unit1 \\\n    RGSM=${input_seed}.1.fq",
+                    "conditions": [
+                        {
+                            "command": "[ -s ${input_seed}/${input_seed}_dedupAdd.bam ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [
+                            "Sort"
+                        ],
+                        "error": "",
+                        "job_name": "addrg-${input_seed}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "jre/1.8.0_111--binary",
+                        "picardtools/2.3.0"
+                    ],
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Add read group",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "commandline": "java -Xmx2g -Djava.io.tmpdir=tmp \\\n    -jar $PICARDTOOLS_HOME/bin/picard.jar BuildBamIndex \\\n    I=${input_seed}/${input_seed}_dedupAdd.bam",
+                    "conditions": [
+                        {
+                            "command": "[ -s ${input_seed}/${input_seed}_dedupAdd.bai ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [
+                            "Add read group"
+                        ],
+                        "error": "",
+                        "job_name": "indexALL",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "jre/1.8.0_111--binary",
+                        "picardtools/2.3.0"
+                    ],
+                    "sequential": true,
+                    "skip": false,
+                    "title": "Build index",
+                    "type": "per-step",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "commandline": "$GATK_HOME/bin/gatk \\\n    HaplotypeCaller \\\n    -R /gpfs/work/cin_staff/tcastign/pioppo/Populus_trichocarpa/genome/GCF_000002775.4_Pop_tri_v3_genomic.fna \\\n    -I ${input_seed}/${input_seed}_dedupAdd.bam \\\n    --ERC GVCF \\\n    --native-pair-hmm-threads 4 \\\n    -O ${input_seed}/${input_seed}.g.vcf",
+                    "conditions": [
+                        {
+                            "command": "[ -s ${input_seed}/${input_seed}.g.vcf ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 18,
+                        "dependencies": [
+                            "Build index"
+                        ],
+                        "error": "",
+                        "job_name": "haplo-${input_seed}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "",
+                        "queue": "gll_usr_prod",
+                        "walltime": "01-00:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "gatk/4.0"
+                    ],
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Haplotype caller",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                }
+            ]
+        }
+    ],
+    "subtitle": "Pipeline per ricerca varianti",
+    "title": "Analisi Pioppo"
+}

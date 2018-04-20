@@ -51,6 +51,10 @@ spacer {
 	width: 100%;	
 }
 
+.lighter {
+	color: grey;
+}
+
 .disabled_pane {
 	background-color: lightsalmon;
 	fill: bisque !important;
@@ -58,6 +62,6 @@ spacer {
 	padding: 0 0 0 100px !important;
 }
 
-.lighter {
-	color: grey;
+.disabled_pane .lighter {
+	color: bisque !important;
 }
