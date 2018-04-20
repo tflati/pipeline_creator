@@ -1,0 +1,611 @@
+{
+    "creation_date": "2018-04-11T08:42:26.524Z",
+    "creator": "Tiziano Flati",
+    "description": "RNA-Seq pipeline for studying autism on mice",
+    "id": "Analisi Mannironi",
+    "img": "imgs/project.png",
+    "projects": [
+        {
+            "dataset": {
+                "all_samples_variable": "ALL_SAMPLES",
+                "basedir": "/gpfs/scratch/userinternal/tcastign/mannironi/PRJNA347654",
+                "create_per_sample_directory": true,
+                "genome": "ig_Mus_musculus/mm10",
+                "id": "PRJNA347654",
+                "pairedend": false,
+                "project_index_variable": "PROJECT_INDEX",
+                "project_variable": "PROJECT",
+                "sample_ids": "SRR4413216\nSRR4413215\nSRR4413214\nSRR4413213\nSRR4413212\nSRR4413211",
+                "sample_variable": "SAMPLE"
+            },
+            "genome": "ig_Mus_musculus/mm10",
+            "steps": [
+                {
+                    "commandline": "fastq-dump --split-files $SAMPLE -O $SAMPLE",
+                    "conditions": [
+                        {
+                            "command": "[ -f $SAMPLE/${SAMPLE}_1.fastq ] || [ -f $SAMPLE/${SAMPLE}.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [],
+                        "error": "fastq-dump.err",
+                        "job_name": "manni_download",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "fastq-dump.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "sra/2.8.2"
+                    ],
+                    "skip": false,
+                    "title": "Downloading",
+                    "type": "per-step"
+                },
+                {
+                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar SE -phred33 $SAMPLE/${SAMPLE}_1.fastq $SAMPLE/$SAMPLE.trim.fastq ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36",
+                    "conditions": [
+                        {
+                            "command": "[ -f $SAMPLE/${SAMPLE}.trim.fastq ]"
+                        }
+                    ],
+                    "description": "Step useful for trimming reads",
+                    "description_short": "Trimmomatic",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 6,
+                        "dependencies": [
+                            "Downloading"
+                        ],
+                        "error": "trimmomatic.err",
+                        "job_name": "manni_trimmomatic",
+                        "memory": {
+                            "quantity": 20,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "trimmomatic.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "06:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "trimmomatic/0.36"
+                    ],
+                    "skip": false,
+                    "title": "Trimming",
+                    "type": "per-step"
+                },
+                {
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/mm10/genome -U $SAMPLE/$SAMPLE.trim.fastq -S $SAMPLE/$SAMPLE.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE/$SAMPLE.sam ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Trimming"
+                        ],
+                        "error": "hisat2.err",
+                        "job_name": "manni_hisat2_${GENOME}",
+                        "memory": {
+                            "quantity": 100,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "hisat2.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "24:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "hisat2/2.1.0"
+                    ],
+                    "skip": false,
+                    "title": "Mapping",
+                    "type": "per-sample"
+                }
+            ],
+            "type": "per-step"
+        },
+        {
+            "dataset": {
+                "all_samples_variable": "ALL_SAMPLES",
+                "basedir": "/gpfs/scratch/userinternal/tcastign/mannironi/PRJNA381193",
+                "create_per_sample_directory": true,
+                "id": "PRJNA381193",
+                "pairedend": false,
+                "project_index_variable": "PROJECT_INDEX",
+                "project_variable": "PROJECT",
+                "sample_ids": "SRR5398111\nSRR5398110\nSRR5398109\nSRR5398108\nSRR5398107\nSRR5398106\nSRR5398105\nSRR5398104\nSRR5398103\nSRR5398102\nSRR5398101\nSRR5398100\nSRR5398099\nSRR5398098\nSRR5398097\nSRR5398096\nSRR5398095\nSRR5398094\nSRR5398093\nSRR5398092\nSRR5398091\nSRR5398090\nSRR5398089\nSRR5398088",
+                "sample_variable": "SAMPLE"
+            },
+            "steps": [
+                {
+                    "commandline": "fastq-dump --split-files $SAMPLE -O $SAMPLE",
+                    "conditions": [
+                        {
+                            "command": "[ -f $SAMPLE/${SAMPLE}_1.fastq ] || [ -f $SAMPLE/${SAMPLE}.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [],
+                        "error": "fastq-dump.err",
+                        "job_name": "manni_download",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "fastq-dump.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "sra/2.8.2"
+                    ],
+                    "skip": false,
+                    "title": "Downloading"
+                },
+                {
+                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar SE -phred33 $SAMPLE/${SAMPLE}_1.fastq $SAMPLE/$SAMPLE.trim.fastq ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36",
+                    "conditions": [
+                        {
+                            "command": "[ -f $SAMPLE/${SAMPLE}.trim.fastq ]"
+                        }
+                    ],
+                    "description": "Step useful for trimming reads",
+                    "description_short": "Trimmomatic",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 6,
+                        "dependencies": [
+                            "Downloading"
+                        ],
+                        "error": "trimmomatic.err",
+                        "job_name": "manni_trimmomatic",
+                        "memory": {
+                            "quantity": 20,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "trimmomatic.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "06:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "trimmomatic/0.36"
+                    ],
+                    "skip": false,
+                    "title": "Trimming"
+                },
+                {
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/mm10/genome -U $SAMPLE/$SAMPLE.trim.fastq -S $SAMPLE/$SAMPLE.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -f $SAMPLE/$SAMPLE.sam ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Trimming"
+                        ],
+                        "error": "hisat2.err",
+                        "job_name": "manni_hisat2",
+                        "memory": {
+                            "quantity": 100,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "hisat2.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "24:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "hisat2/2.1.0"
+                    ],
+                    "skip": false,
+                    "title": "Mapping"
+                }
+            ],
+            "type": "per-step"
+        },
+        {
+            "dataset": {
+                "all_samples_variable": "ALL_SAMPLES",
+                "basedir": "/gpfs/scratch/userinternal/tcastign/mannironi/PRJNA338690",
+                "create_per_sample_directory": true,
+                "id": "PRJNA338690",
+                "pairedend": false,
+                "project_index_variable": "PROJECT_INDEX",
+                "project_variable": "PROJECT",
+                "sample_ids": "SRR4020101\nSRR4020100\nSRR4020099\nSRR4020098\nSRR4020097\nSRR4020096",
+                "sample_variable": "SAMPLE"
+            },
+            "steps": [
+                {
+                    "commandline": "fastq-dump --split-files $SAMPLE -O $SAMPLE",
+                    "conditions": [
+                        {
+                            "command": "[ -f $SAMPLE/${SAMPLE}_1.fastq ] || [ -f $SAMPLE/${SAMPLE}.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [],
+                        "error": "fastq-dump.err",
+                        "job_name": "manni_download",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "fastq-dump.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "sra/2.8.2"
+                    ],
+                    "skip": false,
+                    "title": "Downloading"
+                },
+                {
+                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar SE -phred33 $SAMPLE/${SAMPLE}_1.fastq $SAMPLE/$SAMPLE.trim.fastq ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36",
+                    "conditions": [
+                        {
+                            "command": "[ -f $SAMPLE/${SAMPLE}.trim.fastq ]"
+                        }
+                    ],
+                    "description": "Step useful for trimming reads",
+                    "description_short": "Trimmomatic",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 6,
+                        "dependencies": [
+                            "Downloading"
+                        ],
+                        "error": "trimmomatic.err",
+                        "job_name": "manni_trimmomatic",
+                        "memory": {
+                            "quantity": 20,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "trimmomatic.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "06:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "trimmomatic/0.36"
+                    ],
+                    "skip": false,
+                    "title": "Trimming"
+                },
+                {
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/mm10/genome -U $SAMPLE/$SAMPLE.trim.fastq -S $SAMPLE/$SAMPLE.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -f $SAMPLE/$SAMPLE.sam ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Trimming"
+                        ],
+                        "error": "hisat2.err",
+                        "job_name": "manni_hisat2",
+                        "memory": {
+                            "quantity": 100,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "hisat2.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "24:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "hisat2/2.1.0"
+                    ],
+                    "skip": false,
+                    "title": "Mapping"
+                }
+            ],
+            "type": "per-step"
+        },
+        {
+            "dataset": {
+                "all_samples_variable": "ALL_SAMPLES",
+                "basedir": "/gpfs/scratch/userinternal/tcastign/mannironi/PRJNA288135",
+                "create_per_sample_directory": true,
+                "id": "PRJNA288135",
+                "pairedend": true,
+                "project_index_variable": "PROJECT_INDEX",
+                "project_variable": "PROJECT",
+                "sample_ids": "SRR3186968\nSRR3186967\nSRR3186966\nSRR3186965\nSRR3186964\nSRR3186963\nSRR3186962\nSRR3186961\nSRR3186960\nSRR3186959\nSRR3186958\nSRR3186957\nSRR2078697\nSRR2078696\nSRR2078695\nSRR2078694\nSRR2078693\nSRR2078692\nSRR2078691\nSRR2078690\nSRR2078689\nSRR2078688\nSRR2078687\nSRR2078686\nSRR2078685\nSRR2078684\nSRR2078683\nSRR2078682\nSRR2078681\nSRR2078680\nSRR2078679\nSRR2078678\nSRR2078677\nSRR2078676\nSRR2078675\nSRR2078674\nSRR2078673\nSRR2078672\nSRR2078671\nSRR2078670\nSRR2078669\nSRR2078668\nSRR2078667\nSRR2078666\nSRR2078665\nSRR2078664\nSRR2078663\nSRR2078662\nSRR2078661\nSRR2078660",
+                "sample_variable": "SAMPLE"
+            },
+            "steps": [
+                {
+                    "commandline": "fastq-dump --split-files $SAMPLE -O $SAMPLE",
+                    "conditions": [
+                        {
+                            "command": "[ -f $SAMPLE/${SAMPLE}_1.fastq ] || [ -f $SAMPLE/${SAMPLE}.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [],
+                        "error": "fastq-dump.err",
+                        "job_name": "manni_download",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "fastq-dump.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "sra/2.8.2"
+                    ],
+                    "skip": false,
+                    "title": "Downloading"
+                },
+                {
+                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar PE -phred33 $SAMPLE/${SAMPLE}_1.fastq $SAMPLE/${SAMPLE}_2.fastq $SAMPLE/$SAMPLE.R1_paired.fq.gz $SAMPLE/$SAMPLE.R1_unpaired.fq.gz $SAMPLE/$SAMPLE.R2_paired.fq.gz $SAMPLE/$SAMPLE.R2_unpaired.fq.gz ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36",
+                    "conditions": [
+                        {
+                            "command": "[ -f $SAMPLE/$SAMPLE.R1_paired.fq.gz ] && [ -f $SAMPLE/$SAMPLE.R2_paired.fq.gz ]"
+                        }
+                    ],
+                    "description": "Step useful for trimming reads",
+                    "description_short": "Trimmomatic",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 6,
+                        "dependencies": [
+                            "Downloading"
+                        ],
+                        "error": "trimmomatic.err",
+                        "job_name": "manni_trimmomatic",
+                        "memory": {
+                            "quantity": 20,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "trimmomatic.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "06:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "trimmomatic/0.36"
+                    ],
+                    "skip": false,
+                    "title": "Trimming"
+                },
+                {
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/mm10/genome -1 $SAMPLE/$SAMPLE.R1_paired.fq.gz -2 $SAMPLE/$SAMPLE.R2_paired.fq.gz -U $SAMPLE/$SAMPLE.R1_unpaired.fq.gz,$SAMPLE/$SAMPLE.R2_unpaired.fq.gz -S $SAMPLE/$SAMPLE.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -f $SAMPLE/$SAMPLE.sam ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Trimming"
+                        ],
+                        "error": "hisat2.err",
+                        "job_name": "manni_hisat2",
+                        "memory": {
+                            "quantity": 100,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "hisat2.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "24:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "hisat2/2.1.0"
+                    ],
+                    "skip": false,
+                    "title": "Mapping"
+                }
+            ],
+            "type": "per-step"
+        },
+        {
+            "dataset": {
+                "all_samples_variable": "ALL_SAMPLES",
+                "basedir": "/gpfs/scratch/userinternal/tcastign/mannironi/PRJNA324710",
+                "create_per_sample_directory": true,
+                "id": "PRJNA324710",
+                "pairedend": false,
+                "project_index_variable": "PROJECT_INDEX",
+                "project_variable": "PROJECT",
+                "sample_ids": "SRR3644938\nSRR3644937\nSRR3644936\nSRR3644935\nSRR3644934\nSRR3644933",
+                "sample_variable": "SAMPLE"
+            },
+            "steps": [
+                {
+                    "commandline": "fastq-dump --split-files $SAMPLE -O $SAMPLE",
+                    "conditions": [
+                        {
+                            "command": "[ -f $SAMPLE/${SAMPLE}_1.fastq ] || [ -f $SAMPLE/${SAMPLE}.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [],
+                        "error": "fastq-dump.err",
+                        "job_name": "manni_download",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "fastq-dump.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "sra/2.8.2"
+                    ],
+                    "skip": false,
+                    "title": "Downloading"
+                },
+                {
+                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar SE -phred33 $SAMPLE/${SAMPLE}_1.fastq $SAMPLE/$SAMPLE.trim.fastq ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36",
+                    "conditions": [
+                        {
+                            "command": "[ -f $SAMPLE/${SAMPLE}.trim.fastq ]"
+                        }
+                    ],
+                    "description": "Step useful for trimming reads",
+                    "description_short": "Trimmomatic",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 6,
+                        "dependencies": [
+                            "Downloading"
+                        ],
+                        "error": "trimmomatic.err",
+                        "job_name": "manni_trimmomatic",
+                        "memory": {
+                            "quantity": 20,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "trimmomatic.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "06:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "trimmomatic/0.36"
+                    ],
+                    "skip": false,
+                    "title": "Trimming"
+                },
+                {
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/mm10/genome -U $SAMPLE/$SAMPLE.trim.fastq -S $SAMPLE/$SAMPLE.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -f $SAMPLE/$SAMPLE.sam ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Trimming"
+                        ],
+                        "error": "hisat2.err",
+                        "job_name": "manni_hisat2",
+                        "memory": {
+                            "quantity": 100,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "hisat2.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "24:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/bioinf",
+                        "hisat2/2.1.0"
+                    ],
+                    "skip": false,
+                    "title": "Mapping"
+                }
+            ],
+            "type": "per-step"
+        }
+    ],
+    "subtitle": "Analisi RNA-Seq",
+    "title": "Topi Autismo"
+}

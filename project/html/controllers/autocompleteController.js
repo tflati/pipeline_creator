@@ -11,9 +11,10 @@ app.controller("autocompleteController", function($scope, $http, $q, $filter, $t
 //		if ($scope.field.data && $scope.field.data.url){
 			var deferred = $q.defer();
 			
-			$timeout.cancel($scope.filterTextTimeout);
+			 $timeout.cancel($scope.filterTextTimeout);
+			// deferred.resolve();
 
-			$timeout(function() {
+			$scope.filterTextTimeout = $timeout(function() {
 	        	
 //	        	console.log("AUTOCOMPLETE AJAX [PRE]", $scope.url + query);
 	        	

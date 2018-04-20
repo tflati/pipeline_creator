@@ -10,10 +10,11 @@ import shutil
 from graph_tool.all import *
 
 class MyBFSVisitor(graph_tool.search.BFSVisitor):
-    def __init__(self, int2step, file, dataset):
+    def __init__(self, int2step, file, dataset, vertex_names):
         self.int2step = int2step
         self.file = file
         self.dataset = dataset
+        self.vertex_names = vertex_names
         
     def examine_vertex(self, u):
         """
@@ -29,7 +30,7 @@ class MyBFSVisitor(graph_tool.search.BFSVisitor):
 def single_step_allsamples_writer(step, self, u):
     sh_file = step["title"]+".sh"
         
-    self.file.write("##########################\n######{}########\n##########################\n".format(step["title"]))
+    self.file.write("##########################\n######  {}  ########\n##########################\n".format(step["title"]))
     
     self.file.write("execute=1\n")
     
@@ -105,11 +106,13 @@ fi
 def single_step_singlesample_writer(step, self, u):
     
     for sample in self.dataset["sample_ids"].split("\n"):
+        v_name = self.vertex_names[u]
         name = step["title"] + "-" + sample
+        if v_name != name: continue
         
-        sh_file = step["title"]+".sh"
+        sh_file = name + ".sh"
         
-        self.file.write("##########################\n######{}########\n##########################\n".format(step["title"]))
+        self.file.write("\n\n\n##########################\n######  {}  ########\n##########################\n".format(name))
     
         self.file.write("execute=1\n")
     
@@ -151,16 +154,18 @@ echo $DEP_JOB_ID
 if [ ! -z $DEP_JOB_ID ]
 then
     DEPS+=($DEP_JOB_ID)
-fi """.format(dep_step["title"])
+fi
+
+""".format(dep_step["title"])
                 
         self.file.write(dep_script)
             
-    script = """
+        script = """
 sh_file="{}"
 echo $sh_file "execute="$execute
 if [ $execute -eq 1 ]
 then
-    echo ${{DEPS[@]}}
+    echo "DEPENDENCIES($sh_file)=" ${{DEPS[@]}}
     set -o xtrace
     if [[ ! -z "$DEPS" ]]
     then
@@ -179,14 +184,15 @@ else
 fi
 """.format(sh_file, name)
 
-    self.file.write(script)
+        self.file.write(script)
 
-def modules(request, prefix = None):
+def modules(request, cluster_id, prefix = None):
     modules = []
 
     last_module = ""
+    last_category = ""
     
-    for line in open(os.path.dirname(__file__) + "/utils/all_modules.txt"):
+    for line in open(os.path.dirname(__file__) + "/utils/all_modules_" + cluster_id + ".txt"):
         line = line.rstrip()
         
         initial_tabs = len(line)-len(line.lstrip('\t'))
@@ -196,12 +202,68 @@ def modules(request, prefix = None):
                 if prefix is None or line.lower().startswith(prefix.lower()) or "profile".startswith(prefix.lower()):
                     modules.append({"label": "profile/"+line})
                 
+        elif initial_tabs == 2:
+            line = line.lstrip()
+            last_category = line
+            
         elif initial_tabs == 3:
             line = line.strip("\t")
             if not line.startswith(" "): last_module = line
-            elif prefix is None or last_module.lower().startswith(prefix.lower()): modules.append({"label": last_module + "/" +line.strip()})
+            elif prefix is None or last_module.lower().startswith(prefix.lower()): modules.append({"label": last_module + "/" +line.strip(), "extra": last_category})
     
     return HttpResponse(json.dumps(modules))
+
+def genomes(request, cluster_id):
+    
+    print("ASKED GENOMES OF", cluster_id)
+    
+    genomes = []
+
+    last_module = ""
+    last_category = ""
+    
+    for line in open(os.path.dirname(__file__) + "/utils/all_modules_"+cluster_id+".txt"):
+        line = line.rstrip()
+        
+        initial_tabs = len(line)-len(line.lstrip('\t'))
+        
+        if initial_tabs == 2:
+            line = line.lstrip()
+            last_category = line
+            
+        if initial_tabs == 3:
+            line = line.strip("\t")
+            if not line.startswith(" "): last_module = line
+            elif last_category == "data":
+                
+                genome = {
+                    "id": last_module + "/" +line.strip(),
+                    "img": "imgs/genomes/genome.png"
+                }
+                
+                if genome["id"] == "ig_Mus_musculus/mm10":
+                    genome["organism"] = "Topo"
+                    genome["img"] = "imgs/genomes/mus_musculus.png"
+                    
+                elif genome["id"] == "ig_Mus_musculus/mm9":
+                    genome["organism"] = "Topo"
+                    genome["img"] = "imgs/genomes/mus_musculus.png"
+                    
+                elif genome["id"] == "ig_Rattus_norvegicus/rn6":
+                    genome["organism"] = "Ratto"
+                    genome["img"] = "imgs/genomes/rattus.png"
+                    
+                elif genome["id"].lower().startswith("ig_homo_") or genome["id"].lower().startswith("homo_"):
+                    genome["organism"] = "Uomo"
+                    genome["img"] = "imgs/genomes/homo_sapiens.png"
+                
+                name, version = genome["id"].split("/")
+                name = name.replace("ig_", "").replace("_", " ")
+                genome["name"] = name.capitalize() + " ("+ version + ")"
+                
+                genomes.append(genome)
+    
+    return HttpResponse(json.dumps(genomes))
 
 def projects(request):
     projects = []
@@ -246,6 +308,7 @@ def produce_scripts(request):
         os.makedirs(script_dir)
     
     for subproject in project["projects"]:
+        if "disabled" in subproject and subproject["disabled"] == True: continue
         
         dataset = subproject["dataset"]
         subproject_id = dataset["id"]
@@ -392,7 +455,7 @@ def produce_scripts(request):
         file.write("declare -A JOB_IDS\n\n")
         
         # Concrete job writer
-        bfs_search(g, visitor=MyBFSVisitor(int2step, file, dataset))
+        bfs_search(g, visitor=MyBFSVisitor(int2step, file, dataset, vertex_names))
         file.close()
         st = os.stat(filepath)
         os.chmod(filepath, st.st_mode | stat.S_IEXEC)
@@ -473,13 +536,21 @@ do\n
     then
         continue
     fi
+    
 """.format(condition["command"], condition["command"], step["title"]))
-                        
+    
+    file.write("    if [ ! -d $SAMPLE ] ; then mkdir $SAMPLE; fi\n")
+    
+    file.write("    {} >$SAMPLE/{}.out 2>$SAMPLE/{}.err".format(step["commandline"], step["title"], step["title"]))
+    
+    if "sequential" not in step or step["sequential"] == False:
+        file.write(" &")
+    file.write("\n")
+    
     file.write("""
-    {} &
 done
 wait
-""".format(step["commandline"]))
+""")
                 
     file.close()
     
@@ -514,8 +585,12 @@ def create_allsteps_single_sample(subproject_id, subproject_dir, genome, step, d
         file.write("#SBATCH --mem={}{}\n".format(directives["memory"]["quantity"], directives["memory"]["size"]))
         file.write("#SBATCH --time {}\n".format(directives["walltime"]))
         file.write("#SBATCH --account {}\n".format(directives["account"]))
-        file.write("#SBATCH --error {}\n".format(sample + "-" + directives["error"]))
-        file.write("#SBATCH --output {}\n".format(sample + "-" + directives["output"]))
+        
+        if directives["error"]:
+            file.write("#SBATCH --error {}\n".format(sample + "-err-" + directives["error"]))
+            
+        if directives["output"]:
+            file.write("#SBATCH --output {}\n".format(sample + "-out-" + directives["output"]))
         
         file.write("cd $SLURM_SUBMIT_DIR\n\n")
         
@@ -525,6 +600,8 @@ def create_allsteps_single_sample(subproject_id, subproject_dir, genome, step, d
             file.write("module load autoload {}\n".format(module))
         
         file.write("\n\n# Command line(s)\n\n")
+        
+        file.write("SAMPLE=\"{}\"\n\n".format(sample))
         
         conditions = step["conditions"]
         if conditions:
@@ -544,7 +621,7 @@ then
 fi
 """.format(command, sample, command, step["title"]))
                             
-        file.write("{}".format(step["commandline"]))
+        file.write("{} >$SAMPLE/{}.out 2>$SAMPLE/{}.err".format(step["commandline"], step["title"], step["title"]))
                     
         file.close()
         

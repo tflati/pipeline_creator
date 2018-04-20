@@ -10,6 +10,13 @@ app.factory('apiService', function($http) {
 	  });
   };
   
+  instance.get_genomes = function(clusterId, successFx){
+	  var url = SERVER + "genomes/" + clusterId + "/";
+	  $http.get(url).then(successFx, function(result){
+		  console.log("ERROR WHILE RETRIEVING GENOMES", result);
+	  });
+  };
+  
   instance.load_project = function(project_id, successFx, errorFx, finallyFx){
 	  var url = SERVER + "load_project/" + project_id + "/";
 	  $http.get(url).then(successFx, errorFx).finally(finallyFx);
@@ -35,8 +42,8 @@ app.factory('apiService', function($http) {
 	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);
   };
   
-  instance.get_module_url = function(){
-	  return SERVER + "modules/";   
+  instance.get_module_url = function(clusterId){
+	  return SERVER + "modules/" + clusterId + "/";   
   };
   
   return instance;

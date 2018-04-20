@@ -38,11 +38,11 @@
 				   	</div>
 				   	
 				   	<div layout="column" style="margin-bottom: 2em;">
-			   			<div style="color: grey;">Creation date</div>
+			   			<div class="lighter">Creation date</div>
 			   			<div ng-if="selected_project.creation_date == undefined">No date available</div>
 			   			<div ng-if="selected_project.creation_date != undefined" layout="row">
 			   				<div>{{selected_project.creation_date | amDateFormat:'DD MMMM YYYY'}}</div>
-			   				<div style="color: grey;" tooltip="Exact date: {{selected_project.creation_date | amDateFormat:'DD MMMM YYYY HH:mm:ss'}}">
+			   				<div class="lighter" tooltip="Exact date: {{selected_project.creation_date | amDateFormat:'DD MMMM YYYY HH:mm:ss'}}">
 			   					&nbsp;(<span am-time-ago="selected_project.creation_date"></span>)
 			   				</div>
 			   			</div>
@@ -79,18 +79,40 @@
 					<h3>No subprojects have been defined yet for this project.</h3>
 					<img class="medium-height" width="auto" src="imgs/no_projects.png">
 				</div>
-			
+				
+				<div layout-margin>
+					<md-button class="md-button md-warn md-raised" ng-click="add_subproject(selected_project)" tooltip="Add a step to this pipeline" aria-label="Add a new step">
+			          	<span class="fa-layers fa-fw">
+							<i class="fas fa-list-ol"></i>
+							<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
+						</span>
+						Add subproject
+					</md-button>
+				</div>
+				
 				<v-accordion class="vAccordion--default" multiple onexpand="select_subproject(index)">
 				  <v-pane ng-repeat="subproject in selected_project.projects">
-				    <v-pane-header>
+				    <v-pane-header ng-class="{disabled_pane: subproject.disabled}">
 				    	<span md-truncate flex><b>Project {{$index+1}}: {{subproject.dataset.id}}</b></span>
 				    	
-				    	<span ng-if="subproject.dataset.pairedend == true" md-truncate flex style="color: grey;"><b>(PE)</b></span>
-				    	<span ng-if="subproject.dataset.pairedend == false" md-truncate flex style="color: grey;"><b>(SE)</b></span>
+				    	<span ng-if="subproject.dataset.pairedend == true" md-truncate flex class="lighter"><b>(PE)</b></span>
+				    	<span ng-if="subproject.dataset.pairedend == false" md-truncate flex class="lighter"><b>(SE)</b></span>
 				    	
-				    	<span style="color: grey;"><b>({{subproject.dataset.genome}})</b></span>
+				    	<span class="lighter">
+				    		<b ng-if="subproject.dataset.genome != ''">({{subproject.dataset.genome}})</b>
+				    		<b ng-if="subproject.dataset.genome == ''">(No genome)</b>
+				    	</span>
 				    	
-				    	<span md-truncate flex style="color: grey;"><b> {{subproject.dataset.sample_ids.split('\n').length}} sample(s)</b></span>
+				    	<span md-truncate flex class="lighter">
+				    		<b>{{subproject.dataset.sample_ids.split('\n')[0] != '' ? subproject.dataset.sample_ids.split('\n').length : 'No'}} sample(s)</b>
+				    	</span>
+				    	
+				    	<md-button ng-if="subproject.disabled" tooltip="This step is disabled. Click to enable this step" class="md-icon-button" ng-click="$event.stopPropagation(); subproject.disabled = !subproject.disabled" tooltip="Delete project" aria-label="Delete project">
+				    		<i class="fas fa-toggle-on fa-2x" data-fa-transform="flip-h" style="color: red;"></i>	
+				    	</md-button>
+				    	<md-button ng-if="!subproject.disabled" tooltip="This step is enabled. Click to disable this step" class="md-icon-button" ng-click="$event.stopPropagation(); subproject.disabled = !subproject.disabled" tooltip="Delete project" aria-label="Delete project">
+				    		<i class="fas fa-toggle-on fa-2x" style="color: green;"></i>
+				    	</md-button>
 				    	
 				    	<md-button class="md-icon-button" ng-click="showDeleteSubprojectDialog($index, $event)" tooltip="Delete project" aria-label="Delete project">
 					      <ng-md-icon icon="delete"></ng-md-icon>
@@ -126,27 +148,13 @@
 				<i class="fas fa-save"></i>
 				1. Save project
 			</md-button>
-			<md-button class="md-button md-warn md-raised" ng-click="add_subproject(selected_project)" tooltip="Add a step to this pipeline" aria-label="Add a new step">
-	          	<span class="fa-layers fa-fw">
-					<i class="fas fa-list-ol"></i>
-					<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
-				</span>
-				2. Add subproject
-			</md-button>
-			<md-button class="md-button md-warn md-raised" ng-click="add_step(selected_subproject)" tooltip="Add a step to this pipeline" aria-label="Add a new step">
-	          	<span class="fa-layers fa-fw">
-					<i class="fas fa-list-ol"></i>
-					<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
-				</span>
-				3. Add step
-			</md-button>
 			<md-button class="md-button md-warn md-raised" ng-click="produce_scripts(selected_project)" tooltip="Produces the files on the server" aria-label="Produces the files on the server">
 				<i class="fas fa-terminal"></i>
-				4. Create scripts
+				2. Create scripts
 			</md-button>
 			<md-button class="md-button md-warn md-raised" ng-click="download_scripts(selected_project)" tooltip="Produces the files on the server" aria-label="Download a ZIP file with the project's scripts">
 				<i class="fas fa-download"></i>
-				5. Download
+				3. Download
 			</md-button>
 		</div>
 	</div>

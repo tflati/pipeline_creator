@@ -20,7 +20,7 @@
    	<md-option ng-repeat="type in ['per-step', 'per-sample']" ng-value="type">
    		<div flex layout="row">
 	   		<div>
-	   			<img ng-if="type == 'per-step'"   height="50px" src="imgs/per_step.png">
+	   			<img ng-if="type == 'per-step'" height="50px" src="imgs/per_step.png">
 	   			<img ng-if="type == 'per-sample'" height="50px" src="imgs/per_sample.png">
 	   		</div>
 	   		<div flex layout="row" layout-align="left center" layout-padding>
@@ -50,8 +50,12 @@
 
 <h3>Command line</h3>
 <textarea ng-model="step.commandline" rows="5" style="width: 90%;"></textarea>
+<md-switch ng-model="step.sequential" aria-label="Analysis mode">
+    	Sequential analysis: {{ step.sequential }} <span style="color: grey;">(each sample is analyzed after the other)</span>
+  	</md-switch>
 
 <h3>SLURM directives</h3>
+
 <div layout="column">
 	<div layout-padding>
 		<md-button class="md-raised md-warn md-icon-button" ng-click="copy_hpc_directives(step)" tooltip="Copy settings from other steps" aria-label="Copy settings from other steps">
@@ -61,15 +65,19 @@
 	</div>
 <div>
 
-<md-input-container layout="row">
-	<label>Dependencies</label>
-	<md-select ng-model="step.hpc_directives.dependencies" multiple>
+<h4>Dependencies</h4>
+<div ng-if="subproject.steps.length <= 1">
+	No dependencies available to select.
+</div>
+<md-input-container layout="row" ng-if="subproject.steps.length > 1">
+	<md-select ng-model="step.hpc_directives.dependencies" multiple aria-label="Dependencies for this step">
         <md-option ng-repeat="s in subproject.steps" ng-value="s.title" ng-if="s != step">
           {{s.title}}
         </md-option>
-  		</md-select>
+	</md-select>
 </md-input-container>
-		
+
+<h4>Scheduler information</h4>
 <md-content layout="row" layout-padding layout-wrap>
 	<md-input-container>
 		<label>Walltime</label>
@@ -115,6 +123,10 @@
             </md-option>
       		</md-select>
 	</md-input-container>
+</md-content>
+
+<h4>Input/Output files</h4>
+<md-content layout="row" layout-padding layout-wrap>
 	<md-input-container>
 		<label>Standard output</label>
 		<input type="text" ng-model="step.hpc_directives.output">

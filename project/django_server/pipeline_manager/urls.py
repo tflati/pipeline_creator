@@ -23,6 +23,7 @@ urlpatterns = [
     path('delete_project/', views.delete_project),
     path('produce_scripts/', views.produce_scripts),
     path('download_scripts/', views.download_scripts),
-    path('modules/<prefix>/', views.modules),
-    path('modules/', views.modules)
+    path('modules/<cluster_id>/<prefix>/', views.modules),
+    path('modules/<cluster_id>/', views.modules),
+    path('genomes/<cluster_id>/', views.genomes)
 ]

@@ -1,8 +1,9 @@
 app.controller('mainController', function($scope, apiService, moment, messageService, $document, $timeout, $mdDialog, $mdSidenav){
+	
 	$scope.projects = undefined;
 	$scope.selected_project = undefined;
 	$scope.selected_subproject = undefined;
-	$scope.selected_step = undefined;
+//	$scope.selected_step = undefined;
 	
 	$scope.keep_sidenav_open = true;
 	
@@ -22,6 +23,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
     	"steps": [],
     	"dataset": {
     		"id": "",
+    		"cluster": "",
     		"genome": "",
             "basedir": "",
             "create_per_sample_directory": true,
@@ -58,32 +60,50 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
             },
 	        "modules": [],
 	        "skip": false,
+	        "sequential": true,
 	        "conditions": [],
 	    };
 	
 	var condition_template = {
-		"command": ""	
+		"command": ""
 	};
 	
-	$scope.genomes = [
+	$scope.genomes = [];
+	
+	$scope.load_genomes = function(clusterId){
+		console.log("LOADING GENOMES", clusterId);
+		
+		return $timeout(function() {
+			$scope.genomes = [];
+			apiService.get_genomes(clusterId, function(result){
+				console.log("GENOMES", result);
+				$scope.genomes = result.data;
+			});
+		}, 1000);
+	};
+	
+	$scope.cluster_changed = function(clusterId){
+		console.log("CHANGED CLUSTER", clusterId, $scope);
+		$scope.module_url = apiService.get_module_url(clusterId);
+		console.log("MODULE URL", $scope.module_url);
+	};
+	
+	$scope.clusters = [
 		{
-			id: "ig_Mus_musculus/mm10",
-			organism: "Topo",
-			name: "Mus musculus (10)",
-			img: "imgs/genomes/mus_musculus.png"
+			"name": "Galileo",
+			"id": "galileo",
+			"info": "360 nodes (36 cores, 128GB) + 40 nodes (16 cores, 128GB)"
 		},
 		{
-			id: "ig_Mus_musculus/mm9",
-			organism: "Topo",
-			name: "Mus musculus (9)",
-			img: "imgs/genomes/mus_musculus.png"
+			"name": "Marconi",
+			"id": "marconi",
+			"info": "A1/BDW: 720 nodes (36 cores, 128GB) + A2/KNL: 3600 nodes (68 cores, 93GB)"
 		},
 		{
-			id: "ig_Rattus_norvegicus/rn6",
-			organism: "Ratto",
-			name: "Rattus norvegicus (rn6)",
-			img: "imgs/genomes/rattus.png"
-		}
+			"name": "Pico",
+			"id": "pico",
+			"info": "51 nodes (20 cores, 128GB) + 1 BigMem (32 cores, 520GB) + 2 BigMem (20 cores, 510GB)"
+		}		
 	];
 	
 //	var condition_template = {
@@ -95,6 +115,12 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 //	var ops = ["OR", "AND", "NOT"];
 	
 	$scope.sending = false;
+	
+	$scope.xls_loaded = function(data){
+		console.log("MAIN CONTROLLER XLS", data, $scope);
+		messageService.showMessage("Loaded " + data.length + " samples.", "success");
+		$scope.selected_subproject.dataset.sample_ids = data.join("\n");
+	};
 	
 	$scope.refresh = function(){
 		apiService.get_projects(function(result){
@@ -114,7 +140,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 // }
 // };
 	
-	$scope.module_url = apiService.get_module_url();
+	// $scope.module_url = apiService.get_module_url();
 	
 	$scope.select_project = function(item){
 		console.log("SELECTING PROJECT", item, $scope);
@@ -126,6 +152,9 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		var subproject = $scope.selected_project.projects[item];
 		console.log("SELECTING SUBPROJECT", subproject,  $scope);
 		$scope.selected_subproject = subproject;
+		
+		$scope.module_url = apiService.get_module_url($scope.selected_subproject.dataset.cluster);
+		console.log("MODULE URL", $scope.module_url);
 	};
 	
 	$scope.cloneSubproject = function(index, $event){
@@ -188,8 +217,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		
 	};
 	
-	$scope.toggleStep = function(index, $event){
-		var step = $scope.selected_subproject.steps[index];
+	$scope.toggleStep = function(step, $event){
 		step.skip = !step.skip;
 		$event.stopPropagation();
 	};
@@ -275,7 +303,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		project.projects.splice(index, 1);
 	};
 	
-	$scope.showDeleteStepDialog = function(i, $event) {
+	$scope.showDeleteStepDialog = function(step, $event) {
 		
 	    var confirm = {
 	    	controller: DialogController,
@@ -286,14 +314,16 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 			fullscreen: $scope.customFullscreen,
 			resolve: {
 		      item: function () {
-		        return $scope.selected_subproject.steps[i];
+		        // return $scope.selected_subproject.steps[i];
+		    	  return step;
 		      }
 		    }
 	    };
 
 	    $mdDialog.show(confirm).then(function(answer) {
 	    	console.log("DIALOG ANSWER", answer);
-	    	if (answer == "OK") $scope.remove_step($scope.selected_subproject, i);
+	    	// if (answer == "OK") $scope.remove_step($scope.selected_subproject, i);
+	    	if (answer == "OK") $scope.remove_step($scope.selected_subproject, $scope.selected_subproject.steps.indexOf(step));
 	    }, function() {
 	    });
 	    
@@ -354,10 +384,10 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 			step.hpc_directives = angular.copy(copyFrom.hpc_directives);
 	};
 	
-	$scope.select_step = function(index){
-		console.log("STEP SELECTED", index, $scope);
-		$scope.selected_step = $scope.selected_subproject.steps[index];
-	};
+//	$scope.select_step = function(index){
+//		console.log("STEP SELECTED", index, $scope);
+//		$scope.selected_step = $scope.selected_subproject.steps[index];
+//	};
 	
 	$scope.produce_scripts = function(project){
 		apiService.produce_scripts(project, function(result){

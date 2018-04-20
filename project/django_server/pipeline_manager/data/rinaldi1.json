@@ -1,4 +1,5 @@
 {
+    "creator": "Tiziano Flati",
     "description": "Analisi topo",
     "id": "rinaldi1",
     "img": "imgs/project.png",
@@ -7,6 +8,7 @@
             "dataset": {
                 "all_samples_variable": "ALL_SAMPLES",
                 "basedir": "/gpfs/scratch/userinternal/tcastign/rinaldi/input/9_PRJNA322294_AUTOMATIC",
+                "cluster": "galileo",
                 "create_per_sample_directory": false,
                 "genome": "ig_Mus_musculus/mm10",
                 "genome_variable": "GENOME",
@@ -31,7 +33,7 @@
                         "account": "cin_staff",
                         "cpu": 36,
                         "dependencies": [],
-                        "error": "trimm.err",
+                        "error": "down.err",
                         "job_name": "download_${PROJECT}_${GENOME}",
                         "memory": {
                             "quantity": 115,
@@ -39,7 +41,7 @@
                         },
                         "mpi_procs": 0,
                         "nodes": 1,
-                        "output": "trimm.out",
+                        "output": "down.out",
                         "queue": "gll_usr_prod",
                         "walltime": "03:00:00"
                     },
@@ -68,7 +70,7 @@
                             "Download"
                         ],
                         "error": "trimm.err",
-                        "job_name": "trimm_${PROJECT}__${GENOME",
+                        "job_name": "trimm_${PROJECT}_${GENOME}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
@@ -84,12 +86,13 @@
                         "profile/bioinf",
                         "trimmomatic/0.36"
                     ],
+                    "sequential": true,
                     "skip": false,
                     "title": "Trimming",
                     "type": "per-step"
                 },
                 {
-                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/rn6/genome -1 $SAMPLE/$SAMPLE_1.trim.paired.fastq $SAMPLE/$SAMPLE_2.trim.paired.fastq $SAMPLE/$SAMPLE_1.trim.unpaired.fastq $SAMPLE/$SAMPLE_2.trim.unpaired.fastq -S $SAMPLE/$SAMPLE.sam",
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/rn6/genome -1 $SAMPLE/${SAMPLE}_1.trim.paired.fastq -2 $SAMPLE/${SAMPLE}_2.trim.paired.fastq -U $SAMPLE/${SAMPLE}_1.trim.unpaired.fastq,$SAMPLE/${SAMPLE}_2.trim.unpaired.fastq -S $SAMPLE/$SAMPLE.sam",
                     "conditions": [
                         {
                             "command": "[ -s $SAMPLE/$SAMPLE.sam ]"
@@ -104,7 +107,7 @@
                             "Trimming"
                         ],
                         "error": "",
-                        "job_name": "hisat2_$PROJECT_ratto",
+                        "job_name": "hisat2_${PROJECT}_${GENOME}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
@@ -120,7 +123,7 @@
                         "profile/bioinf",
                         "hisat2/2.1.0"
                     ],
-                    "skip": true,
+                    "skip": false,
                     "title": "Mapping",
                     "type": "per-sample"
                 }
@@ -130,10 +133,12 @@
             "dataset": {
                 "all_samples_variable": "ALL_SAMPLES",
                 "basedir": "",
+                "cluster": "galileo",
                 "create_per_sample_directory": true,
                 "genome": "ig_Mus_musculus/mm10",
                 "id": "10_PRJNA267703_NEW",
                 "pairedend": true,
+                "project_index_variable": "PROJECT_INDEX",
                 "project_variable": "PROJECT",
                 "sample_ids": "SRR1656681\nSRR1656680\nSRR1656679\nSRR1656678\nSRR1656677\nSRR1656676\nSRR1656675\nSRR1656674\nSRR1656673\nSRR1656672\nSRR1656671\nSRR1656670\nSRR1656669\nSRR1656668\nSRR1656667",
                 "sample_variable": "SAMPLE"
@@ -152,17 +157,17 @@
                         "account": "cin_staff",
                         "cpu": 36,
                         "dependencies": [],
-                        "error": "trimm.err",
-                        "job_name": "download_${PROJECT}_${GENOME",
+                        "error": "down.err",
+                        "job_name": "download_${PROJECT}_${GENOME}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
                         },
                         "mpi_procs": 0,
                         "nodes": 1,
-                        "output": "trimm.out",
+                        "output": "down.out",
                         "queue": "gll_usr_prod",
-                        "walltime": "03:00:00"
+                        "walltime": "12:00:00"
                     },
                     "hpc_directives_text": "",
                     "modules": [
@@ -189,7 +194,7 @@
                             "Download"
                         ],
                         "error": "trimm.err",
-                        "job_name": "trimm_${PROJECT}_${GENOME",
+                        "job_name": "trimm_${PROJECT}_${GENOME}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
@@ -205,13 +210,18 @@
                         "profile/bioinf",
                         "trimmomatic/0.36"
                     ],
+                    "sequential": true,
                     "skip": false,
                     "title": "Trimming",
                     "type": "per-step"
                 },
                 {
-                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/rn6/genome -1 $SAMPLE/$SAMPLE_1.trim.paired.fastq $SAMPLE/$SAMPLE_2.trim.paired.fastq $SAMPLE/$SAMPLE_1.trim.unpaired.fastq $SAMPLE/$SAMPLE_2.trim.unpaired.fastq -S $SAMPLE/$SAMPLE.sam",
-                    "conditions": [],
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/rn6/genome -1 $SAMPLE/${SAMPLE}_1.trim.paired.fastq -2 $SAMPLE/${SAMPLE}_2.trim.paired.fastq -U $SAMPLE/${SAMPLE}_1.trim.unpaired.fastq,$SAMPLE/${SAMPLE}_2.trim.unpaired.fastq -S $SAMPLE/$SAMPLE.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE/$SAMPLE.sam ]"
+                        }
+                    ],
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
@@ -221,7 +231,7 @@
                             "Trimming"
                         ],
                         "error": "",
-                        "job_name": "hisat2_$PROJECT_${GENOME",
+                        "job_name": "hisat2_${PROJECT}_${GENOME}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
@@ -237,7 +247,7 @@
                         "profile/bioinf",
                         "hisat2/2.1.0"
                     ],
-                    "skip": true,
+                    "skip": false,
                     "title": "Mapping",
                     "type": "per-sample"
                 }
@@ -247,6 +257,7 @@
             "dataset": {
                 "all_samples_variable": "ALL_SAMPLES",
                 "basedir": "",
+                "cluster": "pico",
                 "create_per_sample_directory": true,
                 "genome": "ig_Rattus_norvegicus/rn6",
                 "id": "11_PRJNA341670_NEW",
@@ -270,17 +281,17 @@
                         "account": "cin_staff",
                         "cpu": 36,
                         "dependencies": [],
-                        "error": "trimm.err",
-                        "job_name": "download_${PROJECT}_${GENOME",
+                        "error": "down.err",
+                        "job_name": "download_${PROJECT}_${GENOME}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
                         },
                         "mpi_procs": 0,
                         "nodes": 1,
-                        "output": "trimm.out",
+                        "output": "down.out",
                         "queue": "gll_usr_prod",
-                        "walltime": "03:00:00"
+                        "walltime": "12:00:00"
                     },
                     "hpc_directives_text": "",
                     "modules": [
@@ -307,7 +318,7 @@
                             "Download"
                         ],
                         "error": "trimm.err",
-                        "job_name": "trimm_${PROJECT}_${GENOME",
+                        "job_name": "trimm_${PROJECT}_${GENOME}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
@@ -323,13 +334,18 @@
                         "profile/bioinf",
                         "trimmomatic/0.36"
                     ],
+                    "sequential": true,
                     "skip": false,
                     "title": "Trimming",
                     "type": "per-step"
                 },
                 {
-                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/rn6/genome -1 $SAMPLE/$SAMPLE_1.trim.paired.fastq $SAMPLE/$SAMPLE_2.trim.paired.fastq $SAMPLE/$SAMPLE_1.trim.unpaired.fastq $SAMPLE/$SAMPLE_2.trim.unpaired.fastq -S $SAMPLE/$SAMPLE.sam",
-                    "conditions": [],
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/rn6/genome -1 $SAMPLE/${SAMPLE}_1.trim.paired.fastq -2 $SAMPLE/${SAMPLE}_2.trim.paired.fastq -U $SAMPLE/${SAMPLE}_1.trim.unpaired.fastq,$SAMPLE/${SAMPLE}_2.trim.unpaired.fastq -S $SAMPLE/$SAMPLE.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE/$SAMPLE.sam ]"
+                        }
+                    ],
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
@@ -339,7 +355,7 @@
                             "Trimming"
                         ],
                         "error": "hisat.err",
-                        "job_name": "hisat2_$PROJECT_${GENOME",
+                        "job_name": "hisat2_${PROJECT}_${GENOME}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
