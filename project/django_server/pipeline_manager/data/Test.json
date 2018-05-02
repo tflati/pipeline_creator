@@ -7,17 +7,60 @@
     "projects": [
         {
             "dataset": {
-                "all_samples_variable": "ALL_SAMPLES",
                 "basedir": "",
                 "cluster": "galileo",
                 "create_per_sample_directory": true,
                 "genome": "ig_homo_sapiens/hg19",
-                "genome_variable": "GENOME",
                 "id": "First project",
-                "project_index_variable": "PROJECT_INDEX",
-                "project_variable": "PROJECT",
                 "sample_ids": "SRR5398111\nSRR5398110\nSRR5398109\nSRR5398108\nSRR5398107\nSRR5398106\nSRR5398105\nSRR5398104\nSRR5398103\nSRR5398102\nSRR5398101\nSRR5398100\nSRR5398099\nSRR5398098\nSRR5398097\nSRR5398096\nSRR5398095\nSRR5398094\nSRR5398093\nSRR5398092\nSRR5398091\nSRR5398090\nSRR5398089\nSRR5398088",
-                "sample_variable": "SAMPLE"
+                "variables": [
+                    {
+                        "description": "Variable to use across scripts to refer to a sample in this project",
+                        "key": "sample_variable",
+                        "key_disabled": true,
+                        "value": "SAMPLE"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to ALL samples in this project",
+                        "key": "all_samples_variable",
+                        "key_disabled": true,
+                        "value": "ALL_SAMPLES"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to this project ID",
+                        "key": "project_variable",
+                        "key_disabled": true,
+                        "value": "PROJECT"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to the index of this project",
+                        "key": "project_index_variable",
+                        "key_disabled": true,
+                        "value": "PROJECT_INDEX"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to the number of CPU defined in a step",
+                        "key": "cpu_variable",
+                        "key_disabled": true,
+                        "value": "CPU"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to the name of the step",
+                        "key": "step_name_variable",
+                        "key_disabled": true,
+                        "value": "STEP_NAME"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to XXXXX",
+                        "key": "variable_key",
+                        "value": "value"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to XXXXX",
+                        "key": "variable_key2",
+                        "value": "value"
+                    }
+                ]
             },
             "disabled": false,
             "steps": [
@@ -129,16 +172,49 @@
         },
         {
             "dataset": {
-                "all_samples_variable": "ALL_SAMPLES",
                 "basedir": "",
                 "create_per_sample_directory": true,
                 "genome": "",
-                "genome_variable": "GENOME",
                 "id": "Second project",
-                "project_index_variable": "PROJECT_INDEX",
-                "project_variable": "PROJECT",
                 "sample_ids": "",
-                "sample_variable": "SAMPLE"
+                "variables": [
+                    {
+                        "description": "Variable to use across scripts to refer to a sample in this project",
+                        "key": "sample_variable",
+                        "key_disabled": true,
+                        "value": "SAMPLE"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to ALL samples in this project",
+                        "key": "all_samples_variable",
+                        "key_disabled": true,
+                        "value": "ALL_SAMPLES"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to this project ID",
+                        "key": "project_variable",
+                        "key_disabled": true,
+                        "value": "PROJECT"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to the index of this project",
+                        "key": "project_index_variable",
+                        "key_disabled": true,
+                        "value": "PROJECT_INDEX"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to the number of CPU defined in a step",
+                        "key": "cpu_variable",
+                        "key_disabled": true,
+                        "value": "CPU"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to the name of the step",
+                        "key": "step_name_variable",
+                        "key_disabled": true,
+                        "value": "STEP_NAME"
+                    }
+                ]
             },
             "disabled": false,
             "steps": []

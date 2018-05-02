@@ -43,6 +43,7 @@
                         "walltime": "00:30:00"
                     },
                     "hpc_directives_text": "",
+                    "iterate": true,
                     "modules": [],
                     "sequential": false,
                     "skip": true,
@@ -79,12 +80,13 @@
                         "walltime": "12:00:00"
                     },
                     "hpc_directives_text": "",
+                    "iterate": true,
                     "modules": [
                         "trimmomatic/0.36",
                         "profile/bioinf"
                     ],
                     "sequential": false,
-                    "skip": false,
+                    "skip": true,
                     "title": "Trimming",
                     "type": "per-sample",
                     "write_stderr_log": true,
@@ -118,12 +120,13 @@
                         "walltime": "12:00:00"
                     },
                     "hpc_directives_text": "",
+                    "iterate": true,
                     "modules": [
                         "profile/bioinf",
                         "bwa/0.7.17"
                     ],
                     "sequential": false,
-                    "skip": false,
+                    "skip": true,
                     "title": "Mapping",
                     "type": "per-sample",
                     "write_stderr_log": true,
@@ -157,13 +160,14 @@
                         "walltime": "02:00:00"
                     },
                     "hpc_directives_text": "",
+                    "iterate": true,
                     "modules": [
                         "profile/bioinf",
                         "jre/1.8.0_111--binary",
                         "picardtools/2.3.0"
                     ],
                     "sequential": false,
-                    "skip": false,
+                    "skip": true,
                     "title": "Sort",
                     "type": "per-sample",
                     "write_stderr_log": true,
@@ -197,13 +201,14 @@
                         "walltime": "02:00:00"
                     },
                     "hpc_directives_text": "",
+                    "iterate": true,
                     "modules": [
                         "profile/bioinf",
                         "jre/1.8.0_111--binary",
                         "picardtools/2.3.0"
                     ],
                     "sequential": false,
-                    "skip": false,
+                    "skip": true,
                     "title": "Add read group",
                     "type": "per-sample",
                     "write_stderr_log": true,
@@ -237,13 +242,14 @@
                         "walltime": "02:00:00"
                     },
                     "hpc_directives_text": "",
+                    "iterate": true,
                     "modules": [
                         "profile/bioinf",
                         "jre/1.8.0_111--binary",
                         "picardtools/2.3.0"
                     ],
                     "sequential": true,
-                    "skip": false,
+                    "skip": true,
                     "title": "Build index",
                     "type": "per-step",
                     "write_stderr_log": true,
@@ -277,14 +283,156 @@
                         "walltime": "01-00:00:00"
                     },
                     "hpc_directives_text": "",
+                    "iterate": true,
+                    "modules": [
+                        "profile/bioinf",
+                        "gatk/4.0"
+                    ],
+                    "sequential": false,
+                    "skip": true,
+                    "title": "Haplotype caller",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "commandline": "truncate --size 0 dedupAdd.txt\nfor input_seed in `cat dataset.txt`; do\n    readlink -f ${input_seed}/${input_seed}_dedupAdd.bam >> dedupAdd.txt\ndone",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [
+                            "Haplotype caller"
+                        ],
+                        "error": "prepare-err",
+                        "job_name": "prepare",
+                        "memory": {
+                            "quantity": 1,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "prepare-out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "00:01:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": false,
+                    "modules": [],
+                    "sequential": false,
+                    "skip": false,
+                    "title": "PrepareData4Variants",
+                    "type": "per-step",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "commandline": "REFERENCE=/gpfs/work/cin_staff/tcastign/pioppo/Populus_trichocarpa/genome/GCF_000002775.4_Pop_tri_v3_genomic.fna\n\nPATH=/gpfs/work/cin_staff/tcastign/pioppo/app/bcftools-1.8:$PATH\ncut -f1 $REFERENCE.fai | xargs -I {} -P 10 sh -c \"samtools mpileup -g -B -C50 -m 4 -f $REFERENCE -r \\\"{}\\\" -b dedupAdd.txt | bcftools call -mv -O v -o bcf_\\\"{}\\\"_part.vcf\"",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "PrepareData4Variants"
+                        ],
+                        "error": "bcftools-err",
+                        "job_name": "bcftools",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "bcftools-out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": false,
+                    "modules": [
+                        "profile/bioinf",
+                        "samtools/1.7"
+                    ],
+                    "sequential": true,
+                    "skip": false,
+                    "title": "BCFtools",
+                    "type": "per-step",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "commandline": "REFERENCE=/gpfs/work/cin_staff/tcastign/pioppo/Populus_trichocarpa/genome/GCF_000002775.4_Pop_tri_v3_genomic.fna\n\ncut -f1 $REFERENCE.fai | xargs -P 20 -I {} sh -c \"freebayes -f $REFERENCE -r {} -C 5 -L dedupAdd.txt > part.fb.\\\"{}\\\".vcf\"\n\ncat part.fb.chr*.vcf | vcf-sort -c > merged.freebayes.vcf",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "PrepareData4Variants"
+                        ],
+                        "error": "freebayes-err",
+                        "job_name": "freebayes",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "freebayes-out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": false,
+                    "modules": [
+                        "profile/bioinf",
+                        "freebayes/1.1.0"
+                    ],
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Freebayes",
+                    "type": "per-step",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "commandline": "REFGENOME=/gpfs/work/cin_staff/tcastign/pioppo/Populus_trichocarpa/genome/GCF_000002775.4_Pop_tri_v3_genomic.fna\n\n>gvcfs.sample_map\n>vcf.list\nfor SAMPLE_FILE in *vcf; do\n    echo $SAMPLE_FILE\n    SAMPLE_NAME=${SAMPLE_FILE%%.*}\n    ENTRY=\"${SAMPLE_NAME}\\t${SAMPLE_FILE}\"\n    echo -e $ENTRY >> gvcfs.sample_map\n    echo -e $SAMPLE_FILE>>vcf.list\ndone\n\n$GATK_HOME/bin/gatk CombineGVCFs \\\n   -R $REFGENOME \\\n   -V vcf.list \\\n   -O Combined.g.vcf\n\nfor i in $(cat $REFGENOME.fai | cut -f1); do\n    echo -e \"Merging all the variants found previously \\n\"\n\n    $GATK_HOME/bin/gatk --java-options \"-Xmx4g -Xms4g\" GenomicsDBImport \\\n        --genomicsdb-workspace-path my_database$i \\\n        --sample-name-map gvcfs.sample_map \\\n        -L $i \\\n        --reader-threads 4\ndone\n\n$GATK_HOME/bin/gatk --java-options \"-Djava.io.tmpdir=$TMP -Xmx32G -DGATK_STACKTRACE_ON_USER_EXCEPTION=true\" \\\n    GenotypeGVCFs \\\n    -R $REFGENOME \\\n    -O Combined2.g.vcf \\\n    -V Combined.g.vcf \\\n    -stand-call-conf 30\n\nrm -rf tmp\n\n$GATK_HOME/bin/gatk \\\n    SelectVariants \\\n    -R $REFGENOME \\\n    -V Combined2.g.vcf \\\n    -select-type SNP \\\n    -O raw_snps.vcf\n\nTMP=tmp_snps\n$GATK_HOME/bin/gatk --java-options \"-Djava.io.tmpdir=$TMP -Xmx32G\" \\\n    VariantFiltration \\\n    -R $REFGENOME \\\n    -V raw_snps.vcf \\\n    --filter-expression \"QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0\" \\\n    --filter-name \"my_snp_filter\" \\\n    -O Combined_snps_filt.vcf\n\nrm -rf tmp_snps\n\n$GATK_HOME/bin/gatk \\\n    SelectVariants \\\n    -R $REFGENOME \\\n    -V Combined2.g.vcf \\\n    -select-type INDEL \\\n    -O raw_indels.vcf\n\nTMP=tmp_indels\n\n$GATK_HOME/bin/gatk --java-options \"-Djava.io.tmpdir=$TMP -Xmx32G\" \\\n    VariantFiltration \\\n    -R $REFGENOME \\\n    -V raw_indels.vcf \\\n    --filter-expression \"QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0 || InbreedingCoeff < -0.8 || SOR > 10\" \\\n    --filter-name \"my_indel_filter\" \\\n    -O Combined_indels_filt.vcf\n\nrm -rf tmp_indels",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "PrepareData4Variants"
+                        ],
+                        "error": "gatk-err",
+                        "job_name": "gatk",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "gatk-out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": false,
                     "modules": [
                         "profile/bioinf",
                         "gatk/4.0"
                     ],
                     "sequential": false,
                     "skip": false,
-                    "title": "Haplotype caller",
-                    "type": "per-sample",
+                    "title": "GATK",
+                    "type": "per-step",
                     "write_stderr_log": true,
                     "write_stdout_log": true
                 }

@@ -1,0 +1,96 @@
+{
+    "creation_date": "2018-05-02T15:10:00.416Z",
+    "creator": "Tiziano Flati",
+    "description": "",
+    "id": "peach2",
+    "img": "imgs/project.png",
+    "projects": [
+        {
+            "dataset": {
+                "basedir": "",
+                "cluster": "galileo",
+                "create_per_sample_directory": true,
+                "genome": "",
+                "id": "PeachDB-2",
+                "sample_ids": "SRR035182\nSRR035183\nSRR035185\nSRR035184\nSRR515242\nSRR515243\nSRR515244\nSRR515245\nSRR515246\nSRR515247\nSRR515248\nSRR515249\nSRR515250\nSRR515251\nSRR515252\nSRR515253\nSRR515286\nSRR515301\nSRR515302\nSRR504531\nSRR504532\nSRR504533\nSRR504534\nSRR504535\nSRR504536\nSRR504537\nSRR948300\nSRR948301\nSRR948302\nSRR948299\nSRR1300787\nSRR1300788\nSRR1300790\nSRR1300834\nSRR1300836\nSRR1556451\nSRR1559275\nSRR1561576\nSRR1569903\nSRR1569904\nSRR1570032\nSRR1570704\nSRR1570737\nSRR1570738\nSRR1662173\nSRR1662174\nSRR1736516\nSRR1736517\nSRR1736518\nSRR1736519\nSRR1736520\nSRR1736521\nSRR1736522\nSRR1736523\nSRR1736524\nSRR1736525\nSRR1736526\nSRR1736527\nSRR2086433\nSRR2085964\nSRR2086434\nSRR2086432\nSRR2086172\nSRR2086174\nSRR2290949\nSRR2290951\nSRR5074728\nSRR5074727\nSRR5074715\nSRR5074714\nSRR3056891\nSRR3112581\nSRR3212106\nSRR3212108\nSRR3628386\nSRR531864\nSRR531863\nSRR531865\nSRR531862\nSRR5033064\nSRR5033062\nSRR5033063\nSRR5033065\nSRR5033066\nSRR5033067\nSRR6932668\nSRR6932670\nSRR6932669\nSRR6932671\nSRR6932673\nSRR6932672\nSRR6932674\nSRR6932675",
+                "variables": [
+                    {
+                        "description": "Variable to use across scripts to refer to a sample in this project",
+                        "key": "sample_variable",
+                        "key_disabled": true,
+                        "value": "SAMPLE"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to ALL samples in this project",
+                        "key": "all_samples_variable",
+                        "key_disabled": true,
+                        "value": "ALL_SAMPLES"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to this project ID",
+                        "key": "project_variable",
+                        "key_disabled": true,
+                        "value": "PROJECT"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to the index of this project",
+                        "key": "project_index_variable",
+                        "key_disabled": true,
+                        "value": "PROJECT_INDEX"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to the number of CPU defined in a step",
+                        "key": "cpu_variable",
+                        "key_disabled": true,
+                        "value": "CPU"
+                    },
+                    {
+                        "description": "Variable to use across scripts to refer to the name of the step",
+                        "key": "step_name_variable",
+                        "key_disabled": true,
+                        "value": "STEP_NAME"
+                    }
+                ]
+            },
+            "disabled": false,
+            "steps": [
+                {
+                    "commandline": "fastq-dump $SAMPLE -O $SAMPLE",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [],
+                        "error": "${STEP_NAME}-err",
+                        "job_name": "${STEP_NAME}-${SAMPLE}",
+                        "memory": {
+                            "quantity": 10,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "${STEP_NAME}-out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": true,
+                    "modules": [
+                        "profile/bioinf",
+                        "sra/2.8.2"
+                    ],
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Download",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                }
+            ]
+        }
+    ],
+    "subtitle": "Analisi Pesco",
+    "title": "PeachDB-2"
+}

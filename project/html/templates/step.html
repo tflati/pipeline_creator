@@ -50,6 +50,9 @@
 
 <h3>Command line</h3>
 <textarea ng-model="step.commandline" rows="5" style="width: 90%;"></textarea>
+<md-switch ng-model="step.iterate" aria-label="Iterate samples">
+	Iterate through samples: {{ step.iterate }} <span style="color: grey;">(the command is repeated over all sample, individually)</span>
+</md-switch>
 <md-switch ng-model="step.sequential" aria-label="Analysis mode">
 	Sequential analysis: {{ step.sequential }} <span style="color: grey;">(each sample is analyzed after the other)</span>
 </md-switch>

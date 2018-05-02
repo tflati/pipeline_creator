@@ -2,8 +2,27 @@ body {
 	height: 100%;
 }
 
+.angular-tooltip {
+  position: absolute;
+  background: #000000;
+  z-index: 9999;
+  padding: 3px;
+  border: 2px solid #000000;
+  color: white;
+  pointer-events: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  max-width: 500px;
+  border-radius: 5px; }
+
 .main-content {
 	
+}
+
+v-pane-content {
+	padding-left: 25px;
 }
 
 .small-height {

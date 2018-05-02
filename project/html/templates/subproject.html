@@ -25,23 +25,50 @@
 <!-- 				<span>Create a directory for each sample</span> -->
 <!-- 			</md-checkbox> -->
 <!-- 		</md-input-container> -->
-		<md-input-container>
-			<label>Variable to use across scripts to refer to this project ID</label>
-			<input label="Project variable" type="text" ng-model="subproject.dataset.project_variable">
-		</md-input-container>
-		<md-input-container>
-			<label>Variable to use across scripts to refer to the index of this project</label>
-			<input label="Project index variable" type="text" ng-model="subproject.dataset.project_index_variable">
-		</md-input-container>		
-		<md-input-container>
-			<label>Variable to use across scripts to refer to a sample in this project</label>
-			<input label="Sample variable" type="text" ng-model="subproject.dataset.sample_variable">
-		</md-input-container>
-		<md-input-container>
-			<label>Variable to use across scripts to refer to ALL samples in this project</label>
-			<input label="All-samples variable" type="text" ng-model="subproject.dataset.all_samples_variable">
-		</md-input-container>
 	</md-content>
+</section>
+<section>
+	<md-subheader class="md-primary">Variables and constants (system-reserved variables have their keys disabled, but you can still edit their values)</md-subheader>
+		<div ng-repeat="variable in subproject.dataset.variables">
+			<md-input-container layout="row" flex>
+				<input ng-disabled="variable.key_disabled" label="Description" type="text" ng-model="variable.description">
+			</md-input-container>
+			<div layout="row" layout-align="start center" layout-margin>
+				<md-input-container>
+					<input ng-disabled="variable.key_disabled" label="Key" type="text" ng-model="variable.key">
+				</md-input-container>
+				<md-input-container>
+					<input label="Value" type="text" ng-model="variable.value">
+				</md-input-container>
+				<md-switch ng-disabled="variable.key_disabled" md-invert ng-model="variable.constant" aria-label="Constant value?">
+			    	Constant value? {{ variable.constant }}
+			  	</md-switch>
+			  	<md-button ng-if="!variable.key_disabled" class="md-icon-button" ng-click="delete_variable(subproject, $index, $event)" tooltip="Delete this variable" aria-label="Remove this variable">
+			      <ng-md-icon icon="delete" style="fill: grey;"></ng-md-icon>
+			    </md-button>
+			 </div>
+		</div>
+		<div layout-margin>
+			<md-button class="md-button md-warn md-raised" ng-click="add_variable(subproject)" tooltip="Add a step to this pipeline" aria-label="Add a new variable">
+		       	<span class="fa-layers fa-fw">
+					<i class="fas fa-list-ol"></i>
+					<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
+				</span>
+				Add a variable
+			</md-button>
+		</div>		
+<!-- 		<md-input-container> -->
+<!-- 			<label>Variable to use across scripts to refer to the index of this project</label> -->
+<!-- 			<input label="Project index variable" type="text" ng-model="subproject.dataset.project_index_variable"> -->
+<!-- 		</md-input-container>		 -->
+<!-- 		<md-input-container> -->
+<!-- 			<label>Variable to use across scripts to refer to a sample in this project</label> -->
+<!-- 			<input label="Sample variable" type="text" ng-model="subproject.dataset.sample_variable"> -->
+<!-- 		</md-input-container> -->
+<!-- 		<md-input-container> -->
+<!-- 			<label>Variable to use across scripts to refer to ALL samples in this project</label> -->
+<!-- 			<input label="All-samples variable" type="text" ng-model="subproject.dataset.all_samples_variable"> -->
+<!-- 		</md-input-container> -->
 </section>
 
 <section>
@@ -103,7 +130,7 @@
 		      <ng-md-icon icon="low_priority"></ng-md-icon>
 		    </md-button>
 	    	
-	    	<span md-truncate flex><b ng-if="step.skip">(skipped)&nbsp;</b><b>Step {{$index+1}}: {{step.title}}</b></span>
+	    	<span tooltip="<b>Command line</b>:<br/>{{step.commandline}}" md-truncate flex><b ng-if="step.skip">(skipped)&nbsp;</b><b>Step {{$index+1}}: {{step.title}}</b></span>
 	    	
 	    	<md-button class="md-icon-button" ng-click="showDeleteStepDialog(step, $event)" tooltip="Delete this step" aria-label="Remove step">
 		      <ng-md-icon icon="delete"></ng-md-icon>
@@ -111,6 +138,10 @@
 		    
 		    <md-button class="md-icon-button" ng-click="toggleStep(step, $event)" tooltip="Exclude/include this step" aria-label="Exclude/include step">
 		      <ng-md-icon icon="highlight_off"></ng-md-icon>
+		    </md-button>
+		    
+		    <md-button class="md-icon-button" ng-click="cloneStep(step, $event)" tooltip="Clone step" aria-label="Clone step">
+		      <ng-md-icon icon="content_copy"></ng-md-icon>
 		    </md-button>
 		    
 		    <md-button class="md-icon-button" ng-click="move_item(subproject.steps, $index, -1, $event)" tooltip="Move up this step" aria-label="Move up this step">

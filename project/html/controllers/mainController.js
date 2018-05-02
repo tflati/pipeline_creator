@@ -29,11 +29,44 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
             "basedir": "",
             "create_per_sample_directory": true,
             "sample_ids": "",
-            "sample_variable": "SAMPLE",
-            "genome_variable": "GENOME",
-            "all_samples_variable": "ALL_SAMPLES",
-            "project_variable": "PROJECT",
-            "project_index_variable": "PROJECT_INDEX"
+            "variables": [
+	            {
+	            	"key": "sample_variable",
+	            	"key_disabled": true,
+	            	"value": "SAMPLE",
+	            	"description": "Variable to use across scripts to refer to a sample in this project"
+	            },
+	            {
+	            	"key": "all_samples_variable",
+	            	"key_disabled": true,
+	            	"value": "ALL_SAMPLES",
+	            	"description": "Variable to use across scripts to refer to ALL samples in this project"
+	            },
+	            {
+	            	"key": "project_variable",
+	            	"key_disabled": true,
+	            	"value": "PROJECT",
+	            	"description": "Variable to use across scripts to refer to this project ID"	            	
+	            },
+	            {
+	            	"key": "project_index_variable",
+	            	"key_disabled": true,
+	            	"value": "PROJECT_INDEX",
+	            	"description": "Variable to use across scripts to refer to the index of this project"
+	            },
+	            {
+	            	"key": "cpu_variable",
+	            	"key_disabled": true,
+	            	"value": "CPU",
+	            	"description": "Variable to use across scripts to refer to the number of CPU defined in a step"
+	            },
+	            {
+	            	"key": "step_name_variable",
+	            	"key_disabled": true,
+	            	"value": "STEP_NAME",
+	            	"description": "Variable to use across scripts to refer to the name of the step"
+	            }
+        	]
         }
 	};
 	
@@ -61,6 +94,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
             },
 	        "modules": [],
 	        "skip": false,
+	        "iterate": true,
 	        "sequential": true,
 	        "write_stdout_log": true,
 	        "write_stderr_log": true,
@@ -70,6 +104,12 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	var condition_template = {
 		"command": ""
 	};
+	
+	var variable_template = {
+    	"key": "variable_key",
+    	"value": "value",
+    	"description": "Variable to use across scripts to refer to XXXXX"	            	
+    };
 	
 	$scope.genomes = [];
 	
@@ -163,7 +203,19 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	$scope.cloneSubproject = function(index, $event){
 		$event.stopPropagation();
 		console.log("[CLONE SUBPROJECT]", index, $scope.selected_project.projects[index]);
-		$scope.selected_project.projects.push(angular.copy($scope.selected_project.projects[index]));
+		
+		copy = angular.copy($scope.selected_project.projects[index]);
+		copy.dataset.id = "Copy of " + copy.dataset.id;
+		
+		$scope.selected_project.projects.push(copy);
+	};
+	
+	$scope.cloneStep = function(step, $event){
+		$event.stopPropagation();
+		console.log("[CLONE STEP]", step);
+		copy = angular.copy(step)
+		copy.title = "Copy of " + copy.title;
+		$scope.selected_subproject.steps.push(copy);
 	};
 	
 	$scope.copy_steps = function(subproject){
@@ -341,6 +393,15 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	$scope.add_step = function(project){
 		project.steps.push(angular.copy(step_template));
 	};
+	
+	$scope.add_variable = function(project){
+		project.dataset.variables.push(angular.copy(variable_template));
+	};
+	
+	$scope.delete_variable = function(project, index){
+		project.dataset.variables.splice(index, 1);
+	};
+	
 	
 	$scope.remove_step = function(project, index){
 		project.steps.splice(index, 1);
