@@ -3,6 +3,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	$scope.projects = undefined;
 	$scope.selected_project = undefined;
 	$scope.selected_subproject = undefined;
+	$scope.checked_subproject = [];
 //	$scope.selected_step = undefined;
 	
 	$scope.keep_sidenav_open = true;
@@ -28,6 +29,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
     		"genome": "",
             "basedir": "",
             "create_per_sample_directory": true,
+            "pairedend": false,
             "sample_ids": "",
             "variables": [
 	            {
@@ -268,10 +270,6 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	    });
 	};
 	
-	$scope.onChangeLibrary = function(state){
-		
-	};
-	
 	$scope.toggleStep = function(step, $event){
 		step.skip = !step.skip;
 		$event.stopPropagation();
@@ -286,6 +284,122 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		return total;
 	};
 	
+	$scope.get_total_samples_pe = function(selected_project){
+		var total = 0;
+		
+		for(var k=0; k<selected_project.projects.length; k++)
+			if(selected_project.projects[k].dataset.pairedend)
+				total += selected_project.projects[k].dataset.sample_ids.split('\n').length;
+		
+		return total;
+	};
+	
+	$scope.get_total_samples_se = function(selected_project){
+		var total = 0;
+		
+		for(var k=0; k<selected_project.projects.length; k++)
+			if(!selected_project.projects[k].dataset.pairedend)
+				total += selected_project.projects[k].dataset.sample_ids.split('\n').length;
+		
+		return total;
+	};
+	
+	$scope.get_total_bioprojects = function(selected_project){
+		var bioproject_ids = {};
+		
+		for(var k=0; k<selected_project.projects.length; k++)
+		{
+			var bioproject_id = selected_project.projects[k].dataset.bioproject_id;
+			bioproject_ids[bioproject_id] = 1;
+		}
+		
+		return Object.keys(bioproject_ids).length;
+	};
+	
+	$scope.get_total_genomes = function(selected_project){
+		var genomes = {};
+		
+		for(var k=0; k<selected_project.projects.length; k++)
+		{
+			var genome = selected_project.projects[k].dataset.genome;
+			genomes[genome] = 1;
+		}
+		
+		return Object.keys(genomes).length;
+	};
+	
+	$scope.get_genomes = function(selected_project){
+		var genomes = {};
+		
+		for(var k=0; k<selected_project.projects.length; k++)
+		{
+			var genome = selected_project.projects[k].dataset.genome;
+			genomes[genome] = 1;
+		}
+		
+		return Object.keys(genomes);
+	};
+	
+	$scope.toggle = function (item, list, $event) {
+	    var idx = list.indexOf(item);
+	    if (idx > -1) {
+	      list.splice(idx, 1);
+	    }
+	    else {
+	      list.push(item);
+	    }
+	    
+	    $event.stopPropagation();
+	};
+
+	$scope.exists = function (item, list) {
+		return list.indexOf(item) > -1;
+	};
+	
+	$scope.isIndeterminate = function() {
+		return ($scope.checked_subproject.length !== 0 &&
+				$scope.checked_subproject.length !== $scope.selected_project.projects.length);
+	};
+
+	$scope.isChecked = function() {
+		return $scope.checked_subproject.length === $scope.selected_project.projects.length;
+	};
+	
+	$scope.isSEChecked = false;
+	$scope.isPEChecked = false;
+
+	$scope.toggleAll = function() {
+		if ($scope.checked_subproject.length === $scope.selected_project.projects.length) {
+	      $scope.checked_subproject = [];
+	    } else if ($scope.checked_subproject.length === 0 || $scope.checked_subproject.length > 0) {
+	      $scope.checked_subproject = $scope.checked_subproject.concat($scope.selected_project.projects.slice(0));
+	    }
+		
+		$scope.isSEChecked = $scope.isPEChecked = $scope.isChecked();
+	};
+	
+	$scope.toggleAllSE = function() {
+		if ($scope.isSEChecked) {
+			$scope.checked_subproject = $scope.checked_subproject.slice(0).filter(function(p){return p.dataset.pairedend == true;});
+	    } else {
+	    	$scope.checked_subproject = $scope.checked_subproject.concat($scope.selected_project.projects.slice(0).filter(function(p){return p.dataset.pairedend == false;}));
+	    }
+		
+		$scope.isSEChecked = !$scope.isSEChecked;
+//		if($scope.isSEChecked) $scope.isPEChecked = false;
+	};
+	
+	$scope.toggleAllPE = function() {
+		if ($scope.isPEChecked) {
+			$scope.checked_subproject = $scope.checked_subproject.slice(0).filter(function(p){return p.dataset.pairedend == false;});
+	    } else {
+	    	$scope.checked_subproject = $scope.selected_project.projects.slice(0).filter(function(p){return p.dataset.pairedend == true});
+	    }
+		
+		$scope.isPEChecked = !$scope.isPEChecked;
+//		if($scope.isPEChecked) $scope.isSEChecked = false;
+	};
+	  
 	$scope.showDeleteProjectDialog = function(i, $event) {
 	    var confirm = {
 	    	controller: DialogController,
@@ -354,6 +468,29 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	    $event.stopPropagation();
 	};
 	
+	$scope.uploadFiles = function(files){
+		if (files && files.length) {
+			$scope.file_sending = true;
+			apiService.upload_samples(files, function(resp){
+				console.log('Success', resp);
+				for(var i in resp.data)
+				{
+					var subproject_data = resp.data[i];
+					$scope.add_subproject($scope.selected_project);
+					var subproject = $scope.selected_project.projects[$scope.selected_project.projects.length -1]
+					for(var key in subproject_data.dataset)
+						subproject.dataset[key] = subproject_data.dataset[key];
+					
+					$scope.file_sending = false;
+				}
+			}, function(resp){
+				console.log('Error status: ' + resp);
+				
+				$scope.file_sending = false;
+			});
+		}
+	};
+	
 	$scope.remove_subproject = function(project, index){
 		project.projects.splice(index, 1);
 	};
@@ -388,6 +525,18 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	$scope.add_subproject = function(project){
 		console.log("[ADD SUBPROJECT]", project, subproject_template);
 		project.projects.push(angular.copy(subproject_template));
+	};
+	
+	$scope.delete_subprojects = function(project){
+		console.log("[DELETE SUBPROJECTs]", project);
+		for(var i in $scope.checked_subproject)
+		{
+			var subproject = $scope.checked_subproject[i];
+			var index = project.projects.indexOf(subproject);
+			project.projects.splice(index, 1);
+		}
+		
+		$scope.checked_subproject = [];
 	};
 	
 	$scope.add_step = function(project){

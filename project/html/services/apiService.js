@@ -1,4 +1,4 @@
-app.factory('apiService', function($http) {
+app.factory('apiService', function($http, Upload) {
   var instance = {};
   
   var SERVER = "/pipeline_manager_api/pipeline_manager/";
@@ -44,6 +44,18 @@ app.factory('apiService', function($http) {
   
   instance.get_module_url = function(clusterId){
 	  return SERVER + "modules/" + clusterId + "/";   
+  };
+  
+  instance.upload_samples = function(files, successFx, errorFx, finallyFx){
+	  var url = SERVER + "upload_samples/";
+	  
+	  Upload.upload({
+          url: url,
+          data: {file: files}
+      }).then(successFx, errorFx, function (evt) {
+          var progressPercentage = parseInt(100.0 * evt.loaded / evt.total);
+          console.log('progress: ' + progressPercentage + '% ' + evt.config.data.file.name);
+      });
   };
   
   return instance;

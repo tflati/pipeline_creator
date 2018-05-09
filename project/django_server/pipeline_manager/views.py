@@ -11,9 +11,112 @@ import shutil
 import subprocess
 import networkx as nx
 import matplotlib.pyplot as plt
+import openpyxl as opx
+
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
+
+from Bio import Entrez
+from lxml import etree
 
 def test(request):
     pass
+
+def upload_samples(request):
+    print(request)
+    print(request.FILES)
+    samples_set = set()
+    for file in request.FILES.values():
+        filepath = os.path.dirname(__file__) + "/temp/" + file.name
+        default_storage.save(filepath, ContentFile(file.read()))
+        wbook = opx.load_workbook(filepath, read_only=True)
+        for wsheet in wbook.worksheets:
+            for row in wsheet.iter_rows():
+                for cell in row:
+                    if cell.value is not None and cell.value.startswith("SRR"):
+                        samples_set.add(cell.value)
+    samples = list(samples_set)
+                        
+    print("{} samples found ({} unique)".format(len(samples_set), len(samples)))
+    
+    Entrez.email = "tiziano.flati@gmail.com"
+    Entrez.api_key = "ae48c58f9a840e56ee71d28cb464cc988408"
+    handle = Entrez.esearch(retmax=1000, db="sra", term=' OR '.join(samples))
+    record = Entrez.read(handle)
+    handle.close()
+    print(record)
+    ids = record["IdList"]
+    
+#     # These below are test_ids
+#     ids = ["16789", "16790"]
+        
+    print("{}/{} IDS returned".format(len(ids), len(samples)))
+    
+    handle2 = Entrez.efetch(db="sra", id=','.join(ids))
+    record = handle2.read()
+    handle2.close()
+    
+    sra_filepath = os.path.dirname(__file__) + "/temp/sra.xml"
+    default_storage.save(sra_filepath, ContentFile(record))
+    
+    tree = etree.fromstring(record)
+    
+    response = []
+    
+    # for each bioproject
+    for project_elem in tree.iter("EXPERIMENT_PACKAGE"):
+        
+        layout_elem = project_elem.find(".//LIBRARY_LAYOUT")
+        layout = layout_elem[0].tag
+        
+        print("LAYOUT=", layout)
+        experiment_id = project_elem.findtext(".//EXPERIMENT//IDENTIFIERS//PRIMARY_ID")
+        bioproject_id = project_elem.findtext(".//STUDY//EXTERNAL_ID[@namespace='BioProject']")
+        organism = project_elem.find(".//Pool//Member").attrib["organism"]
+        print("BIOPROJECT_ID=", experiment_id, organism)
+        
+        attributes = {}
+        for attribute in project_elem.iter("SAMPLE_ATTRIBUTE"):
+            tag = attribute.findtext("TAG")
+            value = attribute.findtext("VALUE")
+            print("SAMPLE ATTRIBUTE", tag, value)
+            attributes[tag] = value
+        
+        # for each run in the bioproject
+        selected_run_ids = []
+        for run_elem in project_elem.iter("RUN"):
+            run_id = run_elem.findtext(".//PRIMARY_ID")
+            print("\t", "RUN_ID=", run_id)
+            if run_id not in samples_set: continue
+            selected_run_ids.append(run_id)
+        
+        study_title = project_elem.findtext(".//STUDY_TITLE")
+        study_type = project_elem.find(".//STUDY_TYPE").attrib["existing_study_type"]
+        study_abstract = project_elem.findtext(".//STUDY_ABSTRACT")
+        
+        bioproject_data = {
+            "dataset": {
+                "id": experiment_id,
+                "bioproject_id": bioproject_id,
+                "pairedend": layout == "PAIRED",
+                "sample_ids": "\n".join(selected_run_ids),
+                "attributes": attributes,
+                "study": {
+                        "title": study_title,
+                        "type": study_type,
+                        "abstract": study_abstract
+                    }
+                }
+            }
+        
+        if organism and organism is not None:
+            bioproject_data["dataset"]["genome"] = organism 
+        
+        response.append(bioproject_data)
+            
+    
+    return HttpResponse(json.dumps(response))
 
 # class MyBFSVisitor(graph_tool.search.BFSVisitor):
 #     def __init__(self, vertex2step, file, dataset, vertex2name):
@@ -78,6 +181,7 @@ done
     file.write("DEPS=()\n")
     for dep in g.predecessors(u):
         dep_name = vertex2name[dep]
+        if dep_name == "ROOT": continue
         
         dep_script = """
 DEP_JOB_NAME="{}"
@@ -162,6 +266,7 @@ fi
         file.write("DEPS=()\n")
         for dep in g.predecessors(u):
             dep_name = vertex2name[dep]
+            if dep_name == "ROOT": continue
             
             dep_script = """
 DEP_JOB_NAME="{}"
@@ -435,24 +540,27 @@ def produce_scripts(request):
         print("#" * 100)
         
         # Simplify by removing skip nodes
-        vertices_to_remove = []
+        vertices_to_remove = set()
         for step in subproject["steps"]:
             if step["skip"]:
                 if step["type"] == "per-step":
                     name = step["title"]
                     v = name2vertex[name]
 
+                    edges_to_remove = []
                     for e_in in g.in_edges(v):
                         fr = e_in[0]
-                        g.remove_edge(e_in)
+                        edges_to_remove.append(e_in)
                         
                         for e_out in g.out_edges(v):
                             to = e_out[1]
-                            g.remove_edge(e_out)
+                            edges_to_remove.append(e_out)
                             g.add_edge(fr, to)
                     
                     print("Removing", name)
-                    vertices_to_remove.append(v)
+                    vertices_to_remove.add(v)
+                    for e in edges_to_remove:
+                        g.remove_edge(e[0], e[1])
                     #g.remove_vertex(v)
                     
                 elif step["type"] == "per-sample":
@@ -463,19 +571,27 @@ def produce_scripts(request):
                         v = name2vertex[name]
                         #print(dir(v), v.is_valid)
                         
+                        edges_to_remove = []
                         for e_in in g.in_edges(v):
                             fr = e_in[0]
-                            print("Edge source", fr)
-                            g.remove_edge(e_in)
+                            edges_to_remove.append(e_in)
                             
                             for e_out in g.out_edges(v):
                                 to = e_out[1]
-                                g.remove_edge(e_out)
+                                edges_to_remove.append(e_out)
                                 g.add_edge(fr, to)
                         
+                        for e in edges_to_remove:
+                            g.remove_edge(e[0], e[1])
+                        
                         print("Removing", name, v)
-                        vertices_to_remove.append(v)
+                        vertices_to_remove.add(v)
 #                     for v in reversed(sorted(vertices_to_remove)):
+
+        print("=== V (before) ===")
+        for v in g.nodes():
+            print(vertex2name[v])
+            
         print("=== VERTICES TO REMOVE ===")
         for v in vertices_to_remove:
             print(vertex2name[v])
@@ -600,8 +716,11 @@ def produce_scripts(request):
     st = os.stat(filepath)
     os.chmod(filepath, st.st_mode | stat.S_IEXEC)
     
-    ret_code = subprocess.run("rm {}.zip".format(script_dir), shell=True)
-    shutil.make_archive(script_dir, 'zip', script_dir)
+    #ret_code = subprocess.run("rm {}.zip".format(script_dir), shell=True)
+    archive_name = script_dir
+    archive_path = script_dir + "/" + archive_name + '.zip'
+    if os.path.exists(archive_path): os.remove(archive_path)
+    shutil.make_archive(archive_name, 'zip', script_dir)
     
     return HttpResponse("Scripts correctly created for project: '{}'".format(project["id"]))
 
@@ -624,7 +743,7 @@ def create_step_all_samples(subproject_id, subproject_dir, genome, step, dataset
     job_name = job_name.replace("${PROJECT}", subproject_id)
     job_name = job_name.replace("${GENOME}", genome)
     job_name = job_name.replace("${STEP_NAME}", step["title"])
-    job_name = job_name.replace("${{{}}}".format(sample_variable), sample)
+#     job_name = job_name.replace("${{{}}}".format(sample_variable), sample)
     
     file.write("#SBATCH --job-name={}\n".format(job_name))
     file.write("#SBATCH -N {}\n".format(directives["nodes"]))

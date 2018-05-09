@@ -47,6 +47,10 @@ md-sidenav {
    min-height: 100%;
 }
 
+td { padding: 10px; }
+tr:nth-child(even) {background: #EEE}
+tr:nth-child(odd) {background: #FFF}
+
 .code {
 	display:block;
 	background-color: black;
@@ -56,12 +60,28 @@ md-sidenav {
 	margin-bottom: 10px;
 }
 
+.margin-0 {
+	margin: 0px;
+}
+
+.padding-left-10 {
+	padding-left: 10px;
+}
+
+.padding-left-30 {
+	padding-left: 30px;
+}
+
 .padding-10 {
 	padding: 10px;
 }
 
 .padding-30 {
 	padding: 30px;
+}
+
+.no-margin {
+	margin: 0px;
 }
 
 spacer {

@@ -1,5 +1,27 @@
 <section>
+	<md-subheader class="md-primary">Study</md-subheader>
+	<label>Study information</label>
+	<md-content layout="column" layout-padding>
+		<table>
+			<tr ng-repeat="(key, value) in subproject.dataset.study">
+				<td><b>{{key}}</b></td>
+				<td>{{value}}</td>
+			</tr>
+		</table>
+	</md-content>
+	
 	<md-subheader class="md-primary">Dataset</md-subheader>
+	
+	<label>Sample attributes</label>
+	<md-content layout="column" layout-padding>
+		<table>
+			<tr ng-repeat="(key, value) in subproject.dataset.attributes">
+				<td><b>{{key}}</b></td>
+				<td>{{value}}</td>
+			</tr>
+		</table>
+	</md-content>
+	
 	<label>Dataset information</label>
 	<md-content layout="column" layout-padding>
 		<md-input-container>
@@ -12,10 +34,10 @@
 			<span class="lighter">(<span ng-bind="subproject.dataset.sample_ids.split('\n').length"></span> sample(s) defined)</span>
 		</md-subheader>
 		<md-input-container>
-			<textarea max-rows="3" rows="3" label="Sample IDS" ng-model="subproject.dataset.sample_ids"></textarea>
+			<textarea max-rows="3" rows="3" label="Sample IDS" ng-model="subproject.dataset.sample_ids" aria-label="Sample IDs"></textarea>
 		</md-input-container>
 		<md-input-container>
-			<input type="file" import-sheet-js="xls_loaded" multiple/>
+			<input type="file" import-sheet-js="xls_loaded" multiple aria-label="Load sample IDS from a file"/>
 		</md-input-container>
 		
 <!-- 		<md-input-container> -->
@@ -31,14 +53,14 @@
 	<md-subheader class="md-primary">Variables and constants (system-reserved variables have their keys disabled, but you can still edit their values)</md-subheader>
 		<div ng-repeat="variable in subproject.dataset.variables">
 			<md-input-container layout="row" flex>
-				<input ng-disabled="variable.key_disabled" label="Description" type="text" ng-model="variable.description">
+				<input ng-disabled="variable.key_disabled" label="Description" type="text" ng-model="variable.description" aria-label="Variable description">
 			</md-input-container>
 			<div layout="row" layout-align="start center" layout-margin>
 				<md-input-container>
-					<input ng-disabled="variable.key_disabled" label="Key" type="text" ng-model="variable.key">
+					<input ng-disabled="variable.key_disabled" label="Key" type="text" ng-model="variable.key" aria-label="Variable key">
 				</md-input-container>
 				<md-input-container>
-					<input label="Value" type="text" ng-model="variable.value">
+					<input label="Value" type="text" ng-model="variable.value" aria-label="Variable value">
 				</md-input-container>
 				<md-switch ng-disabled="variable.key_disabled" md-invert ng-model="variable.constant" aria-label="Constant value?">
 			    	Constant value? {{ variable.constant }}
@@ -74,7 +96,7 @@
 <section>
 	<md-subheader class="md-primary">Analysis type</md-subheader>
 	
-	<md-switch md-invert ng-model="subproject.dataset.pairedend" aria-label="Library" ng-change="onChangeLibrary(subproject.dataset.pairedend)">
+	<md-switch md-invert ng-model="subproject.dataset.pairedend" aria-label="Library">
     	Paired-end library {{ pairedend }}
   	</md-switch>
   	

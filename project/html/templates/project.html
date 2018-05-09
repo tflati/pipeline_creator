@@ -62,38 +62,88 @@
 			
 				<div>
 					<div layout-padding>
-						<b>Total projects:</b>
+						<b>Total bioprojects:</b>
+						<span ng-bind="get_total_bioprojects(selected_project)"></span>
+					</div>
+					<div layout-padding>
+						<b>Total subprojects:</b>
 						<span>{{selected_project.projects.length}}</span>
 					</div>
 					<div layout-padding>
 						<b>Total samples:</b>
-						<span ng-bind="get_total_samples(selected_project)"></span>
+						<span ng-bind="get_total_samples(selected_project)"></span><span class="lighter"><span>(</span><span ng-bind="get_total_samples_pe(selected_project)"></span><span> PE - </span><span ng-bind="get_total_samples_se(selected_project)"></span><span> SE</span><span>)</span></span>
+					</div>
+					<div layout-padding>
+						<b>Organism(s):</b>
+						<span ng-bind="get_total_genomes(selected_project)"></span>
+						<span>{{get_genomes(selected_project) | joiner}}</span>
+<!-- 						<p class="no-margin" ng-repeat="genome in get_genomes(selected_project)">{{genome}}</p> -->
 					</div>
 				</div>
 			</section>
 			
 			<section>
 				<md-subheader class="md-primary">Projects</md-subheader>
-			
-				<div ng-if="selected_project.projects == undefined" layout="column" layout-align="start center" layout-padding>
+				
+				<div ng-if="selected_project.projects.length == 0" layout="column" layout-align="start center" layout-padding>
 					<h3>No subprojects have been defined yet for this project.</h3>
 					<img class="medium-height" width="auto" src="imgs/no_projects.png">
 				</div>
 				
-				<div layout-margin>
-					<md-button class="md-button md-warn md-raised" ng-click="add_subproject(selected_project)" tooltip="Add a step to this pipeline" aria-label="Add a new step">
+				<div ng-if="file_sending" layout="column" layout-align="center center" style="color: cadetblue;">
+					<i class="fas fa-spinner fa-spin fa-3x fa-fw"></i>
+					<p><b>Loading information from SRA</b></p>
+				</div>
+				
+				<div layout-margin layout="row">
+					<md-button ngf-select="uploadFiles($files)" multiple="multiple" class="md-button md-warn md-raised" tooltip="Create projects at once" aria-label="Create projects at once">
+						Load/create projects at once
+					</md-button>
+					
+					<md-button class="md-button md-warn md-raised" ng-click="add_subproject(selected_project)" tooltip="Add a subproject to this project" aria-label="Add a new subproject">
 			          	<span class="fa-layers fa-fw">
 							<i class="fas fa-list-ol"></i>
-							<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
+							<i class="fas fa-plus" data-fa-transform="shrink-4 down-8 right-10"></i>
 						</span>
 						Add subproject
 					</md-button>
+					
+					<md-button class="md-button md-warn md-raised" ng-click="delete_subprojects(selected_project)" tooltip="Deletes selected subprojects" aria-label="Deletes selected subprojects">
+						<i class="fas fa-trash-alt"></i>
+						Delete selected
+					</md-button>
 				</div>
 				
-				<v-accordion class="vAccordion--default" multiple onexpand="select_subproject(index)">
+				<div>
+					<md-checkbox ng-if="selected_project.projects.length > 0" aria-label="Select all subprojects"
+	                         ng-checked="isChecked()"
+	                         md-indeterminate="isIndeterminate()"
+	                         ng-click="toggleAll()">
+	              		<span ng-if="isChecked()">Un-</span>Select all subprojects
+	            	</md-checkbox>
+	            </div>
+            	
+            	<div>
+					<md-checkbox ng-if="selected_project.projects.length > 0" aria-label="Select all PE subprojects"
+	                         ng-checked="isPEChecked"
+	                         ng-click="toggleAllPE()">
+	              		<span ng-if="isPEChecked">Un-</span>Select all Paired-End subprojects
+	            	</md-checkbox>
+	            	<md-checkbox ng-if="selected_project.projects.length > 0" aria-label="Select all SE subprojects"
+	                         ng-checked="isSEChecked"
+	                         ng-click="toggleAllSE()">
+	              		<span ng-if="isSEChecked">Un-</span>Select all Single-End subprojects
+	            	</md-checkbox>
+	            </div>
+            	
+				<v-accordion class="vAccordion--default padding-10" multiple onexpand="select_subproject(index)">
 				  <v-pane ng-repeat="subproject in selected_project.projects">
 				    <v-pane-header ng-class="{disabled_pane: subproject.disabled}">
-				    	<span md-truncate flex><b>Project {{$index+1}}: {{subproject.dataset.id}}</b></span>
+				    	
+				    	<md-checkbox ng-checked="exists(subproject, checked_subproject)" ng-click="toggle(subproject, checked_subproject, $event)" aria-label="Select this subproject">
+			    		</md-checkbox>
+			    		
+				    	<span md-truncate flex><b>Experiment {{$index+1}}: {{subproject.dataset.id}}</b></span>
 				    	
 				    	<span ng-if="subproject.dataset.pairedend == true" md-truncate flex class="lighter"><b>(PE)</b></span>
 				    	<span ng-if="subproject.dataset.pairedend == false" md-truncate flex class="lighter"><b>(SE)</b></span>
@@ -129,7 +179,6 @@
 					    <md-button class="md-icon-button" ng-click="move_item(selected_project.projects, $index, 1, $event)" tooltip="Move down this project" aria-label="Move down this project">
 					      <ng-md-icon icon="keyboard_arrow_down"></ng-md-icon>
 					    </md-button>
-					    
 				    </v-pane-header>
 				    <v-pane-content>
 				    	

@@ -37,12 +37,13 @@
 				</div>
 				<md-list flex>
 					<md-divider ></md-divider>
-					<md-list-item class="md-3-line" ng-repeat="project in projects" ng-click="select_project(project)">
+					<md-list-item class="md-3-line" ng-repeat="project in projects | orderBy : project.creation_date : true" ng-click="select_project(project)">
 						<img ng-src="{{project.img}}" class="md-avatar" alt="{{project.title}}" />
 						<div class="md-list-item-text" layout="column">
 							<h3>{{ project.title }}</h3>
 						    <h4>{{ project.subtitle }}</h4>
-						    <p>{{ project.description }}</p>
+<!-- 						    <p>{{ project.description }}</p> -->
+						    <h5 class="lighter margin-0">{{ project.creation_date | amDateFormat:'DD MMMM YYYY' }}</h5>
 					  	</div>
 					  	<md-button ng-click="showDeleteProjectDialog($index, $event)" class="md-icon-button" tooltip="Delete this project" aria-label="Delete this project">
 							<ng-md-icon icon="delete"></ng-md-icon>
