@@ -75,12 +75,12 @@
 <div>
 
 <h4>Dependencies</h4>
-<div ng-if="subproject.steps.length <= 1">
+<div ng-if="pipeline.steps.length <= 1">
 	No dependencies available to select.
 </div>
-<md-input-container layout="row" ng-if="subproject.steps.length > 1">
+<md-input-container layout="row" ng-if="pipeline.steps.length > 1">
 	<md-select ng-model="step.hpc_directives.dependencies" multiple aria-label="Dependencies for this step">
-        <md-option ng-repeat="s in subproject.steps" ng-value="s.title" ng-if="s != step">
+        <md-option ng-repeat="s in pipeline.steps" ng-value="s.title" ng-if="s != step">
           {{s.title}}
         </md-option>
 	</md-select>

@@ -13,184 +13,505 @@
 			</div>
 		</md-toolbar>
 		
-		<div layout-padding>
+		<md-tabs md-dynamic-height md-border-bottom>
+		
+			<md-tab>
+				<md-tab-label layout="row" layout-align="center center"><i class="fas fa-database fa-2x vertically-centered"></i><span class="margin-left-10">Dataset</span></md-tab-label>
+				<md-tab-body>
+					<md-content class="md-padding">
+						<section>
+						<md-subheader class="md-primary">Summary</md-subheader>
+						
+							<div>
+								<div layout-padding>
+									<b>Total BioProjects:</b>
+									<span ng-bind="get_total_bioprojects(selected_project)"></span>
+								</div>
+								<div layout-padding>
+									<b>Total subprojects:</b>
+									<span>{{selected_project.projects.length}}</span>
+								</div>
+								<div layout-padding>
+									<b>Total runs:</b>
+									<span ng-bind="get_total_samples(selected_project)"></span><span class="lighter"><span>(</span><span ng-bind="get_total_samples_pe(selected_project)"></span><span> PE - </span><span ng-bind="get_total_samples_se(selected_project)"></span><span> SE</span><span>)</span></span>
+									<span tooltip="{{get_total_bytes(selected_project)}} bytes">({{get_total_bytes(selected_project) | byteFormatter}})</span>
+								</div>
+								<div layout-padding>
+									<b>Organism(s):</b>
+									<span ng-bind="get_genomes(selected_project) | count"></span>
+									<span>{{get_genomes(selected_project) | joiner}}</span>
+			<!-- 						<p class="no-margin" ng-repeat="genome in get_genomes(selected_project)">{{genome}}</p> -->
+								</div>
+								<div layout-padding>
+									<b>BioSample(s):</b>
+									<span ng-bind="get_samples(selected_project) | count"></span>
+<!-- 									<span>{{get_samples(selected_project) | joiner}}</span> -->
+								</div>
+								
+								<div layout-padding>
+									<b>Platform(s):</b>
+									<span ng-bind="get_platforms(selected_project) | count"></span>
+									<span>{{get_platforms(selected_project) | joiner}}</span>
+								</div>
+								
+								<div layout-padding>
+									<b>Papers(s):</b>
+									<span ng-bind="get_papers(selected_project) | count"></span>
+									
+									<md-content layout="column" layout-padding>
+										<table>
+											<tr>
+												<th>BioProject</th>
+												<th>Paper ID(s)</th>
+												<th>Layout(s)</th>
+												<th>Run(s)</th>
+												<th>Experiment(s)</th>
+												<th>BioSample(s)</th>
+												<th>Organism(s)</th>
+												<th>Size</th>
+												<th>Platform(s)</th>
+											</tr>
+											<tr ng-repeat="(bioproject_id, data) in get_paper_projects(selected_project)">
+												<td>
+<!-- 													<span ng-repeat="bioproject in data.bioprojects"> -->
+														<a tooltip="See this BioProject in NCBI" target="_blank" ng-href="https://www.ncbi.nlm.nih.gov/bioproject/{{bioproject_id}}">{{bioproject_id}}</a>
+<!-- 														<span ng-if="!$last">,</span> -->
+<!-- 													</span> -->
+												</td>
+												<td>
+													<span ng-repeat="paperId in data.papers" ng-if="data.papers.length > 0">
+														<a title="Link to Pubmed" style="text-decoration: none;" target="_blank" ng-href="https://www.ncbi.nlm.nih.gov/pubmed/{{paperId}}">
+															<i class="far fa-2x fa-file-alt vertically-centered"></i>
+														</a>
+														<span ng-if="!$last">,</span>
+													</span>
+												</td>
+												<td>{{data.layouts | joiner}}</td>
+												<td>{{data.runs | count}}</td>
+												<td>{{data.experiments | count}}</td>
+												<td>{{data.samples | count}}</td>
+												<td>{{data.organisms | joiner}}</td>
+												<td>{{data.size | byteFormatter}}</td>
+												<td>{{data.platforms | joiner}}</td>
+											</tr>
+										</table>
+									</md-content>
+								</div>
+							</div>
+						</section>
+						
+						<section>
+							<md-subheader class="md-primary">Projects</md-subheader>
+							
+							<div ng-if="selected_project.projects.length == 0" layout="column" layout-align="start center" layout-padding>
+								<h3>No subprojects have been defined yet for this project.</h3>
+								<img class="medium-height" width="auto" src="imgs/no_projects.png">
+							</div>
+							
+							<div ng-if="file_sending" layout="column" layout-align="center center" style="color: cadetblue;">
+								<i class="fas fa-spinner fa-spin fa-3x fa-fw"></i>
+								<p><b>Loading information from SRA</b></p>
+							</div>
+							
+							<div layout-margin layout="row">
+								<md-button ngf-select="uploadFiles($files)" multiple="multiple" class="md-button md-warn md-raised" tooltip="Create projects at once" aria-label="Create projects at once">
+									Load/create projects at once
+								</md-button>
+								
+								<md-button class="md-button md-warn md-raised" ng-click="add_subproject(selected_project)" tooltip="Add a subproject to this project" aria-label="Add a new subproject">
+						          	<span class="fa-layers fa-fw">
+										<i class="fas fa-list-ol"></i>
+										<i class="fas fa-plus" data-fa-transform="shrink-4 down-8 right-10"></i>
+									</span>
+									Add subproject
+								</md-button>
+								
+								<md-button class="md-button md-warn md-raised" ng-click="delete_subprojects(selected_project)" tooltip="Deletes selected subprojects" aria-label="Deletes selected subprojects">
+									<i class="fas fa-trash-alt"></i>
+									Delete selected
+								</md-button>
+							</div>
+							
+							
+							<div class="background-warn padding-medium default-border" layout="row" layout-align="start center" layout-margin>
+		            			<i class="fas fa-filter fa-2x default-icon-color"></i>
+		            			<md-input-container class="full-width">
+						      		<label>Filter experiments</label>
+						      		<input ng-model="filter_text" type="text">
+					      		</md-input-container>
+					      	</div>
+							
+							<div>
+								<md-checkbox ng-if="selected_project.projects.length > 0" aria-label="Select all subprojects"
+				                         ng-checked="isChecked()"
+				                         md-indeterminate="isIndeterminate()"
+				                         ng-click="toggleAll()">
+				              		<span ng-if="isChecked()">Un-</span>Select all subprojects
+				            	</md-checkbox>
+				            </div>
+				            
+			            	<div>
+								<md-checkbox ng-if="selected_project.projects.length > 0" aria-label="Select all PE subprojects"
+				                         ng-checked="isPEChecked"
+				                         ng-click="toggleAllPE()">
+				              		<span ng-if="isPEChecked">Un-</span>Select all Paired-End subprojects
+				            	</md-checkbox>
+				            	<md-checkbox ng-if="selected_project.projects.length > 0" aria-label="Select all SE subprojects"
+				                         ng-checked="isSEChecked"
+				                         ng-click="toggleAllSE()">
+				              		<span ng-if="isSEChecked">Un-</span>Select all Single-End subprojects
+				            	</md-checkbox>
+				            </div>
+			            	
+							<v-accordion class="vAccordion--default padding-10" multiple onexpand="select_subproject(index)">
+							      
+							  <v-pane ng-repeat="subproject in selected_project.projects | filter:filter_text | limitTo:10:begin">
+							    <v-pane-header ng-class="{disabled_pane: subproject.disabled}">
+							    	
+							    	<md-checkbox ng-checked="exists(subproject, checked_subproject)" ng-click="toggle(subproject, checked_subproject, $event)" aria-label="Select this subproject">
+						    		</md-checkbox>
+						    		
+							    	<span md-truncate flex><b>Exp. {{begin+$index+1}}: {{subproject.dataset.id}}</b></span>
+							    	
+							    	<md-chips ng-style="get_pipeline_style(subproject)" layout="row" layout-align="left center" ng-model="subproject.dataset.tags" readonly="true" class="mdchips-inline">
+										<md-chip-template layout="row" layout-align="left center" class="text-small">
+									        <div>
+									          <div><strong>{{$chip.name}}</strong></div>
+									          <div><em class="category">({{$chip.type}})</em></div>
+									        </div>
+										</md-chip-template>
+							    	</md-chips>
+							    	
+<!-- 							    	<span ng-if="subproject.dataset.pairedend == true" md-truncate flex class="lighter"><b>(PE)</b></span> -->
+<!-- 							    	<span ng-if="subproject.dataset.pairedend == false" md-truncate flex class="lighter"><b>(SE)</b></span> -->
+							    	
+<!-- 							    	<span class="lighter"> -->
+<!-- 							    		<b ng-if="subproject.dataset.genome != ''">({{subproject.dataset.genome}})</b> -->
+<!-- 							    		<b ng-if="subproject.dataset.genome == ''">(No genome)</b> -->
+<!-- 							    	</span> -->
+							    	
+							    	<span md-truncate flex class="lighter">
+							    		<b>{{subproject.dataset.sample_ids.split('\n')[0] != '' ? subproject.dataset.sample_ids.split('\n').length : 'No'}} sample(s)</b>
+							    	</span>
+							    	
+							    	<md-button ng-if="subproject.disabled" tooltip="This step is disabled. Click to enable this step" class="md-icon-button" ng-click="$event.stopPropagation(); subproject.disabled = !subproject.disabled" tooltip="Delete project" aria-label="Delete project">
+							    		<i class="fas fa-toggle-on fa-2x" data-fa-transform="flip-h" style="color: red;"></i>	
+							    	</md-button>
+							    	<md-button ng-if="!subproject.disabled" tooltip="This step is enabled. Click to disable this step" class="md-icon-button" ng-click="$event.stopPropagation(); subproject.disabled = !subproject.disabled" tooltip="Delete project" aria-label="Delete project">
+							    		<i class="fas fa-toggle-on fa-2x" style="color: green;"></i>
+							    	</md-button>
+							    	
+							    	<md-button class="md-icon-button" ng-click="showDeleteSubprojectDialog($index, $event)" tooltip="Delete project" aria-label="Delete project">
+								      <ng-md-icon icon="delete"></ng-md-icon>
+								    </md-button>
+								    
+								    <md-button class="md-icon-button" ng-click="cloneSubproject($index, $event)" tooltip="Clone project" aria-label="Clone project">
+								      <ng-md-icon icon="content_copy"></ng-md-icon>
+								    </md-button>
+								    
+								    <md-button class="md-icon-button" ng-click="move_item(selected_project.projects, $index, -1, $event)" tooltip="Move up this project" aria-label="Move up this project">
+								      <ng-md-icon icon="keyboard_arrow_up"></ng-md-icon>
+								    </md-button>
+								    
+								    <md-button class="md-icon-button" ng-click="move_item(selected_project.projects, $index, 1, $event)" tooltip="Move down this project" aria-label="Move down this project">
+								      <ng-md-icon icon="keyboard_arrow_down"></ng-md-icon>
+								    </md-button>
+							    </v-pane-header>
+							    <v-pane-content>
+							    
+							    <div ng-include="'templates/subproject.html'"></div>
+							    	
+							    </v-pane-content>
+							  </v-pane>
+							  
+							</v-accordion>
+							<div ng-if="selected_project.projects.length > 0">
+								<md-button ng-disabled="begin == 0" class="md-button md-warn md-raised" ng-click="paginationFirst()" tooltip="Go to the first page" aria-label="Go to the first page">
+									<i class="fas fa-angle-double-left "></i>
+								</md-button>
+								<md-button ng-disabled="begin == 0" class="md-button md-warn md-raised" ng-click="paginationPrevious()" tooltip="Go to the previous page" aria-label="Go to the previous page">
+									<i class="fas fa-arrow-left"></i>
+								</md-button>
+								<div style="display: inline-block;">
+									{{begin+1}} - {{selected_project.projects | filter:filter_text | count | min: begin+10}} of {{selected_project.projects | filter:filter_text | count}}
+								</div>
+								<md-button ng-disabled="begin+10 > selected_project.projects.length" class="md-button md-warn md-raised" ng-click="paginationNext(selected_project.projects)" tooltip="Go to the next page" aria-label="Go to the next page">
+									<i class="fas fa-arrow-right"></i>
+								</md-button>
+								<md-button ng-disabled="begin == selected_project.projects.length-10" class="md-button md-warn md-raised" ng-click="paginationLast(selected_project.projects)" tooltip="Go to the last page" aria-label="Go to the last page">
+									<i class="fas fa-angle-double-right "></i>
+								</md-button>
+							</div>
+						</section>
+						
+						<spacer></spacer>			
+					</md-content>
+				</md-tab-body>
+			</md-tab>
 			
-			<section>
-				<md-subheader class="md-primary">Information</md-subheader>
-				<div layout="column">
-					<div layout="row">
-						<md-input-container>
-							<label>ID</label>
-				   			<input type="text" ng-model="selected_project.id">
-				   		</md-input-container>
-						<md-input-container>
-							<label>Title</label>
-				   			<input type="text" ng-model="selected_project.title">
-				   		</md-input-container>
-				   		<md-input-container>
-							<label>Subtitle</label>
-				   			<input type="text" ng-model="selected_project.subtitle">
-				   		</md-input-container>
-				   		<md-input-container>
-							<label>Creator</label>
-				   			<input type="text" ng-model="selected_project.creator">
-				   		</md-input-container>
-				   	</div>
-				   	
-				   	<div layout="column" style="margin-bottom: 2em;">
-			   			<div class="lighter">Creation date</div>
-			   			<div ng-if="selected_project.creation_date == undefined">No date available</div>
-			   			<div ng-if="selected_project.creation_date != undefined" layout="row">
-			   				<div>{{selected_project.creation_date | amDateFormat:'DD MMMM YYYY'}}</div>
-			   				<div class="lighter" tooltip="Exact date: {{selected_project.creation_date | amDateFormat:'DD MMMM YYYY HH:mm:ss'}}">
-			   					&nbsp;(<span am-time-ago="selected_project.creation_date"></span>)
-			   				</div>
-			   			</div>
-		   			</div>
-		   			
-				   	<div layout="column">
-				   		<md-input-container>
-							<label>Description</label>
-				   			<textarea ng-model="selected_project.description" rows="3"></textarea>
-				   		</md-input-container>
-				   	</div>
-			   	</div>
-			</section>
-			
-			<section>
-			<md-subheader class="md-primary">Summary</md-subheader>
-			
-				<div>
-					<div layout-padding>
-						<b>Total bioprojects:</b>
-						<span ng-bind="get_total_bioprojects(selected_project)"></span>
-					</div>
-					<div layout-padding>
-						<b>Total subprojects:</b>
-						<span>{{selected_project.projects.length}}</span>
-					</div>
-					<div layout-padding>
-						<b>Total samples:</b>
-						<span ng-bind="get_total_samples(selected_project)"></span><span class="lighter"><span>(</span><span ng-bind="get_total_samples_pe(selected_project)"></span><span> PE - </span><span ng-bind="get_total_samples_se(selected_project)"></span><span> SE</span><span>)</span></span>
-					</div>
-					<div layout-padding>
-						<b>Organism(s):</b>
-						<span ng-bind="get_total_genomes(selected_project)"></span>
-						<span>{{get_genomes(selected_project) | joiner}}</span>
-<!-- 						<p class="no-margin" ng-repeat="genome in get_genomes(selected_project)">{{genome}}</p> -->
-					</div>
-				</div>
-			</section>
-			
-			<section>
-				<md-subheader class="md-primary">Projects</md-subheader>
-				
-				<div ng-if="selected_project.projects.length == 0" layout="column" layout-align="start center" layout-padding>
-					<h3>No subprojects have been defined yet for this project.</h3>
-					<img class="medium-height" width="auto" src="imgs/no_projects.png">
-				</div>
-				
-				<div ng-if="file_sending" layout="column" layout-align="center center" style="color: cadetblue;">
-					<i class="fas fa-spinner fa-spin fa-3x fa-fw"></i>
-					<p><b>Loading information from SRA</b></p>
-				</div>
-				
-				<div layout-margin layout="row">
-					<md-button ngf-select="uploadFiles($files)" multiple="multiple" class="md-button md-warn md-raised" tooltip="Create projects at once" aria-label="Create projects at once">
-						Load/create projects at once
-					</md-button>
+			<md-tab>
+				<md-tab-label layout="row" layout-align="center center"><i class="fas fa-cogs fa-2x vertically-centered"></i><span class="margin-left-10">Pipeline</span></md-tab-label>
+				<md-tab-body>
+					<md-content class="md-padding">
 					
-					<md-button class="md-button md-warn md-raised" ng-click="add_subproject(selected_project)" tooltip="Add a subproject to this project" aria-label="Add a new subproject">
-			          	<span class="fa-layers fa-fw">
-							<i class="fas fa-list-ol"></i>
-							<i class="fas fa-plus" data-fa-transform="shrink-4 down-8 right-10"></i>
-						</span>
-						Add subproject
-					</md-button>
-					
-					<md-button class="md-button md-warn md-raised" ng-click="delete_subprojects(selected_project)" tooltip="Deletes selected subprojects" aria-label="Deletes selected subprojects">
-						<i class="fas fa-trash-alt"></i>
-						Delete selected
-					</md-button>
-				</div>
-				
-				<div>
-					<md-checkbox ng-if="selected_project.projects.length > 0" aria-label="Select all subprojects"
-	                         ng-checked="isChecked()"
-	                         md-indeterminate="isIndeterminate()"
-	                         ng-click="toggleAll()">
-	              		<span ng-if="isChecked()">Un-</span>Select all subprojects
-	            	</md-checkbox>
-	            </div>
-            	
-            	<div>
-					<md-checkbox ng-if="selected_project.projects.length > 0" aria-label="Select all PE subprojects"
-	                         ng-checked="isPEChecked"
-	                         ng-click="toggleAllPE()">
-	              		<span ng-if="isPEChecked">Un-</span>Select all Paired-End subprojects
-	            	</md-checkbox>
-	            	<md-checkbox ng-if="selected_project.projects.length > 0" aria-label="Select all SE subprojects"
-	                         ng-checked="isSEChecked"
-	                         ng-click="toggleAllSE()">
-	              		<span ng-if="isSEChecked">Un-</span>Select all Single-End subprojects
-	            	</md-checkbox>
-	            </div>
-            	
-				<v-accordion class="vAccordion--default padding-10" multiple onexpand="select_subproject(index)">
-				  <v-pane ng-repeat="subproject in selected_project.projects">
-				    <v-pane-header ng-class="{disabled_pane: subproject.disabled}">
-				    	
-				    	<md-checkbox ng-checked="exists(subproject, checked_subproject)" ng-click="toggle(subproject, checked_subproject, $event)" aria-label="Select this subproject">
-			    		</md-checkbox>
-			    		
-				    	<span md-truncate flex><b>Experiment {{$index+1}}: {{subproject.dataset.id}}</b></span>
-				    	
-				    	<span ng-if="subproject.dataset.pairedend == true" md-truncate flex class="lighter"><b>(PE)</b></span>
-				    	<span ng-if="subproject.dataset.pairedend == false" md-truncate flex class="lighter"><b>(SE)</b></span>
-				    	
-				    	<span class="lighter">
-				    		<b ng-if="subproject.dataset.genome != ''">({{subproject.dataset.genome}})</b>
-				    		<b ng-if="subproject.dataset.genome == ''">(No genome)</b>
-				    	</span>
-				    	
-				    	<span md-truncate flex class="lighter">
-				    		<b>{{subproject.dataset.sample_ids.split('\n')[0] != '' ? subproject.dataset.sample_ids.split('\n').length : 'No'}} sample(s)</b>
-				    	</span>
-				    	
-				    	<md-button ng-if="subproject.disabled" tooltip="This step is disabled. Click to enable this step" class="md-icon-button" ng-click="$event.stopPropagation(); subproject.disabled = !subproject.disabled" tooltip="Delete project" aria-label="Delete project">
-				    		<i class="fas fa-toggle-on fa-2x" data-fa-transform="flip-h" style="color: red;"></i>	
-				    	</md-button>
-				    	<md-button ng-if="!subproject.disabled" tooltip="This step is enabled. Click to disable this step" class="md-icon-button" ng-click="$event.stopPropagation(); subproject.disabled = !subproject.disabled" tooltip="Delete project" aria-label="Delete project">
-				    		<i class="fas fa-toggle-on fa-2x" style="color: green;"></i>
-				    	</md-button>
-				    	
-				    	<md-button class="md-icon-button" ng-click="showDeleteSubprojectDialog($index, $event)" tooltip="Delete project" aria-label="Delete project">
-					      <ng-md-icon icon="delete"></ng-md-icon>
-					    </md-button>
-					    
-					    <md-button class="md-icon-button" ng-click="cloneSubproject($index, $event)" tooltip="Clone project" aria-label="Clone project">
-					      <ng-md-icon icon="content_copy"></ng-md-icon>
-					    </md-button>
-					    
-					    <md-button class="md-icon-button" ng-click="move_item(selected_project.projects, $index, -1, $event)" tooltip="Move up this project" aria-label="Move up this project">
-					      <ng-md-icon icon="keyboard_arrow_up"></ng-md-icon>
-					    </md-button>
-					    
-					    <md-button class="md-icon-button" ng-click="move_item(selected_project.projects, $index, 1, $event)" tooltip="Move down this project" aria-label="Move down this project">
-					      <ng-md-icon icon="keyboard_arrow_down"></ng-md-icon>
-					    </md-button>
-				    </v-pane-header>
-				    <v-pane-content>
-				    	
-				    <div ng-include="'templates/subproject.html'"></div>
-				    	
-				    </v-pane-content>
-				  </v-pane>
-				</v-accordion>
-			</section>
+						<div ng-if="selected_project.pipelines.length == 0" layout="column" layout-align="start center" layout-padding>
+							<h3>No pipelines have been defined yet for this project.</h3>
+							<img class="medium-height" width="auto" src="imgs/no_projects.png">
+						</div>
+						<md-button class="md-button md-warn md-raised" ng-click="add_pipeline(selected_project)" tooltip="Add a pipeline to this project" aria-label="Add a new pipeline">
+							<i class="fas fa-cogs"></i>
+							Add pipeline
+						</md-button>
+						
+						<v-accordion class="vAccordion--default padding-10" multiple onexpand="select_pipeline(index)">
+							  <v-pane ng-repeat="pipeline in selected_project.pipelines track by $index">
+							    <v-pane-header layout="row" layout-align="start center">
+							    	<span md-truncate flex><b>Pipeline {{$index+1}}: {{pipeline.id}}</b></span>
+							    	
+<!-- 							    	<i class="fas fa-circle" ng-style="{color: {{pipeline.color || 'blue'}}}"></i> -->
+									<span ng-click="chooseColor($event)" class="vertically-centered" style="display:inline-block;" md-color-picker ng-model="pipeline.color" options="{default: '#{{pipeline.color}}'}"></span>
+							    	
+							    	<md-chips ng-style="{'background-color': pipeline.color}" ng-model="pipeline.tags" readonly="true" class="mdchips-inline">
+										<md-chip-template class="text-small" style="height: 20px;">
+									        <div>
+									          <div><strong>{{$chip.name}}</strong></div>
+									          <div><em class="category">({{$chip.type}})</em></div>
+									        </div>
+										</md-chip-template>
+							    	</md-chips>
+							    	
+							    	<md-button class="md-icon-button" ng-click="showDeletePipelineDialog($index, $event)" tooltip="Delete pipeline" aria-label="Delete pipeline">
+								      <ng-md-icon icon="delete"></ng-md-icon>
+								    </md-button>
+								    
+								    <md-button class="md-icon-button" ng-click="clonePipeline($index, $event)" tooltip="Clone pipeline" aria-label="Clone pipeline">
+								      <ng-md-icon icon="content_copy"></ng-md-icon>
+								    </md-button>
+								    
+								    <md-button class="md-icon-button" ng-click="move_item(selected_project.pipelines, $index, -1, $event)" tooltip="Move up this pipeline" aria-label="Move up this pipeline">
+								      <ng-md-icon icon="keyboard_arrow_up"></ng-md-icon>
+								    </md-button>
+								    
+								    <md-button class="md-icon-button" ng-click="move_item(selected_project.pipelines, $index, 1, $event)" tooltip="Move down this pipeline" aria-label="Move down this pipeline">
+								      <ng-md-icon icon="keyboard_arrow_down"></ng-md-icon>
+								    </md-button>
+							    </v-pane-header>
+							    <v-pane-content>
+							    	<section>
+							    		<md-input-container>
+											<label>Pipeline ID</label>
+								    		<input type="text" aria-label="Pipeline ID" ng-model="pipeline.id">
+							    		</md-input-container>
+							    	</section>
+							    	<section>
+							    		<md-subheader class="md-primary">Tags</md-subheader>
+							    		<md-chips
+							    			md-autocomplete-snap
+									        ng-model="pipeline.tags"
+									        readonly="false"
+									        md-removable="true"
+									        placeholder="Enter a tag (e.g., SE, SingleEnd, Transcriptomic)"
+									        delete-button-label="Remove Tag"
+									        delete-hint="Press delete to remove tag"
+									        secondary-placeholder="+Tag">
+									        
+												<md-autocomplete
+										          md-selected-item="selectedItem"
+										          md-search-text="searchText"
+										          md-items="item in searchTags(selected_project, searchText)"
+										          md-item-text="item.name"
+										          md-min-length="0"
+										          md-match-case-insensitive="true"
+										          placeholder="Search for a tag">
+													<md-item-template>
+												    	<span>
+												        	<span>{{item.name}}</span>
+												        	<span class="category">({{item.type}})</span>
+												    	</span>
+												  	</md-item-template>
+												  	<md-not-found>
+												    	No matches found.
+												  	</md-not-found>
+												</md-autocomplete>
+												
+												<md-chip-template>
+											        <span>
+											          <strong>{{$chip.name}}</strong>
+											          <em class="category">({{$chip.type}})</em>
+											        </span>
+												</md-chip-template>
+								        </md-chips>
+							    	</section>
+									<section>
+										<md-subheader class="md-primary">Variables and constants (system-reserved variables have their keys disabled, but you can still edit their values)</md-subheader>
+											<div ng-repeat="variable in pipeline.variables">
+												<md-input-container layout="row" flex>
+													<input ng-disabled="variable.key_disabled" label="Description" type="text" ng-model="variable.description" aria-label="Variable description">
+												</md-input-container>
+												<div layout="row" layout-align="start center" layout-margin>
+													<md-input-container>
+														<input ng-disabled="variable.key_disabled" label="Key" type="text" ng-model="variable.key" aria-label="Variable key">
+													</md-input-container>
+													<md-input-container>
+														<input label="Value" type="text" ng-model="variable.value" aria-label="Variable value">
+													</md-input-container>
+													<md-switch ng-disabled="variable.key_disabled" md-invert ng-model="variable.constant" aria-label="Constant value?">
+												    	Constant value? {{ variable.constant }}
+												  	</md-switch>
+												  	<md-button ng-if="!variable.key_disabled" class="md-icon-button" ng-click="delete_variable(pipeline, $index, $event)" tooltip="Delete this variable" aria-label="Remove this variable">
+												      <ng-md-icon icon="delete" style="fill: grey;"></ng-md-icon>
+												    </md-button>
+												 </div>
+											</div>
+											<div layout-margin>
+												<md-button class="md-button md-warn md-raised" ng-click="add_variable(pipeline)" tooltip="Add a step to this pipeline" aria-label="Add a new variable">
+											       	<span class="fa-layers fa-fw">
+														<i class="fas fa-list-ol"></i>
+														<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
+													</span>
+													Add a variable
+												</md-button>
+											</div>		
+									</section>
+									
+									<section>
+										<md-subheader class="md-primary">Analysis type</md-subheader>
+										
+									  	<label>Select the cluster</label>
+										<md-select ng-model="pipeline.cluster" aria-label="Specifies the cluster" ng-change="cluster_changed(pipeline.cluster)">
+									       	<md-option ng-repeat="cluster in clusters" ng-value="cluster.id">
+									       		<div flex layout="row">
+									       			<div>
+									       				<img width="40px" src="imgs/cluster.png" layout-padding>
+									       			</div>
+										       		<div layout="row" layout-align="left center">
+														<span>{{cluster.name}} &nbsp;</span><span class="lighter">({{cluster.info}})</span>
+										       		</div>
+										       	</div>
+									       	</md-option>
+										</md-select>
+									</section>
+									
+									<section>
+										<md-subheader class="md-primary">Steps</md-subheader>
+										
+										<div ng-if="pipeline.steps.length == 0" layout="row" layout-align="left center" layout-margin>
+											<i class="fas fa-times-circle fa-2x" style="color: Tomato;"></i>
+											<p>No steps available yet.</p>
+										</div>
+										
+<!-- 										<div layout="column" ng-if="pipeline.steps.length > 0" layout-padding> -->
+<!-- 											<md-button class="md-raised md-warn md-icon-button" ng-click="copy_steps(pipeline)" tooltip="Copy these steps to ALL other projects" aria-label="Copy these steps to ALL other projects"> -->
+<!-- 												<i class="fas fa-copy"></i> -->
+<!-- 									 		</md-button> -->
+<!-- 									  		<span>Copy these steps to ALL other projects</span> -->
+<!-- 										</div> -->
+										
+										<v-accordion multiple>
+										  <v-pane ng-repeat="step in pipeline.steps">
+										    <v-pane-header ng-class="{disabled_pane: step.skip}">
+										    
+										    	<md-button ng-if="step.skip" class="md-icon-button">
+											      <ng-md-icon icon="low_priority"></ng-md-icon>
+											    </md-button>
+										    	
+										    	<span tooltip="<b>Command line</b>:<br/>{{step.commandline}}" md-truncate flex><b ng-if="step.skip">(skipped)&nbsp;</b><b>Step {{$index+1}}: {{step.title}}</b></span>
+										    	
+										    	<md-button class="md-icon-button" ng-click="showDeleteStepDialog(step, $event)" tooltip="Delete this step" aria-label="Remove step">
+											      <ng-md-icon icon="delete"></ng-md-icon>
+											    </md-button>
+											    
+											    <md-button class="md-icon-button" ng-click="toggleStep(step, $event)" tooltip="Exclude/include this step" aria-label="Exclude/include step">
+											      <ng-md-icon icon="highlight_off"></ng-md-icon>
+											    </md-button>
+											    
+											    <md-button class="md-icon-button" ng-click="cloneStep(step, $event)" tooltip="Clone step" aria-label="Clone step">
+											      <ng-md-icon icon="content_copy"></ng-md-icon>
+											    </md-button>
+											    
+											    <md-button class="md-icon-button" ng-click="move_item(pipeline.steps, $index, -1, $event)" tooltip="Move up this step" aria-label="Move up this step">
+											      <ng-md-icon icon="keyboard_arrow_up"></ng-md-icon>
+											    </md-button>
+											    <md-button class="md-icon-button" ng-click="move_item(pipeline.steps, $index, 1, $event)" tooltip="Move down this step" aria-label="Move down this step">
+											      <ng-md-icon icon="keyboard_arrow_down"></ng-md-icon>
+											    </md-button>
+											    
+										    </v-pane-header>
+										    <v-pane-content>
+										    	<div ng-include="'templates/step.html'"></div>
+										    </v-pane-content>
+										  </v-pane>
+										</v-accordion>
+										
+										<div layout-margin>
+											<md-button class="md-button md-warn md-raised" ng-click="add_step(pipeline)" tooltip="Add a step to this pipeline" aria-label="Add a new step">
+										       	<span class="fa-layers fa-fw">
+													<i class="fas fa-list-ol"></i>
+													<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
+												</span>
+												Add a step
+											</md-button>
+										</div>
+									</section>
+									
+								</v-pane-content>
+							</v-pane>
+						</v-accordion>
+					</md-content>
+				</md-tab-body>
+			</md-tab>
 			
-			<spacer></spacer>			
-		</div>
+			<md-tab>
+				<md-tab-label layout="row" layout-align="center center"><i class="fas fa-info-circle fa-2x vertically-centered"></i><span class="margin-left-10">Info</span></md-tab-label>
+				<md-tab-body>
+					<md-content class="md-padding">
+						
+						<section>
+							<md-subheader class="md-primary">Information</md-subheader>
+							<div layout="column">
+								<div layout="row">
+									<md-input-container>
+										<label>ID</label>
+							   			<input type="text" ng-model="selected_project.id">
+							   		</md-input-container>
+									<md-input-container>
+										<label>Title</label>
+							   			<input type="text" ng-model="selected_project.title">
+							   		</md-input-container>
+							   		<md-input-container>
+										<label>Subtitle</label>
+							   			<input type="text" ng-model="selected_project.subtitle">
+							   		</md-input-container>
+							   		<md-input-container>
+										<label>Creator</label>
+							   			<input type="text" ng-model="selected_project.creator">
+							   		</md-input-container>
+							   	</div>
+							   	
+							   	<div layout="column" style="margin-bottom: 2em;">
+						   			<div class="lighter">Creation date</div>
+						   			<div ng-if="selected_project.creation_date == undefined">No date available</div>
+						   			<div ng-if="selected_project.creation_date != undefined" layout="row">
+						   				<div>{{selected_project.creation_date | amDateFormat:'DD MMMM YYYY'}}</div>
+						   				<div class="lighter" tooltip="Exact date: {{selected_project.creation_date | amDateFormat:'DD MMMM YYYY HH:mm:ss'}}">
+						   					&nbsp;(<span am-time-ago="selected_project.creation_date"></span>)
+						   				</div>
+						   			</div>
+					   			</div>
+					   			
+							   	<div layout="column">
+							   		<md-input-container>
+										<label>Description</label>
+							   			<textarea ng-model="selected_project.description" rows="3"></textarea>
+							   		</md-input-container>
+							   	</div>
+						   	</div>
+						</section>
+					</md-content>
+				</md-tab-body>
+			</md-tab>
+		
+		</md-tabs>
 		
 		<div style="position: fixed; bottom: 10px; right: 10px;">
 			<md-button class="md-button md-warn md-raised" ng-click="save(selected_project)" tooltip="Save the steps of this pipeline" aria-label="Save the pipeline">
