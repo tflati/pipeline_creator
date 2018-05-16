@@ -1,6 +1,7 @@
 var app = angular.module('pipelineCreator',
 		[
 			'ngMaterial',
+			'ngMessages',
 			'ngSanitize',
 			'ngAnimate',
 			'toaster',
@@ -10,7 +11,8 @@ var app = angular.module('pipelineCreator',
 			'ngMeta',
 			'ngFileUpload',
 			'vAccordion',
-			'angularMoment'
+			'angularMoment',
+			'mdColorPicker'
 		]);
 
 app.config(function($mdThemingProvider, $httpProvider) {
@@ -34,4 +36,10 @@ app.config(['$routeProvider', '$locationProvider',
 	      });
 
 	    $locationProvider.html5Mode(true);
-	}])
+	}]);
+
+app.config(['$mdIconProvider', function($mdIconProvider) {
+    $mdIconProvider.icon('md-close', 'img/icons/ic_close_24px.svg', 24);
+}]);
+
+

@@ -1,68 +1,15 @@
 {
-    "creation_date": "2018-04-18T14:53:26.520Z",
+    "creation_date": "2018-05-14T09:00:51.822Z",
     "creator": "Tiziano Flati",
     "description": "",
     "id": "Test",
     "img": "imgs/project.png",
-    "projects": [
+    "pipelines": [
         {
-            "dataset": {
-                "basedir": "",
-                "cluster": "galileo",
-                "create_per_sample_directory": true,
-                "genome": "ig_homo_sapiens/hg19",
-                "id": "First project",
-                "sample_ids": "SRR5398111\nSRR5398110\nSRR5398109\nSRR5398108\nSRR5398107\nSRR5398106\nSRR5398105\nSRR5398104\nSRR5398103\nSRR5398102\nSRR5398101\nSRR5398100\nSRR5398099\nSRR5398098\nSRR5398097\nSRR5398096\nSRR5398095\nSRR5398094\nSRR5398093\nSRR5398092\nSRR5398091\nSRR5398090\nSRR5398089\nSRR5398088",
-                "variables": [
-                    {
-                        "description": "Variable to use across scripts to refer to a sample in this project",
-                        "key": "sample_variable",
-                        "key_disabled": true,
-                        "value": "SAMPLE"
-                    },
-                    {
-                        "description": "Variable to use across scripts to refer to ALL samples in this project",
-                        "key": "all_samples_variable",
-                        "key_disabled": true,
-                        "value": "ALL_SAMPLES"
-                    },
-                    {
-                        "description": "Variable to use across scripts to refer to this project ID",
-                        "key": "project_variable",
-                        "key_disabled": true,
-                        "value": "PROJECT"
-                    },
-                    {
-                        "description": "Variable to use across scripts to refer to the index of this project",
-                        "key": "project_index_variable",
-                        "key_disabled": true,
-                        "value": "PROJECT_INDEX"
-                    },
-                    {
-                        "description": "Variable to use across scripts to refer to the number of CPU defined in a step",
-                        "key": "cpu_variable",
-                        "key_disabled": true,
-                        "value": "CPU"
-                    },
-                    {
-                        "description": "Variable to use across scripts to refer to the name of the step",
-                        "key": "step_name_variable",
-                        "key_disabled": true,
-                        "value": "STEP_NAME"
-                    },
-                    {
-                        "description": "Variable to use across scripts to refer to XXXXX",
-                        "key": "variable_key",
-                        "value": "value"
-                    },
-                    {
-                        "description": "Variable to use across scripts to refer to XXXXX",
-                        "key": "variable_key2",
-                        "value": "value"
-                    }
-                ]
-            },
+            "cluster": "galileo",
             "disabled": false,
+            "tags": [],
+            "id": "Transcriptomic Single End",
             "steps": [
                 {
                     "commandline": "",
@@ -85,10 +32,14 @@
                         "walltime": ""
                     },
                     "hpc_directives_text": "",
+                    "iterate": true,
                     "modules": [],
+                    "sequential": true,
                     "skip": false,
-                    "title": "Passo 1",
-                    "type": ""
+                    "title": "Trimming",
+                    "type": "",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
                 },
                 {
                     "commandline": "",
@@ -111,113 +62,82 @@
                         "walltime": ""
                     },
                     "hpc_directives_text": "",
+                    "iterate": true,
                     "modules": [],
+                    "sequential": true,
                     "skip": false,
-                    "title": "Passo 2",
-                    "type": ""
+                    "title": "Mapping",
+                    "type": "",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                }
+            ],
+            "variables": [
+                {
+                    "description": "Variable to use across scripts to refer to a sample in this project",
+                    "key": "sample_variable",
+                    "key_disabled": true,
+                    "value": "SAMPLE"
                 },
                 {
-                    "commandline": "",
-                    "conditions": [],
-                    "description": "",
-                    "description_short": "",
-                    "hpc_directives": {
-                        "account": "",
-                        "cpu": 1,
-                        "dependencies": [],
-                        "error": "",
-                        "job_name": "",
-                        "memory": {
-                            "quantity": 1,
-                            "size": "GB"
-                        },
-                        "mpi_procs": 0,
-                        "nodes": 1,
-                        "output": "",
-                        "walltime": ""
-                    },
-                    "hpc_directives_text": "",
-                    "modules": [],
-                    "skip": false,
-                    "title": "Passo Y",
-                    "type": ""
+                    "description": "Variable to use across scripts to refer to ALL samples in this project",
+                    "key": "all_samples_variable",
+                    "key_disabled": true,
+                    "value": "ALL_SAMPLES"
                 },
                 {
-                    "commandline": "",
-                    "conditions": [],
-                    "description": "",
-                    "description_short": "",
-                    "hpc_directives": {
-                        "account": "",
-                        "cpu": 1,
-                        "dependencies": [],
-                        "error": "",
-                        "job_name": "",
-                        "memory": {
-                            "quantity": 1,
-                            "size": "GB"
-                        },
-                        "mpi_procs": 0,
-                        "nodes": 1,
-                        "output": "",
-                        "walltime": ""
-                    },
-                    "hpc_directives_text": "",
-                    "modules": [],
-                    "skip": false,
-                    "title": "",
-                    "type": ""
+                    "description": "Variable to use across scripts to refer to this project ID",
+                    "key": "project_variable",
+                    "key_disabled": true,
+                    "value": "PROJECT"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the index of this project",
+                    "key": "project_index_variable",
+                    "key_disabled": true,
+                    "value": "PROJECT_INDEX"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the number of CPU defined in a step",
+                    "key": "cpu_variable",
+                    "key_disabled": true,
+                    "value": "CPU"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the name of the step",
+                    "key": "step_name_variable",
+                    "key_disabled": true,
+                    "value": "STEP_NAME"
                 }
             ]
-        },
+        }
+    ],
+    "projects": [
         {
             "dataset": {
+                "attributes": {
+                    "cultivar": "H8828003",
+                    "infection": "none",
+                    "source_name": "leaf tree"
+                },
                 "basedir": "",
+                "bioproject_id": "PRJNA121611",
+                "biosample_id": "SAMN00008412",
+                "cluster": "",
                 "create_per_sample_directory": true,
-                "genome": "",
-                "id": "Second project",
-                "sample_ids": "",
-                "variables": [
-                    {
-                        "description": "Variable to use across scripts to refer to a sample in this project",
-                        "key": "sample_variable",
-                        "key_disabled": true,
-                        "value": "SAMPLE"
-                    },
-                    {
-                        "description": "Variable to use across scripts to refer to ALL samples in this project",
-                        "key": "all_samples_variable",
-                        "key_disabled": true,
-                        "value": "ALL_SAMPLES"
-                    },
-                    {
-                        "description": "Variable to use across scripts to refer to this project ID",
-                        "key": "project_variable",
-                        "key_disabled": true,
-                        "value": "PROJECT"
-                    },
-                    {
-                        "description": "Variable to use across scripts to refer to the index of this project",
-                        "key": "project_index_variable",
-                        "key_disabled": true,
-                        "value": "PROJECT_INDEX"
-                    },
-                    {
-                        "description": "Variable to use across scripts to refer to the number of CPU defined in a step",
-                        "key": "cpu_variable",
-                        "key_disabled": true,
-                        "value": "CPU"
-                    },
-                    {
-                        "description": "Variable to use across scripts to refer to the name of the step",
-                        "key": "step_name_variable",
-                        "key_disabled": true,
-                        "value": "STEP_NAME"
-                    }
-                ]
-            },
-            "disabled": false,
-            "steps": []
+                "genome": "Prunus persica var. nucipersica",
+                "id": "SRX016321",
+                "pairedend": false,
+                "paper_id": "20158907",
+                "pipeline": "",
+                "platform": "Illumina Genome Analyzer",
+                "sample_ids": "SRR035184",
+                "study": {
+                    "abstract": "Using a high-throughput sequencing approach we quantitatively analyzed the content of viroid-derived siRNAs of an infected tree. Our results show that the entire PLMVd genome is found in the siRNA population. Also both polarities are susceptible to be targeted by the RNAi machinery but specific regions for each polarity are over represented. Those regions, that are not the same for each polarity, do not necessarily correlate with double stranded regions that could be substrate for Dicer-like enzymes. Finally the analysis of the first 5\u2019 nucleotide revealed a bias toward a C or a U in viroid-derived siRNAs, indicating that at least AGO5 and AGO1 can recruit these small RNAs. Overall design: Analysis of siRNAs population from RNA sample isolated from a viroid-infected tree",
+                    "title": "In depth sequencing of the siRNAs associated with peach latent mosaic viroid infection",
+                    "type": "Other"
+                }
+            }
         }
     ],
     "subtitle": "",

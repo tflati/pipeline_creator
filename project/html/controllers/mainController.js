@@ -3,9 +3,10 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	$scope.projects = undefined;
 	$scope.selected_project = undefined;
 	$scope.selected_subproject = undefined;
+	$scope.selected_pipeline = undefined;
 	$scope.checked_subproject = [];
 //	$scope.selected_step = undefined;
-	
+	$scope.color = "FF0000";
 	$scope.keep_sidenav_open = true;
 	
 	var project_template = {
@@ -16,13 +17,12 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	        "description": "",
 	        "creator": "",
 	        "creation_date": "",
+	        "pipelines": [],
 	        "projects": [
             ]
 	    };
 	
 	var subproject_template = {
-    	"steps": [],
-    	"disabled": false,
     	"dataset": {
     		"id": "",
     		"cluster": "",
@@ -31,45 +31,53 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
             "create_per_sample_directory": true,
             "pairedend": false,
             "sample_ids": "",
-            "variables": [
-	            {
-	            	"key": "sample_variable",
-	            	"key_disabled": true,
-	            	"value": "SAMPLE",
-	            	"description": "Variable to use across scripts to refer to a sample in this project"
-	            },
-	            {
-	            	"key": "all_samples_variable",
-	            	"key_disabled": true,
-	            	"value": "ALL_SAMPLES",
-	            	"description": "Variable to use across scripts to refer to ALL samples in this project"
-	            },
-	            {
-	            	"key": "project_variable",
-	            	"key_disabled": true,
-	            	"value": "PROJECT",
-	            	"description": "Variable to use across scripts to refer to this project ID"	            	
-	            },
-	            {
-	            	"key": "project_index_variable",
-	            	"key_disabled": true,
-	            	"value": "PROJECT_INDEX",
-	            	"description": "Variable to use across scripts to refer to the index of this project"
-	            },
-	            {
-	            	"key": "cpu_variable",
-	            	"key_disabled": true,
-	            	"value": "CPU",
-	            	"description": "Variable to use across scripts to refer to the number of CPU defined in a step"
-	            },
-	            {
-	            	"key": "step_name_variable",
-	            	"key_disabled": true,
-	            	"value": "STEP_NAME",
-	            	"description": "Variable to use across scripts to refer to the name of the step"
-	            }
-        	]
+            "pipeline": ""
         }
+	};
+	
+	var pipeline_template = {
+		"id": "",
+		"steps": [],
+    	"disabled": false,
+    	"tags": [],
+		"variables": [
+            {
+            	"key": "sample_variable",
+            	"key_disabled": true,
+            	"value": "SAMPLE",
+            	"description": "Variable to use across scripts to refer to a sample in this project"
+            },
+            {
+            	"key": "all_samples_variable",
+            	"key_disabled": true,
+            	"value": "ALL_SAMPLES",
+            	"description": "Variable to use across scripts to refer to ALL samples in this project"
+            },
+            {
+            	"key": "project_variable",
+            	"key_disabled": true,
+            	"value": "PROJECT",
+            	"description": "Variable to use across scripts to refer to this project ID"	            	
+            },
+            {
+            	"key": "project_index_variable",
+            	"key_disabled": true,
+            	"value": "PROJECT_INDEX",
+            	"description": "Variable to use across scripts to refer to the index of this project"
+            },
+            {
+            	"key": "cpu_variable",
+            	"key_disabled": true,
+            	"value": "CPU",
+            	"description": "Variable to use across scripts to refer to the number of CPU defined in a step"
+            },
+            {
+            	"key": "step_name_variable",
+            	"key_disabled": true,
+            	"value": "STEP_NAME",
+            	"description": "Variable to use across scripts to refer to the name of the step"
+            }
+    	]
 	};
 	
 	var step_template = {
@@ -171,10 +179,13 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		apiService.get_projects(function(result){
 			console.log("[REFRESH] AJAX RESULT", result);
 			$scope.projects = result.data;
+			for(i in $scope.projects){
+				$scope.projects[i]["creation_epoch"] = moment($scope.projects[i].creation_date).unix();
+			}
 		});
 	};
 	
-	$scope.toggle = function(){
+	$scope.toggleMenu = function(){
 		$mdSidenav('sidenav').toggle();
 	};
 	
@@ -190,6 +201,9 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	$scope.select_project = function(item){
 		console.log("SELECTING PROJECT", item, $scope);
 		$scope.selected_project = item;
+		
+		$scope.bioproject2data = undefined;
+		$scope.begin = 0;
 		$mdSidenav('sidenav').close();
 	};
 	
@@ -202,6 +216,12 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		console.log("MODULE URL", $scope.module_url);
 	};
 	
+	$scope.select_pipeline = function(item){
+		var pipeline = $scope.selected_project.pipelines[item];
+		console.log("SELECTING SUBPROJECT", pipeline,  $scope);
+		$scope.selected_pipeline = pipeline;
+	};
+	
 	$scope.cloneSubproject = function(index, $event){
 		$event.stopPropagation();
 		console.log("[CLONE SUBPROJECT]", index, $scope.selected_project.projects[index]);
@@ -212,12 +232,22 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		$scope.selected_project.projects.push(copy);
 	};
 	
+	$scope.clonePipeline = function(index, $event){
+		$event.stopPropagation();
+		console.log("[CLONE PIPELINE]", index, $scope.selected_project.pipelines[index]);
+		
+		copy = angular.copy($scope.selected_project.pipelines[index]);
+		copy.id = "Copy of " + copy.id;
+		
+		$scope.selected_project.pipelines.push(copy);
+	};
+	
 	$scope.cloneStep = function(step, $event){
 		$event.stopPropagation();
 		console.log("[CLONE STEP]", step);
 		copy = angular.copy(step)
 		copy.title = "Copy of " + copy.title;
-		$scope.selected_subproject.steps.push(copy);
+		$scope.selected_pipeline.steps.push(copy);
 	};
 	
 	$scope.copy_steps = function(subproject){
@@ -284,6 +314,131 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		return total;
 	};
 	
+	$scope.get_samples = function(selected_project){
+		var ids = [];
+		
+		for(var k=0; k<selected_project.projects.length; k++){
+			var biosample_id = selected_project.projects[k].dataset.biosample_id;
+			if(biosample_id)
+				ids.push(biosample_id);
+		}
+		
+		return ids;
+	};
+	
+	$scope.get_platforms = function(selected_project){
+		var platforms = {};
+		
+		for(var k=0; k<selected_project.projects.length; k++)
+		{
+			var platform = selected_project.projects[k].dataset.platform;
+			platforms[platform] = 1;
+		}
+		
+		return Object.keys(platforms);
+	};
+	
+	$scope.get_paper_projects = function(selected_project){
+		if($scope.bioproject2data) return $scope.bioproject2data;
+		else
+		{
+			$scope.bioproject2data = {};
+			for(var k=0; k<selected_project.projects.length; k++)
+			{
+				var bioproject_id = selected_project.projects[k].dataset.bioproject_id;
+				if (! (bioproject_id in $scope.bioproject2data) )
+				{
+					$scope.bioproject2data[bioproject_id] = {
+						"bioprojects": [],
+						"runs": [],
+						"experiments": [],
+						"samples": [],
+						"organisms": [],
+						"size": 0,
+						"papers": [],
+						"platforms": [],
+						"layouts": []
+					};
+				}
+				
+				var paper = selected_project.projects[k].dataset.paper_id;
+				var biosample_id = selected_project.projects[k].dataset.biosample_id;
+				var experiment_id = selected_project.projects[k].dataset.id;
+				var organism = selected_project.projects[k].dataset.genome;
+				var size = selected_project.projects[k].dataset.size;
+				var platform = selected_project.projects[k].dataset.platform;
+				var layout = selected_project.projects[k].dataset.pairedend ? "PE": "SE";
+				if(paper != undefined && $scope.bioproject2data[bioproject_id]["papers"].indexOf(paper) == -1) $scope.bioproject2data[bioproject_id]["papers"].push(paper);
+				var split_samples = selected_project.projects[k].dataset.sample_ids.split("\n")
+				for(var i in split_samples){
+					var sample = split_samples[i];
+					if(sample in $scope.bioproject2data[bioproject_id]["runs"]) continue;
+					$scope.bioproject2data[bioproject_id]["runs"].push(sample);
+				}
+				if($scope.bioproject2data[bioproject_id]["samples"].indexOf(biosample_id) == -1) $scope.bioproject2data[bioproject_id]["samples"].push(biosample_id);
+				if($scope.bioproject2data[bioproject_id]["experiments"].indexOf(experiment_id) == -1) $scope.bioproject2data[bioproject_id]["experiments"].push(experiment_id);
+				if($scope.bioproject2data[bioproject_id]["organisms"].indexOf(organism) == -1) $scope.bioproject2data[bioproject_id]["organisms"].push(organism);
+				if($scope.bioproject2data[bioproject_id]["platforms"].indexOf(platform) == -1) $scope.bioproject2data[bioproject_id]["platforms"].push(platform);
+				$scope.bioproject2data[bioproject_id]["size"] += size;
+				if($scope.bioproject2data[bioproject_id]["layouts"].indexOf(layout) == -1) $scope.bioproject2data[bioproject_id]["layouts"].push(layout);
+			}
+			
+			console.log("GET PAPER PROJECTS", $scope.bioproject2data);
+		}
+		
+		return $scope.bioproject2data;
+	};
+	
+	var DynamicItems = function(elements) {
+		this.elements = elements;
+	};
+	DynamicItems.prototype.getItemAtIndex = function(index) {
+		return this.elements[index];
+      };
+	DynamicItems.prototype.getLength = function() {
+        return this.elements.length;
+      };
+      
+    $scope.paginationNext = function(list){
+    	console.log("PAGINATION", $scope.begin);
+    	if ($scope.begin+10 < list.length) $scope.begin += 10;
+    };
+    
+    $scope.paginationPrevious = function(){
+    	$scope.begin -= 10;
+    	if( $scope.begin < 0) $scope.begin = 0;
+    };
+    $scope.paginationFirst = function(){
+    	$scope.begin = 0;
+    };
+    $scope.paginationLast = function(list){
+    	$scope.begin = list.length-10;
+    };
+    
+    
+    $scope.get_total_bytes = function(selected_project){
+    	var total = 0;
+    	
+    	for(var k=0; k<selected_project.projects.length; k++){
+			total += selected_project.projects[k].dataset.size;
+    	}
+    	
+    	return total;
+    };
+    
+	
+	$scope.get_papers = function(selected_project){
+		var papers = {};
+		
+		for(var k=0; k<selected_project.projects.length; k++)
+		{
+			var paper = selected_project.projects[k].dataset.paper_id;
+			if(paper) papers[paper] = 1;
+		}
+		
+		return Object.keys(papers);
+	};
+	
 	$scope.get_total_samples_pe = function(selected_project){
 		var total = 0;
 		
@@ -314,18 +469,6 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		}
 		
 		return Object.keys(bioproject_ids).length;
-	};
-	
-	$scope.get_total_genomes = function(selected_project){
-		var genomes = {};
-		
-		for(var k=0; k<selected_project.projects.length; k++)
-		{
-			var genome = selected_project.projects[k].dataset.genome;
-			genomes[genome] = 1;
-		}
-		
-		return Object.keys(genomes).length;
 	};
 	
 	$scope.get_genomes = function(selected_project){
@@ -400,7 +543,9 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 //		if($scope.isPEChecked) $scope.isSEChecked = false;
 	};
 	  
-	$scope.showDeleteProjectDialog = function(i, $event) {
+	$scope.showDeleteProjectDialog = function(project, $event) {
+		console.log($scope.projects, project);
+		
 	    var confirm = {
 	    	controller: DialogController,
 			templateUrl: 'templates/dialogs/delete_project_dialog.html',
@@ -410,7 +555,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 			fullscreen: $scope.customFullscreen,
 			resolve: {
 		      item: function () {
-		        return $scope.projects[i];
+		        return project;
 		      }
 		    }
 	    };
@@ -419,12 +564,11 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	    	console.log("DIALOG ANSWER", answer);
 	    	
 	    	if (answer == "OK") {
-	    		var project = $scope.projects[i];
-	    		
 	    		apiService.delete_project(project, function(result){
 	    			console.log("[DELETE PROJECT] AJAX RESULT", result);
 	    			messageService.showMessage(result.data, "success");
 	    			
+	    			var i = $scope.projects.indexOf(project);
 	    			$scope.projects.splice(i, 1);
 		    		if($scope.selected_project == project)
 		    			$scope.selected_project = undefined;
@@ -468,6 +612,34 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	    $event.stopPropagation();
 	};
 	
+	$scope.showDeletePipelineDialog = function(i, $event) {
+	    var confirm = {
+	    	controller: DialogController,
+			templateUrl: 'templates/dialogs/delete_pipeline_dialog.html',
+			parent: angular.element(document.body),
+			targetEvent: $event,
+			clickOutsideToClose:true,
+			fullscreen: $scope.customFullscreen,
+			resolve: {
+		      item: function () {
+		        return $scope.selected_project.pipelines[i];
+		      }
+		    }
+	    };
+
+	    $mdDialog.show(confirm).then(function(answer) {
+	    	console.log("DIALOG ANSWER", answer);
+	    	
+	    	if (answer == "OK") {
+	    		console.log("[DIALOG DELETE PIPELINE]", $scope.selected_project.pipelines[i]);
+	    		$scope.delete_pipeline($scope.selected_project.pipelines, i);
+	    	}
+	    }, function() {
+    	});
+	    
+	    $event.stopPropagation();
+	};
+	
 	$scope.uploadFiles = function(files){
 		if (files && files.length) {
 			$scope.file_sending = true;
@@ -482,6 +654,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 						subproject.dataset[key] = subproject_data.dataset[key];
 					
 					$scope.file_sending = false;
+					$scope.bioproject2data = undefined;
 				}
 			}, function(resp){
 				console.log('Error status: ' + resp);
@@ -514,8 +687,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 
 	    $mdDialog.show(confirm).then(function(answer) {
 	    	console.log("DIALOG ANSWER", answer);
-	    	// if (answer == "OK") $scope.remove_step($scope.selected_subproject, i);
-	    	if (answer == "OK") $scope.remove_step($scope.selected_subproject, $scope.selected_subproject.steps.indexOf(step));
+	    	if (answer == "OK") $scope.remove_step($scope.selected_pipeline.steps, $scope.selected_pipeline.steps.indexOf(step));
 	    }, function() {
 	    });
 	    
@@ -525,6 +697,11 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	$scope.add_subproject = function(project){
 		console.log("[ADD SUBPROJECT]", project, subproject_template);
 		project.projects.push(angular.copy(subproject_template));
+	};
+	
+	$scope.add_pipeline = function(project){
+		console.log("[ADD PIPELINE]", project, pipeline_template);
+		project.pipelines.push(angular.copy(pipeline_template));
 	};
 	
 	$scope.delete_subprojects = function(project){
@@ -537,6 +714,13 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		}
 		
 		$scope.checked_subproject = [];
+		if(project.projects.length == 0)
+			$scope.bioproject2data = undefined;
+	};
+	
+	$scope.delete_pipeline = function(pipelines, i){
+		console.log("[DELETE PIPELINE]", pipelines[i]);
+		pipelines.splice(i, 1);
 	};
 	
 	$scope.add_step = function(project){
@@ -552,8 +736,8 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	};
 	
 	
-	$scope.remove_step = function(project, index){
-		project.steps.splice(index, 1);
+	$scope.remove_step = function(list, index){
+		list.splice(index, 1);
 	};
 	
 	$scope.create_condition = function(list){
@@ -601,6 +785,99 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 //		console.log("STEP SELECTED", index, $scope);
 //		$scope.selected_step = $scope.selected_subproject.steps[index];
 //	};
+	
+	$scope.searchTags = function(project, search){
+		var tags = [];
+		
+		for(var i in project.projects)
+		{
+//			console.log(project.projects[i]);
+			tags = tags.concat(project.projects[i].dataset.tags)
+//			var subproject = project.projects[i];
+//			tags.push({
+//				name: subproject.dataset.platform,
+//				type: "Platform"
+//			});
+//			
+//			tags.push({
+//				name: subproject.dataset.pairedend ? "PE" : "SE",
+//				type: "Layout"
+//			});
+//			
+//			tags.push({
+//				name: subproject.dataset.genome,
+//				type: "Organism"
+//			});
+		}
+		
+		var keys = {};
+//		console.log(tags);
+		tags = tags.filter(function(x){
+			if(x.name.indexOf(search) == -1 && x.type.indexOf(search) == -1) return false;
+			
+			var k = x.name + "#" + x.type;
+			var b = k in keys;
+			if(b) return false;
+			
+			keys[k] = 1;
+			return true;
+		});
+//		console.log(tags);
+		
+		return tags;
+	};
+	
+	$scope.chooseColor = function($event){
+		$event.stopPropagation();
+	};
+	
+	$scope.get_compatible_pipeline = function(subproject){
+		var compatiblePipeline = undefined;
+		
+		for(var i in $scope.selected_project.pipelines){
+			var pipeline = $scope.selected_project.pipelines[i];
+			
+			var compatible = true;
+			
+			for(var j in pipeline.tags){
+				var pTag = pipeline.tags[j];
+				
+				var found = false;
+				for(var k in subproject.dataset.tags) {
+					var eTag = subproject.dataset.tags[k];
+					
+					if(eTag.type == pTag.type && eTag.name == pTag.name)
+					{
+						found = true;
+						break;
+					}
+				}
+				
+				if(!found) {compatible = false; break;}
+			}
+			
+			if(compatible) {
+				compatiblePipeline = pipeline;
+			}
+		}
+		
+		return compatiblePipeline;
+	}
+	
+	$scope.get_pipeline_style = function(subproject){
+		var color = "#FFF";
+		
+		var compatiblePipeline = $scope.get_compatible_pipeline(subproject);
+		
+		if(compatiblePipeline != undefined){
+			subproject.dataset.pipeline = compatiblePipeline.id;
+			color = compatiblePipeline.color;
+		}
+		
+		return {
+			"background-color": color
+		};
+	}
 	
 	$scope.produce_scripts = function(project){
 		apiService.produce_scripts(project, function(result){

@@ -34,7 +34,7 @@ def upload_samples(request):
         for wsheet in wbook.worksheets:
             for row in wsheet.iter_rows():
                 for cell in row:
-                    if cell.value is not None and cell.value.startswith("SRR"):
+                    if cell.value is not None and isinstance(cell.value, str) and (cell.value.startswith("SRR") or cell.value.startswith("ERR") or cell.value.startswith("DRR")):
                         samples_set.add(cell.value)
     samples = list(samples_set)
                         
@@ -43,7 +43,11 @@ def upload_samples(request):
     Entrez.email = "tiziano.flati@gmail.com"
     Entrez.api_key = "ae48c58f9a840e56ee71d28cb464cc988408"
     handle = Entrez.esearch(retmax=1000, db="sra", term=' OR '.join(samples))
-    record = Entrez.read(handle)
+    try:
+        record = Entrez.read(handle)
+    except RuntimeError as e:
+        return HttpResponse(json.dumps({"message": str(e)}))
+        
     handle.close()
     print(record)
     ids = record["IdList"]
@@ -85,23 +89,58 @@ def upload_samples(request):
         
         # for each run in the bioproject
         selected_run_ids = []
+        total_size = 0
         for run_elem in project_elem.iter("RUN"):
+            size = int(run_elem.attrib["size"])
             run_id = run_elem.findtext(".//PRIMARY_ID")
             print("\t", "RUN_ID=", run_id)
             if run_id not in samples_set: continue
             selected_run_ids.append(run_id)
+            total_size += size
         
+        platform = project_elem.findtext(".//PLATFORM//INSTRUMENT_MODEL")
         study_title = project_elem.findtext(".//STUDY_TITLE")
         study_type = project_elem.find(".//STUDY_TYPE").attrib["existing_study_type"]
         study_abstract = project_elem.findtext(".//STUDY_ABSTRACT")
         
+        paper_id = None
+        for el in project_elem.iterfind(".//STUDY_LINK//XREF_LINK"):
+            if el.findtext(".//DB") == "pubmed":
+                paper_id = el.findtext(".//ID")
+                
+        print("paper_id", paper_id)
+        
+        tags = []
+        
+        tags.append({
+            "name": platform,
+            "type": "Platform"
+        })
+        
+        tags.append({
+            "name": "PE" if layout == "PAIRED"  else "SE",
+            "type": "Layout"
+        })
+        
+        if organism and organism is not None:
+            tags.append({
+                "name": organism,
+                "type": "Organism"
+            })
+        
+        biosample_id = project_elem.findtext(".//SAMPLE//IDENTIFIERS//EXTERNAL_ID[@namespace=\"BioSample\"]")
+        
         bioproject_data = {
             "dataset": {
                 "id": experiment_id,
+                "size": total_size,
                 "bioproject_id": bioproject_id,
+                "platform": platform,
                 "pairedend": layout == "PAIRED",
                 "sample_ids": "\n".join(selected_run_ids),
                 "attributes": attributes,
+                "biosample_id": biosample_id,
+                "tags": tags,
                 "study": {
                         "title": study_title,
                         "type": study_type,
@@ -111,40 +150,20 @@ def upload_samples(request):
             }
         
         if organism and organism is not None:
-            bioproject_data["dataset"]["genome"] = organism 
-        
+            bioproject_data["dataset"]["genome"] = organism
+            
+        if paper_id and paper_id is not None:  
+            bioproject_data["dataset"]["paper_id"] = paper_id
+            
         response.append(bioproject_data)
             
     
     return HttpResponse(json.dumps(response))
 
-# class MyBFSVisitor(graph_tool.search.BFSVisitor):
-#     def __init__(self, vertex2step, file, dataset, vertex2name):
-#         self.vertex2step = vertex2step
-#         self.file = file
-#         self.dataset = dataset
-#         self.vertex2name = vertex2name
-#         
-#     def examine_vertex(self, u):
-#         """
-#         Called when edge is checked
-#         """
-#         if self.vertex2name[u] == "ROOT":
-#             print("VISITING SPECIAL ROOT")
-#             return
-#         
-#         step = self.vertex2step[u]
-#         print("VISITING", self.vertex2name[u], step["title"], step["type"])
-#         
-#         if step["type"] == "per-step":
-#             single_step_allsamples_writer(step, self, u)
-#         elif step["type"] == "per-sample":
-#             single_step_singlesample_writer(step, self, u)
-
-def single_step_allsamples_writer(step, file, vertex2name, dataset, g, u):
+def single_step_allsamples_writer(step, file, vertex2name, dataset, pipeline, g, u):
     
     #sample_variable = dataset["sample_variable"]
-    sample_variable = next(filter(lambda x: x['key'] == "sample_variable", dataset["variables"]))["value"]
+    sample_variable = next(filter(lambda x: x['key'] == "sample_variable", pipeline["variables"]))["value"]
     
     sh_file = step["title"]+".sh"
         
@@ -222,10 +241,10 @@ fi
         
     file.write(script)
     
-def single_step_singlesample_writer(step, file, vertex2name, dataset, g, u):
+def single_step_singlesample_writer(step, file, vertex2name, dataset, pipeline, g, u):
     
     #sample_variable = dataset["sample_variable"]
-    sample_variable = next(filter(lambda x: x['key'] == "sample_variable", dataset["variables"]))["value"]
+    sample_variable = next(filter(lambda x: x['key'] == "sample_variable", pipeline["variables"]))["value"]
     
     for sample in dataset["sample_ids"].split("\n"):
         v_name = vertex2name[u]
@@ -256,7 +275,6 @@ echo {} {} $step_condition
 if [ "$step_condition" -eq 1 ]
 then
     execute=1
-    break
 fi
 
 """.format(command, command, name, sample))
@@ -419,15 +437,34 @@ def delete_project(request):
     
     return HttpResponse("Project: '{}' correctly removed.".format(project_id))
 
+def tags_compatibles(g1, g2):
+    compatible = True
+    
+    for tag2 in g2:
+        tag2_compatible = False
+        for tag1 in g1:
+            if tag1["name"] == tag2["name"] and tag1["type"] == tag2["type"]:
+                tag2_compatible = True
+                break
+         
+        if not tag2_compatible:
+            compatible = False
+            break
+    
+    return compatible
+
 def produce_scripts(request):
     project = json.loads(request.body.decode('utf-8'))
     
-    print(project)
+#     print(project)
     
     # Create project base dir
     script_dir = os.path.dirname(__file__) + "/scripts/" + project["id"]
     if not os.path.exists(script_dir):
         os.makedirs(script_dir)
+    
+#     pipelines = project["pipelines"]
+#     for pipeline in project["pipelines"]: pipelines[pipeline["id"]] = pipeline
     
     for subproject in project["projects"]:
         if "disabled" in subproject and subproject["disabled"] == True: continue
@@ -435,7 +472,23 @@ def produce_scripts(request):
         dataset = subproject["dataset"]
         subproject_id = dataset["id"]
         
-        genome = dataset["genome"] if "genome" in dataset else None
+        # Automatically find the pipeline which best suits this subproject
+        pipeline = None
+        compatible_pipelines = []
+        for pipe in project["pipelines"]:
+            if pipe == dataset.pipeline:
+                pipeline = pipe
+                break
+            
+            print(dataset["tags"], pipe["tags"])
+            if tags_compatibles(dataset["tags"], pipe["tags"]):
+                compatible_pipelines.append(pipe)
+                
+        if len(compatible_pipelines) == 0:
+            print("[WARNING] No compatible pipeline found for this subproject={}".format(dataset["id"]))
+        pipeline = compatible_pipelines[0]
+        if len(compatible_pipelines) > 1:
+            print("[WARNING] More than 1 compatible pipeline found ({} found) for this subproject={}".format(len(compatible_pipelines), dataset["id"]))
         
         # Create project base dir
         subproject_dir = script_dir + "/" + subproject_id
@@ -449,33 +502,21 @@ def produce_scripts(request):
         dataset_writer.close()
         
         # Generate single scripts (per-sample or per-step)
-        for step in subproject["steps"]:
+        for step in pipeline["steps"]:
             if step["skip"]: continue
             
             if step["type"] == "per-step":
-                create_step_all_samples(subproject_id, subproject_dir, genome, step, dataset)
+                create_step_all_samples(subproject_id, subproject_dir, step, dataset, pipeline)
             elif step["type"] == "per-sample":
-                create_allsteps_single_sample(subproject_id, subproject_dir, genome, step, dataset)
-        
-        
-#         for step in subproject["steps"]:
-#             if step["type"] == "per-step":
-#                 name = step["title"]
-#                 vertexname2step[name] = step
-#             elif step["type"] == "per-sample":
-#                 for sample in dataset["sample_ids"].split("\n"):
-#                     name = step["title"] + "-" + sample
-#                     vertexname2step[name] = step
+                create_allsteps_single_sample(subproject_id, subproject_dir, step, dataset, pipeline)
         
         # Initial graph setup
-        #g = Graph()
         g = nx.DiGraph()
         name2vertex = {}
         vertexname2step = {}
         stepname2step = {}
-        #vertex2name = g.new_vertex_property("string")
         vertex2name = {}
-        for step in subproject["steps"]:
+        for step in pipeline["steps"]:
             stepname2step[step["title"]] = step
             
             if step["type"] == "per-step":
@@ -495,7 +536,7 @@ def produce_scripts(request):
                     vertex2name[v] = name
                     vertexname2step[name] = step
         
-        for step in subproject["steps"]:
+        for step in pipeline["steps"]:
             if step["type"] == "per-step":
                 name = step["title"]
                 v = name2vertex[name]
@@ -541,7 +582,7 @@ def produce_scripts(request):
         
         # Simplify by removing skip nodes
         vertices_to_remove = set()
-        for step in subproject["steps"]:
+        for step in pipeline["steps"]:
             if step["skip"]:
                 if step["type"] == "per-step":
                     name = step["title"]
@@ -561,7 +602,6 @@ def produce_scripts(request):
                     vertices_to_remove.add(v)
                     for e in edges_to_remove:
                         g.remove_edge(e[0], e[1])
-                    #g.remove_vertex(v)
                     
                 elif step["type"] == "per-sample":
                     for sample in dataset["sample_ids"].split("\n"):
@@ -569,7 +609,6 @@ def produce_scripts(request):
                         #print("Trying to remove this step for sample=", sample, name)
                         
                         v = name2vertex[name]
-                        #print(dir(v), v.is_valid)
                         
                         edges_to_remove = []
                         for e_in in g.in_edges(v):
@@ -586,7 +625,6 @@ def produce_scripts(request):
                         
                         print("Removing", name, v)
                         vertices_to_remove.add(v)
-#                     for v in reversed(sorted(vertices_to_remove)):
 
         print("=== V (before) ===")
         for v in g.nodes():
@@ -595,10 +633,8 @@ def produce_scripts(request):
         print("=== VERTICES TO REMOVE ===")
         for v in vertices_to_remove:
             print(vertex2name[v])
-        #for v in reversed(sorted(vertices_to_remove)):
         for v in vertices_to_remove:
             g.remove_node(v)
-#         g.remove_vertex(vertices_to_remove)
         
         print("=== V ===")
         for v in g.nodes():
@@ -689,9 +725,9 @@ def produce_scripts(request):
             print("VISITING VERTEX={} STEP={} TYPE={}".format(vertex2name[u], step["title"], step["type"]))
             
             if step["type"] == "per-step":
-                single_step_allsamples_writer(step, file, vertex2name, dataset, g, u)
+                single_step_allsamples_writer(step, file, vertex2name, dataset, pipeline, g, u)
             elif step["type"] == "per-sample":
-                single_step_singlesample_writer(step, file, vertex2name, dataset, g, u)
+                single_step_singlesample_writer(step, file, vertex2name, dataset, pipeline, g, u)
         
         file.close()
         st = os.stat(filepath)
@@ -724,10 +760,19 @@ def produce_scripts(request):
     
     return HttpResponse("Scripts correctly created for project: '{}'".format(project["id"]))
 
-def create_step_all_samples(subproject_id, subproject_dir, genome, step, dataset):
+def replace_variables(x, variables):
+    for variable in variables:
+        x = x.replace("${"+variable["key"]+"}", variable["value"])
+#         x = x.replace("${GENOME}", genome)
+#         x = x.replace("${STEP_NAME}", step["title"])
+        
+    return x
+
+def create_step_all_samples(subproject_id, subproject_dir, step, dataset, pipeline):
     directives = step["hpc_directives"]
     #sample_variable = dataset["sample_variable"]
-    sample_variable = next(filter(lambda x: x['key'] == "sample_variable", dataset["variables"]))["value"]
+    variables = pipeline["variables"]
+    sample_variable = next(filter(lambda x: x['key'] == "sample_variable", variables))["value"]
     
     sh_name = step["title"]+".sh"
     filepath = subproject_dir + "/" + sh_name
@@ -740,10 +785,11 @@ def create_step_all_samples(subproject_id, subproject_dir, genome, step, dataset
     file.write("# Creation time: {}\n\n".format(datetime.datetime.now()))
     
     job_name = directives["job_name"]
+    job_name = replace_variables(job_name, variables)
     job_name = job_name.replace("${PROJECT}", subproject_id)
-    job_name = job_name.replace("${GENOME}", genome)
-    job_name = job_name.replace("${STEP_NAME}", step["title"])
-#     job_name = job_name.replace("${{{}}}".format(sample_variable), sample)
+#     job_name = job_name.replace("${GENOME}", genome)
+    job_name = job_name.replace("${STEP_NAME}", step["title"].replace(" ", "_"))
+    job_name = job_name.replace("${{{}}}".format(sample_variable), sample)
     
     file.write("#SBATCH --job-name={}\n".format(job_name))
     file.write("#SBATCH -N {}\n".format(directives["nodes"]))
@@ -753,12 +799,22 @@ def create_step_all_samples(subproject_id, subproject_dir, genome, step, dataset
     file.write("#SBATCH --mem={}{}\n".format(directives["memory"]["quantity"], directives["memory"]["size"]))
     file.write("#SBATCH --time {}\n".format(directives["walltime"]))
     file.write("#SBATCH --account {}\n".format(directives["account"]))
-    if "error" not in directives or directives["error"] == "": directives["error"] = step["title"] + ".err"
-    directives["error"] = directives["error"].replace("${STEP_NAME}", step["title"])
-    file.write("#SBATCH --error {}\n".format(directives["error"].replace(" ", "-")))
-    if "output" not in directives or directives["output"] == "": directives["output"] = step["title"] + ".out"
-    directives["output"] = directives["output"].replace("${STEP_NAME}", step["title"])
-    file.write("#SBATCH --output {}\n".format(directives["output"].replace(" ", "-")))
+    
+    if "error" not in directives or directives["error"] == "":
+#         directives["error"] = step["title"] + ".err"
+        pass
+    else:
+        directives["error"] = replace_variables(directives["error"], variables)
+        directives["error"] = directives["error"].replace("${STEP_NAME}", step["title"])
+        file.write("#SBATCH --error {}\n".format(directives["error"].replace(" ", "-")))
+    
+    if "output" not in directives or directives["output"] == "":
+#         directives["output"] = step["title"] + ".out"
+        pass
+    else:
+        directives["output"] = replace_variables(directives["output"], variables)
+        directives["output"] = directives["output"].replace("${STEP_NAME}", step["title"])
+        file.write("#SBATCH --output {}\n".format(directives["output"].replace(" ", "-")))
     
     file.write("cd $SLURM_SUBMIT_DIR\n\n")
     
@@ -817,9 +873,10 @@ wait
     st = os.stat(filepath)
     os.chmod(filepath, st.st_mode | stat.S_IEXEC)
 
-def create_allsteps_single_sample(subproject_id, subproject_dir, genome, step, dataset):
+def create_allsteps_single_sample(subproject_id, subproject_dir, step, dataset, pipeline):
     directives = step["hpc_directives"]
-    sample_variable = next(filter(lambda x: x['key'] == "sample_variable", dataset["variables"]))["value"]
+    variables = pipeline["variables"]
+    sample_variable = next(filter(lambda x: x['key'] == "sample_variable", variables))["value"]
     
     for sample in dataset["sample_ids"].split("\n"):
         sh_name = step["title"] + "-" + sample + ".sh"
@@ -834,11 +891,11 @@ def create_allsteps_single_sample(subproject_id, subproject_dir, genome, step, d
         file.write("# Creation time: {}\n\n".format(datetime.datetime.now()))
         
         job_name = directives["job_name"]
+        job_name = replace_variables(job_name, variables)
         job_name = job_name.replace("${PROJECT}", subproject_id)
-        job_name = job_name.replace("${GENOME}", genome)
-        job_name = job_name.replace("${STEP_NAME}", step["title"])
+#         job_name = job_name.replace("${GENOME}", genome)
+        job_name = job_name.replace("${STEP_NAME}", step["title"].replace(" ", "_"))
         job_name = job_name.replace("${{{}}}".format(sample_variable), sample)
-#         job_name += "-" + sample
         
         file.write("#SBATCH --job-name={}\n".format(job_name))
         file.write("#SBATCH -N {}\n".format(directives["nodes"]))
@@ -849,13 +906,19 @@ def create_allsteps_single_sample(subproject_id, subproject_dir, genome, step, d
         file.write("#SBATCH --time {}\n".format(directives["walltime"]))
         file.write("#SBATCH --account {}\n".format(directives["account"]))
         
-        if "error" not in directives or directives["error"] == "": directives["error"] = step["title"]
-        directives["error"] = directives["error"].replace("${STEP_NAME}", step["title"])
-        file.write("#SBATCH --error {}\n".format(sample + "-" + directives["error"].replace(" ", "-")))
+        if "error" not in directives or directives["error"] == "":
+#             directives["error"] = step["title"]
+            pass
+        else:
+            directives["error"] = directives["error"].replace("${STEP_NAME}", step["title"])
+            file.write("#SBATCH --error {}\n".format(sample + "-" + directives["error"].replace(" ", "-")))
             
-        if "output" not in directives or directives["output"] == "": directives["output"] = step["title"]
-        directives["output"] = directives["output"].replace("${STEP_NAME}", step["title"])
-        file.write("#SBATCH --output {}\n".format(sample + "-" + directives["output"].replace(" ", "-")))
+        if "output" not in directives or directives["output"] == "":
+#             directives["output"] = step["title"]
+            pass
+        else:
+            directives["output"] = directives["output"].replace("${STEP_NAME}", step["title"])
+            file.write("#SBATCH --output {}\n".format(sample + "-" + directives["output"].replace(" ", "-")))
         
         file.write("cd $SLURM_SUBMIT_DIR\n\n")
         

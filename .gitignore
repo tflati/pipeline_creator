@@ -1,3 +1,4 @@
 project/django_server/pipeline_manager/scripts/*
 bower_components/
 *pyc
+*temp

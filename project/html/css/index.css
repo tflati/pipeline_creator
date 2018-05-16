@@ -21,6 +21,10 @@ body {
 	
 }
 
+.line-height-small {
+	line-height: 20px;
+}
+
 v-pane-content {
 	padding-left: 25px;
 }
@@ -51,6 +55,63 @@ td { padding: 10px; }
 tr:nth-child(even) {background: #EEE}
 tr:nth-child(odd) {background: #FFF}
 
+.md-chip-input-container {
+	width: 100%;
+}
+
+.category {
+	color: cornflowerblue;
+	font-weight: bold;
+}
+
+
+
+
+
+.text-small {
+	font-size: 0.7em;
+	white-space:normal;
+}
+
+.mdchips-inline md-chip {
+	vertical-align: middle;
+	max-width: 100px;
+	height: auto;
+	padding: 2px 7px 4px 7px;
+	margin-top: 2px;
+}
+
+.mdchips-inline .md-chips {
+	box-shadow: 0 0px !important;
+}
+
+.mdchips-inline {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.mdchips-inline .md-chip-content {
+	line-height: 12px;
+}
+
+.md-chips {
+	vertical-align: middle;
+	padding-bottom: 2px;
+	padding-left: 0px;
+}
+
+.mdchips-inline {
+	border-radius: 30px;
+	padding: 5px;
+	border: 2px solid #fff;
+	box-shadow: 0 5px 1px -2px rgba(0,0,0,.14),0 5px 2px 0 rgba(0,0,0,.098),0 5px 5px 0 rgba(0,0,0,.084);
+}
+
+md-chip:last-child {
+	margin-right: 0px;
+}
+
+
 .code {
 	display:block;
 	background-color: black;
@@ -62,6 +123,22 @@ tr:nth-child(odd) {background: #FFF}
 
 .margin-0 {
 	margin: 0px;
+}
+
+.padding-medium {
+	padding: 15px;
+}
+
+.margin-left-10 {
+	margin-left: 10px;
+}
+
+.vertically-centered {
+	vertical-align: middle;
+}
+
+.vertically-bottom {
+	vertical-align: bottom;
 }
 
 .padding-left-10 {
@@ -98,9 +175,39 @@ spacer {
 	background-color: lightsalmon;
 	fill: bisque !important;
 	color: bisque !important;
-	padding: 0 0 0 100px !important;
+	padding: 0 0 0 30px !important;
 }
 
 .disabled_pane .lighter {
 	color: bisque !important;
+}
+
+.disabled_pane md-chip {
+	background: bisque !important;
+}
+
+.default-icon-color {
+	color: red;
+}
+
+.background-warn {
+	background-color: rgb(255, 240, 196);
+}
+
+.default-border {
+	border: 3px solid burlywood;
+}
+
+.color-picker-swatch .custom-colorpicker {
+	border: 0px;
+	border-radius: 50px;
+	width: 7px;
+}
+
+.md-color-picker-input-container md-input-container {
+	display: none !important;
+}
+
+.md-color-picker-input-container .md-color-picker-preview {
+	top: 0px !important;
 }
