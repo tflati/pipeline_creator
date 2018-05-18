@@ -1,3 +1,4 @@
+Profile: global
 Profile: advanced
 		applications
 			stata

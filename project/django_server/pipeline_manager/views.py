@@ -13,9 +13,13 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import openpyxl as opx
 
+from collections import Counter
+
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
+
+import zipfile
 
 from Bio import Entrez
 from lxml import etree
@@ -427,6 +431,9 @@ def save_project(request):
     filepath = os.path.dirname(__file__) + "/data/"+project_id+".json"
     open(filepath, "w").write(json.dumps(data, indent=4, sort_keys=True))
     
+    for group in data["projects"]:
+        print(group["dataset"]["id"], group["dataset"]["pipeline"])
+    
     return HttpResponse("Project: '{}' correctly saved.".format(project_id))
 
 def delete_project(request):
@@ -436,6 +443,17 @@ def delete_project(request):
     os.remove(filepath)
     
     return HttpResponse("Project: '{}' correctly removed.".format(project_id))
+
+# def rename_project(request):
+#     data = json.loads(request.body.decode('utf-8'))
+#     
+#     project_id = data["id"]
+#     new_project_id = data["extra"]
+#     filepath = os.path.dirname(__file__) + "/data/"+project_id+".json"
+#     newfilepath = os.path.dirname(__file__) + "/data/"+new_project_id+".json"
+#     os.rename(filepath, newfilepath)
+#     
+#     return HttpResponse("Project: '{}' correctly renamed as '{}'.".format(project_id, new_project_id))
 
 def tags_compatibles(g1, g2):
     compatible = True
@@ -476,7 +494,7 @@ def produce_scripts(request):
         pipeline = None
         compatible_pipelines = []
         for pipe in project["pipelines"]:
-            if pipe == dataset.pipeline:
+            if pipe == dataset["pipeline"]:
                 pipeline = pipe
                 break
             
@@ -789,7 +807,7 @@ def create_step_all_samples(subproject_id, subproject_dir, step, dataset, pipeli
     job_name = job_name.replace("${PROJECT}", subproject_id)
 #     job_name = job_name.replace("${GENOME}", genome)
     job_name = job_name.replace("${STEP_NAME}", step["title"].replace(" ", "_"))
-    job_name = job_name.replace("${{{}}}".format(sample_variable), sample)
+#     job_name = job_name.replace("${{{}}}".format(sample_variable), sample)
     
     file.write("#SBATCH --job-name={}\n".format(job_name))
     file.write("#SBATCH -N {}\n".format(directives["nodes"]))
@@ -971,3 +989,76 @@ def download_scripts(request):
             "url": "download/" + project["id"] + ".zip",
             "filename": project["id"] + ".zip"
          }))
+
+def download_csv(request):
+    project = json.loads(request.body.decode('utf-8'))
+    
+    script_dir = os.path.dirname(__file__) + "/scripts/" + project["id"]
+    if not os.path.exists(script_dir):
+        os.makedirs(script_dir)
+    
+    bioproject2srr = {}
+    for group in project["projects"]:
+        bioproject_id = group["dataset"]["bioproject_id"]
+        for srr in group["dataset"]["sample_ids"].split("\n"):
+            if bioproject_id not in bioproject2srr: bioproject2srr[bioproject_id] = []
+            bioproject2srr[bioproject_id].append(group)
+    
+    for bioproject_id in bioproject2srr:
+        groups = bioproject2srr[bioproject_id]
+        
+        attribute_keys = set()
+        for group in groups:
+            for attribute_key in group["dataset"]["attributes"].keys():
+                attribute_keys.add(attribute_key)
+        
+        attribute_keys_to_remove = []
+        for attribute_key in attribute_keys:
+            attribute_values = Counter()
+            for group in groups:
+                for run in group["dataset"]["sample_ids"].split("\n"):
+                    if attribute_key in group["dataset"]["attributes"]:
+                        value = group["dataset"]["attributes"][attribute_key]
+                        attribute_values[value] += 1
+                        
+            if len(attribute_values.keys()) == 1:
+                print("Discarding column {} for ProjectID={} Counter={}".format(attribute_key, bioproject_id, attribute_values))
+                attribute_keys_to_remove.append(attribute_key)
+        
+        for attribute_key in attribute_keys_to_remove:
+            attribute_keys.remove(attribute_key)
+        
+        csv_writer = open(script_dir + "/" + bioproject_id + ".csv", "w")
+        csv_writer.write("ids," + ",".join([a.replace(" ", "_") for a in attribute_keys]) + "\n")
+        for group in groups:
+            for run in group["dataset"]["sample_ids"].split("\n"):
+                fields = []
+                fields.append(run)
+                for attribute_key in attribute_keys:
+                    value = ""
+                    if attribute_key in group["dataset"]["attributes"]:
+                        value = group["dataset"]["attributes"][attribute_key]
+                    fields.append(value)
+                csv_writer.write(",".join([a.replace(" ", "_") for a in fields]) + "\n")
+        csv_writer.close()
+        
+    archive_name = project["id"] + "_csv.zip"
+    archive_path = script_dir + "/" + archive_name
+    print("ARCHIVE NAME", archive_name, script_dir, archive_path)
+    
+    if os.path.exists(archive_path): os.remove(archive_path)
+    for f in glob.glob(script_dir + "/*"):
+        print(f)
+
+    with zipfile.ZipFile(archive_path, 'w') as zip:
+        for file_name in glob.glob(script_dir + "/*.csv"):
+            print(file_name)
+            zip.write(file_name, os.path.basename(file_name))
+    zip.close()
+        
+    return HttpResponse(json.dumps(
+        {
+            "url": "download/" + project["id"] + "/" + project["id"] + "_csv.zip",
+            "filename": project["id"] + "_csv.zip"
+         }))
+    

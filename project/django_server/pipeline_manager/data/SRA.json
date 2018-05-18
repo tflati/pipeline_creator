@@ -1,0 +1,199 @@
+{
+    "creation_date": "2018-05-08T09:13:32.872Z",
+    "creation_epoch": 1525770812,
+    "creator": "Tiziano Flati",
+    "description": "",
+    "id": "SRA",
+    "img": "imgs/project.png",
+    "pipelines": [
+        {
+            "cluster": "galileo",
+            "disabled": false,
+            "id": "Single-end Transcriptomic",
+            "steps": [
+                {
+                    "commandline": "$SAMPLE",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "",
+                        "cpu": 1,
+                        "dependencies": [],
+                        "error": "",
+                        "job_name": "",
+                        "memory": {
+                            "quantity": 1,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "",
+                        "walltime": ""
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": true,
+                    "modules": [
+                        "trimmomatic/0.36"
+                    ],
+                    "sequential": true,
+                    "skip": false,
+                    "title": "Trimming",
+                    "type": "",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                }
+            ],
+            "tags": [
+                {
+                    "name": "Illumina HiSeq 2500",
+                    "type": "Platform"
+                },
+                {
+                    "name": "Prunus persica",
+                    "type": "Organism"
+                },
+                {
+                    "name": "SE",
+                    "type": "Layout"
+                }
+            ],
+            "variables": [
+                {
+                    "description": "Variable to use across scripts to refer to a sample in this project",
+                    "key": "sample_variable",
+                    "key_disabled": true,
+                    "value": "SAMPLE"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to ALL samples in this project",
+                    "key": "all_samples_variable",
+                    "key_disabled": true,
+                    "value": "ALL_SAMPLES"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to this project ID",
+                    "key": "project_variable",
+                    "key_disabled": true,
+                    "value": "PROJECT"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the index of this project",
+                    "key": "project_index_variable",
+                    "key_disabled": true,
+                    "value": "PROJECT_INDEX"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the number of CPU defined in a step",
+                    "key": "cpu_variable",
+                    "key_disabled": true,
+                    "value": "CPU"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the name of the step",
+                    "key": "step_name_variable",
+                    "key_disabled": true,
+                    "value": "STEP_NAME"
+                }
+            ]
+        },
+        {
+            "disabled": false,
+            "id": "Paired-end Transcriptome",
+            "steps": [],
+            "tags": [
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                },
+                {
+                    "name": "Illumina HiSeq 2500",
+                    "type": "Platform"
+                }
+            ],
+            "variables": [
+                {
+                    "description": "Variable to use across scripts to refer to a sample in this project",
+                    "key": "sample_variable",
+                    "key_disabled": true,
+                    "value": "SAMPLE"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to ALL samples in this project",
+                    "key": "all_samples_variable",
+                    "key_disabled": true,
+                    "value": "ALL_SAMPLES"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to this project ID",
+                    "key": "project_variable",
+                    "key_disabled": true,
+                    "value": "PROJECT"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the index of this project",
+                    "key": "project_index_variable",
+                    "key_disabled": true,
+                    "value": "PROJECT_INDEX"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the number of CPU defined in a step",
+                    "key": "cpu_variable",
+                    "key_disabled": true,
+                    "value": "CPU"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the name of the step",
+                    "key": "step_name_variable",
+                    "key_disabled": true,
+                    "value": "STEP_NAME"
+                }
+            ]
+        }
+    ],
+    "projects": [
+        {
+            "dataset": {
+                "attributes": {
+                    "cultivar": "H8828003",
+                    "infection": "none",
+                    "source_name": "leaf tree"
+                },
+                "basedir": "",
+                "bioproject_id": "PRJNA121611",
+                "biosample_id": "SAMN00008412",
+                "cluster": "",
+                "create_per_sample_directory": true,
+                "genome": "Prunus persica var. nucipersica",
+                "id": "SRX016321",
+                "pairedend": false,
+                "paper_id": "20158907",
+                "pipeline": "",
+                "platform": "Illumina Genome Analyzer",
+                "sample_ids": "SRR035184",
+                "size": 550378456,
+                "study": {
+                    "abstract": "Using a high-throughput sequencing approach we quantitatively analyzed the content of viroid-derived siRNAs of an infected tree. Our results show that the entire PLMVd genome is found in the siRNA population. Also both polarities are susceptible to be targeted by the RNAi machinery but specific regions for each polarity are over represented. Those regions, that are not the same for each polarity, do not necessarily correlate with double stranded regions that could be substrate for Dicer-like enzymes. Finally the analysis of the first 5\u2019 nucleotide revealed a bias toward a C or a U in viroid-derived siRNAs, indicating that at least AGO5 and AGO1 can recruit these small RNAs. Overall design: Analysis of siRNAs population from RNA sample isolated from a viroid-infected tree",
+                    "title": "In depth sequencing of the siRNAs associated with peach latent mosaic viroid infection",
+                    "type": "Other"
+                },
+                "tags": [
+                    {
+                        "name": "Illumina Genome Analyzer",
+                        "type": "Platform"
+                    },
+                    {
+                        "name": "SE",
+                        "type": "Layout"
+                    },
+                    {
+                        "name": "Prunus persica var. nucipersica",
+                        "type": "Organism"
+                    }
+                ]
+            }
+        }
+    ],
+    "subtitle": "",
+    "title": "Test SRA"
+}

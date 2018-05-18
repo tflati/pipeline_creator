@@ -584,6 +584,55 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	    $event.stopPropagation();
 	};
 	
+	$scope.showRenameProjectDialog = function(project, $event) {
+		console.log($scope.projects, project);
+		
+	    var confirm = {
+	    	controller: DialogController,
+			templateUrl: 'templates/dialogs/rename_project_dialog.html',
+			parent: angular.element(document.body),
+			targetEvent: $event,
+			clickOutsideToClose:true,
+			fullscreen: $scope.customFullscreen,
+			resolve: {
+		      item: function () {
+		        return project;
+		      }
+		    }
+	    };
+
+	    $mdDialog.show(confirm).then(function(answer) {
+	    	console.log("RENAME DIALOG ANSWER", answer);
+	    	
+	    	if (answer != undefined && answer != "Cancel") {
+	    		console.log("NEW NAME", answer);
+	    		
+	    		new_project = angular.copy(project);
+	    		new_project.id = answer;
+	    		
+	    		apiService.save_project(new_project, function(result){
+	    			
+	    			apiService.delete_project(project, function(result){
+		    			messageService.showMessage("PROJECT "+project.id+" CORRECTLY RENAMED AS " + answer, "success");
+		    			
+		    			project.id = answer;
+			    		
+		    		}, function(result){
+		    			console.log("[DELETE OLD - RENAME PROJECT] AJAX RESULT ERROR", result);
+		    			messageService.showMessage("Server error: " + result.status, "error");
+		    		});
+	    			
+	    		}, function(result){
+	    			console.log("[SAVE NEW - RENAME PROJECT] AJAX RESULT ERROR", result);
+	    			messageService.showMessage("Server error: " + result.status, "error");
+	    		});
+	    	}
+	    }, function() {
+	    });
+	    
+	    $event.stopPropagation();
+	};
+	
 	$scope.showDeleteSubprojectDialog = function(i, $event) {
 		$scope.select_subproject(i);
 		
@@ -790,39 +839,22 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		var tags = [];
 		
 		for(var i in project.projects)
-		{
-//			console.log(project.projects[i]);
 			tags = tags.concat(project.projects[i].dataset.tags)
-//			var subproject = project.projects[i];
-//			tags.push({
-//				name: subproject.dataset.platform,
-//				type: "Platform"
-//			});
-//			
-//			tags.push({
-//				name: subproject.dataset.pairedend ? "PE" : "SE",
-//				type: "Layout"
-//			});
-//			
-//			tags.push({
-//				name: subproject.dataset.genome,
-//				type: "Organism"
-//			});
-		}
 		
 		var keys = {};
 //		console.log(tags);
 		tags = tags.filter(function(x){
-			if(x.name.indexOf(search) == -1 && x.type.indexOf(search) == -1) return false;
+			if(x.name.toLowerCase().indexOf(search.toLowerCase()) == -1 && x.type.toLowerCase().indexOf(search.toLowerCase()) == -1) return false;
 			
 			var k = x.name + "#" + x.type;
+			
 			var b = k in keys;
 			if(b) return false;
+			else keys[k] = 1;
 			
-			keys[k] = 1;
 			return true;
-		});
-//		console.log(tags);
+		}).sort(function(x, y){return x.type + "#" + x.name > y.type + "#" + y.name});
+		console.log("AUTOCOMPLETE TAGS", search, tags);
 		
 		return tags;
 	};
@@ -870,7 +902,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		var compatiblePipeline = $scope.get_compatible_pipeline(subproject);
 		
 		if(compatiblePipeline != undefined){
-			subproject.dataset.pipeline = compatiblePipeline.id;
+//			subproject.dataset.pipeline = compatiblePipeline.id;
 			color = compatiblePipeline.color;
 		}
 		
@@ -878,6 +910,29 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 			"background-color": color
 		};
 	}
+	
+	$scope.produce_csv = function(project){
+		apiService.download_csv(project, function(result){
+			console.log("[DOWNLOAD CSV] AJAX RESULT", result);
+			
+			var url = result.data.url;
+			var filename = result.data.filename;
+			
+			var downloadLink = angular.element('<a target="_self"></a>');
+            downloadLink.attr('href', url);
+            downloadLink.attr('download', filename);
+            
+            console.log(downloadLink, url, filename);
+            
+            var body = $document.find('body').eq(0);
+            body.append(downloadLink)
+            
+			downloadLink[0].click();
+		}, function(result){
+			console.log("[DOWNLOAD CSV] AJAX RESULT ERROR", result);
+			messageService.showMessage("Server error: " + result.status, "error");
+		});
+	};
 	
 	$scope.produce_scripts = function(project){
 		apiService.produce_scripts(project, function(result){

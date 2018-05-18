@@ -67,7 +67,7 @@
 												<th>Run(s)</th>
 												<th>Experiment(s)</th>
 												<th>BioSample(s)</th>
-												<th>Organism(s)</th>
+												<th>Organism</th>
 												<th>Size</th>
 												<th>Platform(s)</th>
 											</tr>
@@ -98,6 +98,12 @@
 									</md-content>
 								</div>
 							</div>
+						</section>
+						
+						<section>
+							<md-button class="md-button md-warn md-raised" ng-click="produce_csv(selected_project)" tooltip="Automatically produce Sample Attributes CSV" aria-label="Automatically produce CSV">
+								Generate Sample Attributes CSV
+							</md-button>
 						</section>
 						
 						<section>
@@ -162,6 +168,8 @@
 				              		<span ng-if="isSEChecked">Un-</span>Select all Single-End subprojects
 				            	</md-checkbox>
 				            </div>
+				            
+				            <p>{{checked_subproject.length}} experiment<span ng-if="checked_subproject.length != 1">s</span> selected</p>
 			            	
 							<v-accordion class="vAccordion--default padding-10" multiple onexpand="select_subproject(index)">
 							      
@@ -191,11 +199,11 @@
 <!-- 							    	</span> -->
 							    	
 							    	<span md-truncate flex class="lighter">
-							    		<b>{{subproject.dataset.sample_ids.split('\n')[0] != '' ? subproject.dataset.sample_ids.split('\n').length : 'No'}} sample(s)</b>
+							    		<b>{{subproject.dataset.sample_ids.split('\n')[0] != '' ? subproject.dataset.sample_ids.split('\n').length : 'No'}} sample<span ng-if="subproject.dataset.sample_ids.split('\n').length > 1">s</span></b>
 							    	</span>
 							    	
 							    	<md-button ng-if="subproject.disabled" tooltip="This step is disabled. Click to enable this step" class="md-icon-button" ng-click="$event.stopPropagation(); subproject.disabled = !subproject.disabled" tooltip="Delete project" aria-label="Delete project">
-							    		<i class="fas fa-toggle-on fa-2x" data-fa-transform="flip-h" style="color: red;"></i>	
+							    		<i class="fas fa-toggle-on fa-2x" data-fa-transform="flip-h" style="color: red;"></i>
 							    	</md-button>
 							    	<md-button ng-if="!subproject.disabled" tooltip="This step is enabled. Click to disable this step" class="md-icon-button" ng-click="$event.stopPropagation(); subproject.disabled = !subproject.disabled" tooltip="Delete project" aria-label="Delete project">
 							    		<i class="fas fa-toggle-on fa-2x" style="color: green;"></i>
@@ -269,9 +277,9 @@
 							    	<span md-truncate flex><b>Pipeline {{$index+1}}: {{pipeline.id}}</b></span>
 							    	
 <!-- 							    	<i class="fas fa-circle" ng-style="{color: {{pipeline.color || 'blue'}}}"></i> -->
-									<span ng-click="chooseColor($event)" class="vertically-centered" style="display:inline-block;" md-color-picker ng-model="pipeline.color" options="{default: '#{{pipeline.color}}'}"></span>
+									<span ng-click="chooseColor($event)" class="vertically-centered margin-left-10" style="display:inline-block;" md-color-picker ng-model="pipeline.color" options="{default: '#{{pipeline.color}}'}"></span>
 							    	
-							    	<md-chips ng-style="{'background-color': pipeline.color}" ng-model="pipeline.tags" readonly="true" class="mdchips-inline">
+							    	<md-chips ng-if="pipeline.tags.length > 0" ng-style="{'background-color': pipeline.color}" ng-model="pipeline.tags" readonly="true" class="mdchips-inline">
 										<md-chip-template class="text-small" style="height: 20px;">
 									        <div>
 									          <div><strong>{{$chip.name}}</strong></div>
@@ -298,7 +306,7 @@
 							    </v-pane-header>
 							    <v-pane-content>
 							    	<section>
-							    		<md-input-container>
+							    		<md-input-container class="full-width">
 											<label>Pipeline ID</label>
 								    		<input type="text" aria-label="Pipeline ID" ng-model="pipeline.id">
 							    		</md-input-container>
@@ -318,7 +326,7 @@
 												<md-autocomplete
 										          md-selected-item="selectedItem"
 										          md-search-text="searchText"
-										          md-items="item in searchTags(selected_project, searchText)"
+										          md-items="item in searchTags(selected_project, searchText) | orderBy: item.type"
 										          md-item-text="item.name"
 										          md-min-length="0"
 										          md-match-case-insensitive="true"
@@ -411,7 +419,7 @@
 										  <v-pane ng-repeat="step in pipeline.steps">
 										    <v-pane-header ng-class="{disabled_pane: step.skip}">
 										    
-										    	<md-button ng-if="step.skip" class="md-icon-button">
+										    	<md-button ng-if="step.skip" class="md-icon-button" aria-label="Skip this step">
 											      <ng-md-icon icon="low_priority"></ng-md-icon>
 											    </md-button>
 										    	
@@ -472,8 +480,13 @@
 								<div layout="row">
 									<md-input-container>
 										<label>ID</label>
-							   			<input type="text" ng-model="selected_project.id">
+							   			<input disabled type="text" ng-model="selected_project.id">
 							   		</md-input-container>
+							   		<md-button tooltip="Rename this project." class="md-icon-button md-raised md-warn" ng-click="showRenameProjectDialog(selected_project, $event)" tooltip="Change project ID (rename)" aria-label="Change project ID">
+					    				<i class="fas fa-pencil-alt"></i>	
+						    		</md-button>
+								</div>
+								<div layout="row">
 									<md-input-container>
 										<label>Title</label>
 							   			<input type="text" ng-model="selected_project.title">
@@ -502,7 +515,7 @@
 							   	<div layout="column">
 							   		<md-input-container>
 										<label>Description</label>
-							   			<textarea ng-model="selected_project.description" rows="3"></textarea>
+							   			<textarea placeholder="Write down a description for this project (e.g., ideal place to put notes, etc.)" ng-model="selected_project.description" rows="10"></textarea>
 							   		</md-input-container>
 							   	</div>
 						   	</div>

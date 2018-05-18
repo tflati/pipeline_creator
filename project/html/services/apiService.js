@@ -32,6 +32,11 @@ app.factory('apiService', function($http, Upload) {
 	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);
   };
   
+  instance.rename_project = function(project, successFx, errorFx, finallyFx){
+	  var url = SERVER + "rename_project/";
+	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);
+  };
+  
   instance.produce_scripts = function(project, successFx, errorFx, finallyFx){
 	  var url = SERVER + "produce_scripts/";
 	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);
@@ -39,6 +44,11 @@ app.factory('apiService', function($http, Upload) {
   
   instance.download_scripts = function(project, successFx, errorFx, finallyFx){
 	  var url = SERVER + "download_scripts/";
+	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);
+  };
+  
+  instance.download_csv = function(project, successFx, errorFx, finallyFx){
+	  var url = SERVER + "download_csv/";
 	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);
   };
   
