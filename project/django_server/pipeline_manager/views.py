@@ -7,10 +7,8 @@ import glob
 import datetime
 import stat
 import shutil
-#from graph_tool.all import *
 import subprocess
 import networkx as nx
-import matplotlib.pyplot as plt
 import openpyxl as opx
 
 from collections import Counter
@@ -208,7 +206,7 @@ done
         
         dep_script = """
 DEP_JOB_NAME="{}"
-echo $DEP_JOB_NAME
+echo "DEP JOB NAME="$DEP_JOB_NAME
 DEP_JOB_ID=${{JOB_IDS["$DEP_JOB_NAME"]}}
 echo "DEPJOBID="$DEP_JOB_ID
 
@@ -266,6 +264,7 @@ def single_step_singlesample_writer(step, file, vertex2name, dataset, pipeline, 
         if conditions:
             for condition in conditions:
                 command = condition["command"]
+                command = command.replace("${}".format(sample_variable), sample)
                 command = command.replace("${{{}}}".format(sample_variable), sample)
                     
                 file.write(
@@ -292,7 +291,7 @@ fi
             
             dep_script = """
 DEP_JOB_NAME="{}"
-echo $DEP_JOB_NAME
+echo "DEP JOB NAME="$DEP_JOB_NAME
 DEP_JOB_ID=${{JOB_IDS["$DEP_JOB_NAME"]}}
 echo "DEPJOBID="$DEP_JOB_ID
 

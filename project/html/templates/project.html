@@ -372,7 +372,7 @@
 												 </div>
 											</div>
 											<div layout-margin>
-												<md-button class="md-button md-warn md-raised" ng-click="add_variable(pipeline)" tooltip="Add a step to this pipeline" aria-label="Add a new variable">
+												<md-button class="md-button md-warn md-raised" ng-click="add_variable(pipeline)" tooltip="Add a variable to this pipeline" aria-label="Add a new variable">
 											       	<span class="fa-layers fa-fw">
 														<i class="fas fa-list-ol"></i>
 														<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
@@ -455,9 +455,17 @@
 											<md-button class="md-button md-warn md-raised" ng-click="add_step(pipeline)" tooltip="Add a step to this pipeline" aria-label="Add a new step">
 										       	<span class="fa-layers fa-fw">
 													<i class="fas fa-list-ol"></i>
-													<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
+													<i class="fas fa-plus" data-fa-transform="shrink-5 down-8 right-10"></i>
 												</span>
 												Add a step
+											</md-button>
+											
+											<md-button class="md-button md-warn md-raised" ng-click="showCopyStepDialog(pipeline, $event)" tooltip="Copy step(s) from another pipeline" aria-label="Copy step(s) from another pipeline">
+										       	<span class="fa-layers fa-fw">
+													<i class="fas fa-list-ol"></i>
+													<i class="fas fa-copy" data-fa-transform="shrink-5 down-8 right-10"></i>
+												</span>
+												Copy a step
 											</md-button>
 										</div>
 									</section>

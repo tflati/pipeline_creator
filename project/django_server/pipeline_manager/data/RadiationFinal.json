@@ -13,6 +13,11 @@
             "id": "Transcriptomic Single End (Homo Sapiens)",
             "steps": [
                 {
+                    "checks": [
+                        {
+                            "file": "$SAMPLE/$SAMPLE.fastq"
+                        }
+                    ],
                     "commandline": "mkdir $SAMPLE\n#ln -s /marconi_scratch/userinternal/tcastign/ferri/hum_PRJNA318275/$SAMPLE/$SAMPLE.fastq $SAMPLE/$SAMPLE.fastq\n\n#rsync login.marconi.cineca.it:/marconi_scratch/userinternal/tcastign/ferri/hum_PRJNA318275/$SAMPLE/$SAMPLE.fastq $SAMPLE/$SAMPLE.fastq\n\n#ln -s ../../data/$SAMPLE.fastq $SAMPLE/$SAMPLE.fastq\n\nfastq-dump $SAMPLE -O $SAMPLE",
                     "conditions": [
                         {
@@ -51,6 +56,11 @@
                     "write_stdout_log": true
                 },
                 {
+                    "checks": [
+                        {
+                            "file": "$SAMPLE/fastqc_before"
+                        }
+                    ],
                     "commandline": "mkdir $SAMPLE/fastqc_before; fastqc --nogroup --extract $SAMPLE/$SAMPLE.fastq -o $SAMPLE/fastqc_before",
                     "conditions": [
                         {
@@ -91,6 +101,11 @@
                     "write_stdout_log": true
                 },
                 {
+                    "checks": [
+                        {
+                            "file": "$SAMPLE/$SAMPLE.trim.fastq"
+                        }
+                    ],
                     "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar SE -threads 36 -phred33 $SAMPLE/$SAMPLE.fastq $SAMPLE/$SAMPLE.trim.fastq ILLUMINACLIP:$TRIMM_ADAPTERS/TruSeq3-SE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 HEADCROP:13",
                     "conditions": [
                         {
@@ -131,6 +146,11 @@
                     "write_stdout_log": true
                 },
                 {
+                    "checks": [
+                        {
+                            "file": "$SAMPLE/fastqc_after"
+                        }
+                    ],
                     "commandline": "mkdir $SAMPLE/fastqc_after; fastqc --nogroup --extract $SAMPLE/$SAMPLE.trim.fastq -o $SAMPLE/fastqc_after",
                     "conditions": [
                         {
@@ -171,6 +191,11 @@
                     "write_stdout_log": true
                 },
                 {
+                    "checks": [
+                        {
+                            "file": "$SAMPLE/$SAMPLE.sam"
+                        }
+                    ],
                     "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/hg19_UCSC/genome -U $SAMPLE/$SAMPLE.trim.fastq -S $SAMPLE/$SAMPLE.sam",
                     "conditions": [
                         {
@@ -441,6 +466,11 @@
             "id": "Transcriptomic Single End (Mus musculus)",
             "steps": [
                 {
+                    "checks": [
+                        {
+                            "file": "$SAMPLE/$SAMPLE.fastq"
+                        }
+                    ],
                     "commandline": "mkdir $SAMPLE\n#ln -s /marconi_scratch/userinternal/tcastign/ferri/hum_PRJNA318275/$SAMPLE/$SAMPLE.fastq $SAMPLE/$SAMPLE.fastq\n\n#rsync login.marconi.cineca.it:/marconi_scratch/userinternal/tcastign/ferri/hum_PRJNA318275/$SAMPLE/$SAMPLE.fastq $SAMPLE/$SAMPLE.fastq\n\n#ln -s ../../data/$SAMPLE.fastq $SAMPLE/$SAMPLE.fastq\n\nfastq-dump $SAMPLE -O $SAMPLE",
                     "conditions": [
                         {
@@ -479,6 +509,11 @@
                     "write_stdout_log": true
                 },
                 {
+                    "checks": [
+                        {
+                            "file": "$SAMPLE/fastqc_before"
+                        }
+                    ],
                     "commandline": "mkdir $SAMPLE/fastqc_before; fastqc --nogroup --extract $SAMPLE/$SAMPLE.fastq -o $SAMPLE/fastqc_before",
                     "conditions": [
                         {
@@ -519,6 +554,11 @@
                     "write_stdout_log": true
                 },
                 {
+                    "checks": [
+                        {
+                            "file": "$SAMPLE/$SAMPLE.trim.fastq"
+                        }
+                    ],
                     "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar SE -threads 36 -phred33 $SAMPLE/$SAMPLE.fastq $SAMPLE/$SAMPLE.trim.fastq ILLUMINACLIP:$TRIMM_ADAPTERS/TruSeq3-SE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 HEADCROP:13",
                     "conditions": [
                         {
@@ -559,6 +599,11 @@
                     "write_stdout_log": true
                 },
                 {
+                    "checks": [
+                        {
+                            "file": "$SAMPLE/fastqc_after"
+                        }
+                    ],
                     "commandline": "mkdir $SAMPLE/fastqc_after; fastqc --nogroup --extract $SAMPLE/$SAMPLE.trim.fastq -o $SAMPLE/fastqc_after",
                     "conditions": [
                         {
@@ -599,6 +644,11 @@
                     "write_stdout_log": true
                 },
                 {
+                    "checks": [
+                        {
+                            "file": "$SAMPLE/$SAMPLE.sam"
+                        }
+                    ],
                     "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/mm10_UCSC/genome -U $SAMPLE/$SAMPLE.trim.fastq -S $SAMPLE/$SAMPLE.sam",
                     "conditions": [
                         {

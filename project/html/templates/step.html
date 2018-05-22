@@ -50,6 +50,56 @@
 
 <h3>Command line</h3>
 <textarea ng-model="step.commandline" rows="5" style="width: 90%;"></textarea>
+
+<h3>Checks</h3>
+<div>
+	<md-button class="md-button md-warn md-raised" ng-click="add_check(step)" tooltip="Add a check to this step" aria-label="Add a new check">
+       	<span class="fa-layers fa-fw">
+			<i class="fas fa-check"></i>
+			<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
+		</span>
+		Add a check
+	</md-button>
+
+	<div ng-repeat="check in step.checks">
+		<label><b>Check {{$index+1}}.</b></label>
+		<md-button class="md-icon-button" ng-click="delete_check(step.checks, check)" tooltip="Delete check" aria-label="Delete check">
+			<ng-md-icon icon="remove_circle" style="fill:red;"></ng-md-icon>
+		</md-button>
+		<textarea ng-model="check.file" rows="2" style="width: 90%;"></textarea>
+	</div>
+</div>
+
+<h3>Step settings</h3>
+
+<h4>Script level (level of parallelism)</h4>
+<md-radio-group ng-model="step.script_level">
+	<md-radio-button value="top">Top-level <span class="lighter">(will be created 1 script in the top directory)</span></md-radio-button>
+	<md-radio-button value="project">Project-level <span class="lighter">(will be created 1 script within each project directory)</span></md-radio-button>
+	<md-radio-button value="experiment">Experiment-level <span class="lighter">(will be created 1 script within each experiment directory)</span></md-radio-button>
+	<md-radio-button value="sample">Sample-level <span class="lighter">(will be created 1 script within each sample directory)</span></md-radio-button>
+</md-radio-group>
+
+<h4>Command level</h4>
+<md-radio-group ng-model="step.command_level">
+	<md-radio-button value="top">Top-level <span class="lighter">(this command will be applied only once)</span></md-radio-button>
+	<md-radio-button value="project">Project-level <span class="lighter">(this command will be applied once for each projects)</span></md-radio-button>
+	<md-radio-button value="experiment">Experiment-level <span class="lighter">(this command will be applied once for each experiments)</span></md-radio-button>
+	<md-radio-button value="sample">Sample-level <span class="lighter">(this command will be applied once for each samples)</span></md-radio-button>
+</md-radio-group>
+
+<h4>Internal script parallelism</h4>
+<md-radio-group ng-model="step.command_parallelism_level">
+	<md-radio-button value="seq">Sequential <span class="lighter">(this command will be applied iteratively to all items, but in a serial manner)</span></md-radio-button>
+	<md-radio-button value="parall">Parallel <span class="lighter">(this command will be applied concurrently to all items, in parallel)</span></md-radio-button>
+</md-radio-group>
+
+<h4>Internal script grouping</h4>
+<md-radio-group ng-model="step.command_group_level">
+	<md-radio-button value="all">All items <span class="lighter">(this command will be applied iteratively to all items)</span></md-radio-button>
+	<md-radio-button value="chunks">Divide in chunks <span class="lighter">(this command will be applied in chunks of <input style="pointer-events: all; width: 50px;" type="number" ng-model="step.command_chunk_size"> items)</span></md-radio-button>
+</md-radio-group>
+
 <md-switch ng-model="step.iterate" aria-label="Iterate samples">
 	Iterate through samples: {{ step.iterate }} <span style="color: grey;">(if enabled, the command is repeated over all sample, individually)</span>
 </md-switch>

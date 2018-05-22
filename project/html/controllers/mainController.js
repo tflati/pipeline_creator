@@ -86,6 +86,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	        "description": "",
 	        "description_short": "",
 	        "commandline": "",
+	        "checks": [],
 	        "hpc_directives_text": "",
 	        "hpc_directives": {
 	        	"job_name": "",
@@ -113,6 +114,10 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	
 	var condition_template = {
 		"command": ""
+	};
+	
+	var check_template = {
+		"file": ""
 	};
 	
 	var variable_template = {
@@ -212,7 +217,6 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		console.log("SELECTING SUBPROJECT", subproject,  $scope);
 		$scope.selected_subproject = subproject;
 		
-		$scope.module_url = apiService.get_module_url($scope.selected_subproject.dataset.cluster);
 		console.log("MODULE URL", $scope.module_url);
 	};
 	
@@ -220,6 +224,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		var pipeline = $scope.selected_project.pipelines[item];
 		console.log("SELECTING SUBPROJECT", pipeline,  $scope);
 		$scope.selected_pipeline = pipeline;
+		$scope.module_url = apiService.get_module_url(pipeline.cluster);
 	};
 	
 	$scope.cloneSubproject = function(index, $event){
@@ -776,12 +781,55 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		project.steps.push(angular.copy(step_template));
 	};
 	
-	$scope.add_variable = function(project){
-		project.dataset.variables.push(angular.copy(variable_template));
+	$scope.append_step = function(pipeline, step){
+		pipeline.steps.push(angular.copy(step));
 	};
 	
-	$scope.delete_variable = function(project, index){
-		project.dataset.variables.splice(index, 1);
+	$scope.showCopyStepDialog = function(pipeline, $event) {
+		
+	    var confirm = {
+	    	controller: DialogController,
+			templateUrl: 'templates/dialogs/copy_step_dialog.html',
+			parent: angular.element(document.body),
+			targetEvent: $event,
+			clickOutsideToClose:true,
+			fullscreen: $scope.customFullscreen,
+			resolve: {
+		      item: function () {
+		    	  return $scope.selected_project;
+		      }
+		    }
+	    };
+
+	    $mdDialog.show(confirm).then(function(answer) {
+	    	console.log("DIALOG ANSWER", answer);
+	    	if (answer != "Cancel") {
+	    		for(var i in answer){
+	    			$scope.append_step(pipeline, answer[i]);
+	    		}
+	    	}
+	    }, function() {
+	    });
+	    
+	    $event.stopPropagation();
+	};
+	
+	$scope.add_check = function(step){
+		if(!step.checks) step.checks = [];
+		step.checks.push(angular.copy(check_template));
+	};
+	
+	$scope.delete_check = function(checks, check){
+		if(!checks) return;
+		checks.splice(checks.indexOf(check), 1);
+	};
+	
+	$scope.add_variable = function(pipeline){
+		pipeline.variables.push(angular.copy(variable_template));
+	};
+	
+	$scope.delete_variable = function(pipeline, index){
+		pipeline.variables.splice(index, 1);
 	};
 	
 	
