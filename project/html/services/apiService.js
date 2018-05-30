@@ -68,5 +68,10 @@ app.factory('apiService', function($http, Upload) {
       });
   };
   
+  instance.create_projects = function(list, successFx, errorFx, finallyFx){
+	  var url = SERVER + "create_projects/";
+	  $http.post(url, {"list": list}).then(successFx, errorFx).finally(finallyFx);
+  }
+  
   return instance;
 });

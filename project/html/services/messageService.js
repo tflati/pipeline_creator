@@ -1,7 +1,8 @@
 app.service("messageService", function(toaster) {
 	this.showMessage = function(message, type, title) {
 		if(type == undefined) type = "info";
-		if(type == undefined) title = "";
+		if(title == undefined) title = "";
+		
 		toaster.pop({
 			type: type,
 			title: title,

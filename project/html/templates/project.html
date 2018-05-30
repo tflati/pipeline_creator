@@ -100,7 +100,7 @@
 							</div>
 						</section>
 						
-						<section>
+						<section ng-if="selected_project.projects.length > 0">
 							<md-button class="md-button md-warn md-raised" ng-click="produce_csv(selected_project)" tooltip="Automatically produce Sample Attributes CSV" aria-label="Automatically produce CSV">
 								Generate Sample Attributes CSV
 							</md-button>
@@ -120,16 +120,20 @@
 							</div>
 							
 							<div layout-margin layout="row">
-								<md-button ngf-select="uploadFiles($files)" multiple="multiple" class="md-button md-warn md-raised" tooltip="Create projects at once" aria-label="Create projects at once">
-									Load/create projects at once
+								<md-button ngf-select="uploadFiles($files)" multiple="multiple" class="md-button md-warn md-raised" tooltip="Create projects at once by providing a file containing bioproject ids or sample ids (SRR)" aria-label="Create projects at once by providing a file containing bioproject ids or sample ids (SRR)">
+									Import from XLSX
 								</md-button>
 								
-								<md-button class="md-button md-warn md-raised" ng-click="add_subproject(selected_project)" tooltip="Add a subproject to this project" aria-label="Add a new subproject">
+								<md-button ng-click="create_projects_from_list($event)" multiple="multiple" class="md-button md-warn md-raised" tooltip="Create projects at once by providing a list of bioproject ids or sample ids (SRR)" aria-label="Create projects at once by providing a list of bioproject ids or sample ids (SRR)">
+									Import from a list
+								</md-button>
+								
+								<md-button class="md-button md-warn md-raised" ng-click="add_subproject(selected_project)" tooltip="Add an empty subproject to this project" aria-label="Add an empty new subproject">
 						          	<span class="fa-layers fa-fw">
 										<i class="fas fa-list-ol"></i>
 										<i class="fas fa-plus" data-fa-transform="shrink-4 down-8 right-10"></i>
 									</span>
-									Add subproject
+									Add empty
 								</md-button>
 								
 								<md-button class="md-button md-warn md-raised" ng-click="delete_subprojects(selected_project)" tooltip="Deletes selected subprojects" aria-label="Deletes selected subprojects">

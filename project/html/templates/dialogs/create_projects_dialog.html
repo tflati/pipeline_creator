@@ -1,0 +1,38 @@
+<md-dialog aria-label="Create projects dialog" style="min-width: 70%;">
+
+	<form ng-cloak>
+	    <md-toolbar class="md-hue-2">
+	      <div class="md-toolbar-tools">
+	        <h2>Create projects</h2>
+	        <span flex></span>
+	        <md-button class="md-icon-button" ng-click="cancel()">
+	          <ng-md-icon icon="close" aria-label="Close dialog"></ng-md-icon>
+	        </md-button>
+	      </div>
+	    </md-toolbar>
+	</form>
+	
+	<md-dialog-content>
+      <div class="md-dialog-content" layout="row" layout-align="start center">
+      
+    	<img src="imgs/import.png">
+		
+		<md-input-container class="full-width">
+			<label>Write down a list of bioprojects or runs ids (SRR)</label>
+   			<textarea placeholder="List of bioprojects or runs ids (SRR)" ng-model="list" rows="10"></textarea>
+   		</md-input-container>
+		
+      </div>
+    </md-dialog-content>
+    
+    <md-dialog-actions layout="row">
+      <span flex></span>
+      <md-button ng-click="answer('Cancel')">
+       Cancel
+      </md-button>
+      <md-button ng-click="answer(list)">
+        Import
+      </md-button>
+    </md-dialog-actions>
+	
+</md-dialog>

@@ -718,6 +718,66 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		}
 	};
 	
+	$scope.create_projects_from_list = function($event){
+		$scope.file_sending = true;
+		
+		var confirm = {
+	    	controller: DialogController,
+			templateUrl: 'templates/dialogs/create_projects_dialog.html',
+			parent: angular.element(document.body),
+			targetEvent: $event,
+			clickOutsideToClose:true,
+			fullscreen: $scope.customFullscreen,
+			resolve: {
+		      item: function () {
+		    	  return $scope.selected_project;
+		      }
+		    }
+	    };
+
+	    $mdDialog.show(confirm).then(function(answer) {
+	    	console.log("CREATE PROJECT DIALOG ANSWER", answer);
+	    	if (answer != "Cancel") {
+	    		apiService.create_projects(answer, function(resp){
+	    			console.log('Success', resp);
+	    			var duplicated_bioprojects = 0;
+	    			var imported_bioprojects = 0;
+	    			for(var i in resp.data)
+	    			{
+	    				var subproject_data = resp.data[i];
+	    				
+	    				if($scope.selected_project.projects.find(function(element){
+	    					return element.dataset.id == subproject_data.dataset.id;
+	    				}) != undefined) {
+	    					duplicated_bioprojects++;
+	    					continue;
+	    				}
+	    				
+	    				imported_bioprojects++;
+	    				
+	    				$scope.add_subproject($scope.selected_project);
+	    				var subproject = $scope.selected_project.projects[$scope.selected_project.projects.length -1]
+	    				for(var key in subproject_data.dataset)
+	    					subproject.dataset[key] = subproject_data.dataset[key];
+	    				
+	    				$scope.file_sending = false;
+	    				$scope.bioproject2data = undefined;
+	    			}
+	    			
+	    			var message = imported_bioprojects + " new experiments correctly imported ("+duplicated_bioprojects + " duplicated experiments have been discarded)";
+	    			console.log(message);
+	    			messageService.showMessage(message);
+	    			
+	    		}, function(resp){
+	    			console.log('Error status: ' + resp);
+	    			
+	    			$scope.file_sending = false;
+	    		});
+	    	}
+	    }, function() {
+	    });
+	};
+	
 	$scope.remove_subproject = function(project, index){
 		project.projects.splice(index, 1);
 	};

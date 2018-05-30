@@ -29,5 +29,6 @@ urlpatterns = [
     path('modules/<cluster_id>/', views.modules),
     path('genomes/<cluster_id>/', views.genomes),
     path('upload_samples/', views.upload_samples),
+    path('create_projects/', views.create_projects),
     path('test/', views.test)
 ]

@@ -25,6 +25,10 @@ from lxml import etree
 def test(request):
     pass
 
+def init_ncbi_tools():
+    Entrez.email = "tiziano.flati@gmail.com"
+    Entrez.api_key = "ae48c58f9a840e56ee71d28cb464cc988408"
+
 def upload_samples(request):
     print(request)
     print(request.FILES)
@@ -42,8 +46,8 @@ def upload_samples(request):
                         
     print("{} samples found ({} unique)".format(len(samples_set), len(samples)))
     
-    Entrez.email = "tiziano.flati@gmail.com"
-    Entrez.api_key = "ae48c58f9a840e56ee71d28cb464cc988408"
+    init_ncbi_tools()
+    
     handle = Entrez.esearch(retmax=1000, db="sra", term=' OR '.join(samples))
     try:
         record = Entrez.read(handle)
@@ -54,9 +58,6 @@ def upload_samples(request):
     print(record)
     ids = record["IdList"]
     
-#     # These below are test_ids
-#     ids = ["16789", "16790"]
-        
     print("{}/{} IDS returned".format(len(ids), len(samples)))
     
     handle2 = Entrez.efetch(db="sra", id=','.join(ids))
@@ -68,11 +69,16 @@ def upload_samples(request):
     
     tree = etree.fromstring(record)
     
+    response = convert_ncbi_response(samples_set, tree)
+
+    return HttpResponse(json.dumps(response))
+
+def convert_ncbi_response(samples_set, tree):
+    
     response = []
     
     # for each bioproject
     for project_elem in tree.iter("EXPERIMENT_PACKAGE"):
-        
         layout_elem = project_elem.find(".//LIBRARY_LAYOUT")
         layout = layout_elem[0].tag
         
@@ -96,7 +102,8 @@ def upload_samples(request):
             size = int(run_elem.attrib["size"])
             run_id = run_elem.findtext(".//PRIMARY_ID")
             print("\t", "RUN_ID=", run_id)
-            if run_id not in samples_set: continue
+            print("\t", "SIZE=", size)
+            if samples_set and run_id not in samples_set: continue
             selected_run_ids.append(run_id)
             total_size += size
         
@@ -158,8 +165,48 @@ def upload_samples(request):
             bioproject_data["dataset"]["paper_id"] = paper_id
             
         response.append(bioproject_data)
-            
+        
+    return response
+
+def create_projects(request):
     
+    print(request)
+    print(request.body.decode("utf-8"))
+    
+    data = json.loads(request.body.decode("utf-8"))
+    print(data)
+                        
+    init_ncbi_tools()
+    
+    samples = data["list"].split("\n")
+    
+    samples_set = set()
+    if samples and samples[0].startswith("SRR"):
+        samples_set = set(samples)
+    
+    handle = Entrez.esearch(retmax=1000, db="sra", term=' OR '.join(samples))
+    try:
+        record = Entrez.read(handle)
+    except RuntimeError as e:
+        return HttpResponse(json.dumps({"message": str(e)}))
+        
+    handle.close()
+    print(record)
+    ids = record["IdList"]
+    
+    print("{}/{} IDS returned".format(len(ids), len(samples)))
+    
+    handle2 = Entrez.efetch(db="sra", id=','.join(ids))
+    record = handle2.read()
+    handle2.close()
+    
+    sra_filepath = os.path.dirname(__file__) + "/temp/sra.xml"
+    default_storage.save(sra_filepath, ContentFile(record))
+    
+    tree = etree.fromstring(record)
+    
+    response = convert_ncbi_response(samples_set, tree)
+
     return HttpResponse(json.dumps(response))
 
 def single_step_allsamples_writer(step, file, vertex2name, dataset, pipeline, g, u):
