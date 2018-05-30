@@ -3,6 +3,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	$scope.projects = undefined;
 	$scope.selected_project = undefined;
 	$scope.selected_subproject = undefined;
+	$scope.selected_experiment = undefined;
 	$scope.selected_pipeline = undefined;
 	$scope.checked_subproject = [];
 //	$scope.selected_step = undefined;
@@ -23,16 +24,22 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	    };
 	
 	var subproject_template = {
-    	"dataset": {
-    		"id": "",
-    		"cluster": "",
-    		"genome": "",
-            "basedir": "",
-            "create_per_sample_directory": true,
-            "pairedend": false,
-            "sample_ids": "",
-            "pipeline": ""
-        }
+			"id": "",
+			"disabled": false,
+			"experiments": []
+	};
+	
+	var experiment_template = {
+			"dataset": {
+	    		"id": "",
+	    		"cluster": "",
+	    		"genome": "",
+	            "basedir": "",
+	            "create_per_sample_directory": true,
+	            "pairedend": false,
+	            "sample_ids": "",
+	            "pipeline": ""
+	        }
 	};
 	
 	var pipeline_template = {
@@ -216,8 +223,12 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		var subproject = $scope.selected_project.projects[item];
 		console.log("SELECTING SUBPROJECT", subproject,  $scope);
 		$scope.selected_subproject = subproject;
-		
-		console.log("MODULE URL", $scope.module_url);
+	};
+	
+	$scope.select_experiment = function(item){
+		var experiment = $scope.selected_subproject.experiments[item];
+		console.log("SELECTING EXPERIMENT", experiment,  $scope);
+		$scope.selected_experiment = experiment;
 	};
 	
 	$scope.select_pipeline = function(item){
@@ -314,18 +325,38 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		var total = 0;
 		
 		for(var k=0; k<selected_project.projects.length; k++)
-			total += selected_project.projects[k].dataset.sample_ids.split('\n').length;
+			var subproject = selected_project.projects[k];
+		
+			for(var j=0; j<subproject.experiments.length; j++)
+				total += subproject.experiments[j].dataset.sample_ids.split('\n').length;
 		
 		return total;
+	};
+	
+	$scope.get_total_samples_subproject = function(selected_subproject){
+		var total = 0;
+		
+		for(var j=0; j<selected_subproject.experiments.length; j++)
+			total += selected_subproject.experiments[j].dataset.sample_ids.split('\n').length;
+		
+		return total;
+	};
+	
+	$scope.get_total_samples_experiment = function(experiment){
+		return experiment.dataset.sample_ids.split('\n').length;
 	};
 	
 	$scope.get_samples = function(selected_project){
 		var ids = [];
 		
 		for(var k=0; k<selected_project.projects.length; k++){
-			var biosample_id = selected_project.projects[k].dataset.biosample_id;
-			if(biosample_id)
-				ids.push(biosample_id);
+			var subproject = selected_project.projects[k];
+			
+			for(var j=0; j<subproject.experiments.length; j++){
+				var biosample_id = subproject.experiments[j].dataset.biosample_id;
+				if(biosample_id)
+					ids.push(biosample_id);
+			}
 		}
 		
 		return ids;
@@ -336,8 +367,12 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		
 		for(var k=0; k<selected_project.projects.length; k++)
 		{
-			var platform = selected_project.projects[k].dataset.platform;
-			platforms[platform] = 1;
+			var subproject = selected_project.projects[k];
+			
+			for(var j=0; j<subproject.experiments.length; j++){
+				var platform = subproject.experiments[j].dataset.platform;
+				platforms[platform] = 1;
+			}
 		}
 		
 		return Object.keys(platforms);
@@ -350,7 +385,9 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 			$scope.bioproject2data = {};
 			for(var k=0; k<selected_project.projects.length; k++)
 			{
-				var bioproject_id = selected_project.projects[k].dataset.bioproject_id;
+				var subproject = selected_project.projects[k];
+				
+				var bioproject_id = subproject.id;
 				if (! (bioproject_id in $scope.bioproject2data) )
 				{
 					$scope.bioproject2data[bioproject_id] = {
@@ -366,26 +403,31 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 					};
 				}
 				
-				var paper = selected_project.projects[k].dataset.paper_id;
-				var biosample_id = selected_project.projects[k].dataset.biosample_id;
-				var experiment_id = selected_project.projects[k].dataset.id;
-				var organism = selected_project.projects[k].dataset.genome;
-				var size = selected_project.projects[k].dataset.size;
-				var platform = selected_project.projects[k].dataset.platform;
-				var layout = selected_project.projects[k].dataset.pairedend ? "PE": "SE";
-				if(paper != undefined && $scope.bioproject2data[bioproject_id]["papers"].indexOf(paper) == -1) $scope.bioproject2data[bioproject_id]["papers"].push(paper);
-				var split_samples = selected_project.projects[k].dataset.sample_ids.split("\n")
-				for(var i in split_samples){
-					var sample = split_samples[i];
-					if(sample in $scope.bioproject2data[bioproject_id]["runs"]) continue;
-					$scope.bioproject2data[bioproject_id]["runs"].push(sample);
+				for(var j=0; j<subproject.experiments.length; j++){
+					
+					var experiment = subproject.experiments[j];
+					
+					var paper = experiment.dataset.paper_id;
+					var biosample_id = experiment.dataset.biosample_id;
+					var experiment_id = experiment.dataset.id;
+					var organism = experiment.dataset.genome;
+					var size = experiment.dataset.size;
+					var platform = experiment.dataset.platform;
+					var layout = experiment.dataset.pairedend ? "PE": "SE";
+					if(paper != undefined && $scope.bioproject2data[bioproject_id]["papers"].indexOf(paper) == -1) $scope.bioproject2data[bioproject_id]["papers"].push(paper);
+					var split_samples = experiment.dataset.sample_ids.split("\n")
+					for(var i in split_samples){
+						var sample = split_samples[i];
+						if(sample in $scope.bioproject2data[bioproject_id]["runs"]) continue;
+						$scope.bioproject2data[bioproject_id]["runs"].push(sample);
+					}
+					if($scope.bioproject2data[bioproject_id]["samples"].indexOf(biosample_id) == -1) $scope.bioproject2data[bioproject_id]["samples"].push(biosample_id);
+					if($scope.bioproject2data[bioproject_id]["experiments"].indexOf(experiment_id) == -1) $scope.bioproject2data[bioproject_id]["experiments"].push(experiment_id);
+					if($scope.bioproject2data[bioproject_id]["organisms"].indexOf(organism) == -1) $scope.bioproject2data[bioproject_id]["organisms"].push(organism);
+					if($scope.bioproject2data[bioproject_id]["platforms"].indexOf(platform) == -1) $scope.bioproject2data[bioproject_id]["platforms"].push(platform);
+					$scope.bioproject2data[bioproject_id]["size"] += size;
+					if($scope.bioproject2data[bioproject_id]["layouts"].indexOf(layout) == -1) $scope.bioproject2data[bioproject_id]["layouts"].push(layout);
 				}
-				if($scope.bioproject2data[bioproject_id]["samples"].indexOf(biosample_id) == -1) $scope.bioproject2data[bioproject_id]["samples"].push(biosample_id);
-				if($scope.bioproject2data[bioproject_id]["experiments"].indexOf(experiment_id) == -1) $scope.bioproject2data[bioproject_id]["experiments"].push(experiment_id);
-				if($scope.bioproject2data[bioproject_id]["organisms"].indexOf(organism) == -1) $scope.bioproject2data[bioproject_id]["organisms"].push(organism);
-				if($scope.bioproject2data[bioproject_id]["platforms"].indexOf(platform) == -1) $scope.bioproject2data[bioproject_id]["platforms"].push(platform);
-				$scope.bioproject2data[bioproject_id]["size"] += size;
-				if($scope.bioproject2data[bioproject_id]["layouts"].indexOf(layout) == -1) $scope.bioproject2data[bioproject_id]["layouts"].push(layout);
 			}
 			
 			console.log("GET PAPER PROJECTS", $scope.bioproject2data);
@@ -405,7 +447,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
       };
       
     $scope.paginationNext = function(list){
-    	console.log("PAGINATION", $scope.begin);
+    	console.log("PAGINATION", $scope.begin, list);
     	if ($scope.begin+10 < list.length) $scope.begin += 10;
     };
     
@@ -423,9 +465,12 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
     
     $scope.get_total_bytes = function(selected_project){
     	var total = 0;
-    	
+//    	console.log("PROJECT", selected_project);
     	for(var k=0; k<selected_project.projects.length; k++){
-			total += selected_project.projects[k].dataset.size;
+    		var subproject = selected_project.projects[k];
+//    		console.log("BIOPROJECT", subproject);
+    		for(var j=0; j<subproject.experiments.length; j++)
+    			total += subproject.experiments[j].dataset.size;
     	}
     	
     	return total;
@@ -437,8 +482,12 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		
 		for(var k=0; k<selected_project.projects.length; k++)
 		{
-			var paper = selected_project.projects[k].dataset.paper_id;
-			if(paper) papers[paper] = 1;
+			var subproject = selected_project.projects[k]; 
+			
+			for(var j=0; j<subproject.experiments.length; j++){
+				var paper = subproject.experiments[j].dataset.paper_id;
+				if(paper) papers[paper] = 1;
+			}
 		}
 		
 		return Object.keys(papers);
@@ -447,9 +496,15 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	$scope.get_total_samples_pe = function(selected_project){
 		var total = 0;
 		
-		for(var k=0; k<selected_project.projects.length; k++)
-			if(selected_project.projects[k].dataset.pairedend)
-				total += selected_project.projects[k].dataset.sample_ids.split('\n').length;
+		for(var k=0; k<selected_project.projects.length; k++){
+			var subproject = selected_project.projects[k]; 
+		
+			for(var j=0; j<subproject.experiments.length; j++){
+				var experiment = subproject.experiments[j];
+				if(experiment.dataset.pairedend)
+					total += experiment.dataset.sample_ids.split('\n').length;
+			}
+		}
 		
 		return total;
 	};
@@ -457,9 +512,15 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	$scope.get_total_samples_se = function(selected_project){
 		var total = 0;
 		
-		for(var k=0; k<selected_project.projects.length; k++)
-			if(!selected_project.projects[k].dataset.pairedend)
-				total += selected_project.projects[k].dataset.sample_ids.split('\n').length;
+		for(var k=0; k<selected_project.projects.length; k++){
+			var subproject = selected_project.projects[k]; 
+			
+			for(var j=0; j<subproject.experiments.length; j++){
+				var experiment = subproject.experiments[j];
+				if(!experiment.dataset.pairedend)
+				total += experiment.dataset.sample_ids.split('\n').length;
+			}
+		}
 		
 		return total;
 	};
@@ -469,7 +530,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		
 		for(var k=0; k<selected_project.projects.length; k++)
 		{
-			var bioproject_id = selected_project.projects[k].dataset.bioproject_id;
+			var bioproject_id = selected_project.projects[k].id;
 			bioproject_ids[bioproject_id] = 1;
 		}
 		
@@ -481,8 +542,12 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		
 		for(var k=0; k<selected_project.projects.length; k++)
 		{
-			var genome = selected_project.projects[k].dataset.genome;
-			genomes[genome] = 1;
+			var subproject = selected_project.projects[k]; 
+		
+			for(var j=0; j<subproject.experiments.length; j++){
+				var genome = subproject.experiments[j].dataset.genome;
+				genomes[genome] = 1;
+			}
 		}
 		
 		return Object.keys(genomes);
@@ -702,16 +767,14 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 				for(var i in resp.data)
 				{
 					var subproject_data = resp.data[i];
-					$scope.add_subproject($scope.selected_project);
-					var subproject = $scope.selected_project.projects[$scope.selected_project.projects.length -1]
-					for(var key in subproject_data.dataset)
-						subproject.dataset[key] = subproject_data.dataset[key];
-					
-					$scope.file_sending = false;
-					$scope.bioproject2data = undefined;
+					$scope.add_subproject($scope.selected_project, subproject_data);
 				}
+				
+				$scope.file_sending = false;
+				$scope.bioproject2data = undefined;
+				
 			}, function(resp){
-				console.log('Error status: ' + resp);
+				console.log('Error status: ', resp);
 				
 				$scope.file_sending = false;
 			});
@@ -746,30 +809,26 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	    			{
 	    				var subproject_data = resp.data[i];
 	    				
-	    				if($scope.selected_project.projects.find(function(element){
-	    					return element.dataset.id == subproject_data.dataset.id;
+						if($scope.selected_project.projects.find(function(element){
+	    					return element.id == subproject_data.id;
 	    				}) != undefined) {
 	    					duplicated_bioprojects++;
 	    					continue;
 	    				}
 	    				
 	    				imported_bioprojects++;
-	    				
-	    				$scope.add_subproject($scope.selected_project);
-	    				var subproject = $scope.selected_project.projects[$scope.selected_project.projects.length -1]
-	    				for(var key in subproject_data.dataset)
-	    					subproject.dataset[key] = subproject_data.dataset[key];
-	    				
-	    				$scope.file_sending = false;
-	    				$scope.bioproject2data = undefined;
+	    				$scope.add_subproject($scope.selected_project, subproject_data);
 	    			}
 	    			
-	    			var message = imported_bioprojects + " new experiments correctly imported ("+duplicated_bioprojects + " duplicated experiments have been discarded)";
+	    			$scope.file_sending = false;
+    				$scope.bioproject2data = undefined;
+	    			
+	    			var message = imported_bioprojects + " new bioprojects correctly imported ("+duplicated_bioprojects + " duplicated bioprojects have been discarded)";
 	    			console.log(message);
 	    			messageService.showMessage(message);
 	    			
 	    		}, function(resp){
-	    			console.log('Error status: ' + resp);
+	    			console.log('Error status: ', resp);
 	    			
 	    			$scope.file_sending = false;
 	    		});
@@ -808,9 +867,14 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	    $event.stopPropagation();
 	};
 	
-	$scope.add_subproject = function(project){
-		console.log("[ADD SUBPROJECT]", project, subproject_template);
+	$scope.add_empty_subproject = function(project){
+		console.log("[ADD EMPTY SUBPROJECT]", project, subproject_template);
 		project.projects.push(angular.copy(subproject_template));
+	};
+	
+	$scope.add_subproject = function(project, subproject){
+		console.log("[ADD SUBPROJECT]", project, subproject);
+		project.projects.push(subproject);
 	};
 	
 	$scope.add_pipeline = function(project){

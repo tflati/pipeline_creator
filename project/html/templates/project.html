@@ -128,7 +128,7 @@
 									Import from a list
 								</md-button>
 								
-								<md-button class="md-button md-warn md-raised" ng-click="add_subproject(selected_project)" tooltip="Add an empty subproject to this project" aria-label="Add an empty new subproject">
+								<md-button class="md-button md-warn md-raised" ng-click="add_empty_subproject(selected_project)" tooltip="Add an empty subproject to this project" aria-label="Add an empty new subproject">
 						          	<span class="fa-layers fa-fw">
 										<i class="fas fa-list-ol"></i>
 										<i class="fas fa-plus" data-fa-transform="shrink-4 down-8 right-10"></i>
@@ -177,83 +177,112 @@
 			            	
 							<v-accordion class="vAccordion--default padding-10" multiple onexpand="select_subproject(index)">
 							      
-							  <v-pane ng-repeat="subproject in selected_project.projects | filter:filter_text | limitTo:10:begin">
+							  <v-pane ng-repeat="subproject in selected_project.projects | filter:filter_text">
 							    <v-pane-header ng-class="{disabled_pane: subproject.disabled}">
 							    	
 							    	<md-checkbox ng-checked="exists(subproject, checked_subproject)" ng-click="toggle(subproject, checked_subproject, $event)" aria-label="Select this subproject">
 						    		</md-checkbox>
 						    		
-							    	<span md-truncate flex><b>Exp. {{begin+$index+1}}: {{subproject.dataset.id}}</b></span>
-							    	
-							    	<md-chips ng-style="get_pipeline_style(subproject)" layout="row" layout-align="left center" ng-model="subproject.dataset.tags" readonly="true" class="mdchips-inline">
-										<md-chip-template layout="row" layout-align="left center" class="text-small">
-									        <div>
-									          <div><strong>{{$chip.name}}</strong></div>
-									          <div><em class="category">({{$chip.type}})</em></div>
-									        </div>
-										</md-chip-template>
-							    	</md-chips>
-							    	
-<!-- 							    	<span ng-if="subproject.dataset.pairedend == true" md-truncate flex class="lighter"><b>(PE)</b></span> -->
-<!-- 							    	<span ng-if="subproject.dataset.pairedend == false" md-truncate flex class="lighter"><b>(SE)</b></span> -->
-							    	
-<!-- 							    	<span class="lighter"> -->
-<!-- 							    		<b ng-if="subproject.dataset.genome != ''">({{subproject.dataset.genome}})</b> -->
-<!-- 							    		<b ng-if="subproject.dataset.genome == ''">(No genome)</b> -->
-<!-- 							    	</span> -->
-							    	
+							    	<span md-truncate flex><b>Proj. {{$index+1}}: {{subproject.id}}</b></span>
+							    								    	
 							    	<span md-truncate flex class="lighter">
-							    		<b>{{subproject.dataset.sample_ids.split('\n')[0] != '' ? subproject.dataset.sample_ids.split('\n').length : 'No'}} sample<span ng-if="subproject.dataset.sample_ids.split('\n').length > 1">s</span></b>
+							    		<b>{{get_total_samples_subproject(subproject) > 0 ? get_total_samples_subproject(subproject) : 'No'}} sample<span ng-if="get_total_samples_subproject(subproject) > 1">s</span></b>
 							    	</span>
 							    	
-							    	<md-button ng-if="subproject.disabled" tooltip="This step is disabled. Click to enable this step" class="md-icon-button" ng-click="$event.stopPropagation(); subproject.disabled = !subproject.disabled" tooltip="Delete project" aria-label="Delete project">
+							    	<md-button ng-if="subproject.disabled" tooltip="This subproject is disabled. Click to enable this subproject" class="md-icon-button" ng-click="$event.stopPropagation(); subproject.disabled = !subproject.disabled" aria-label="Click to enable this subproject">
 							    		<i class="fas fa-toggle-on fa-2x" data-fa-transform="flip-h" style="color: red;"></i>
 							    	</md-button>
-							    	<md-button ng-if="!subproject.disabled" tooltip="This step is enabled. Click to disable this step" class="md-icon-button" ng-click="$event.stopPropagation(); subproject.disabled = !subproject.disabled" tooltip="Delete project" aria-label="Delete project">
+							    	<md-button ng-if="!subproject.disabled" tooltip="This subproject is enabled. Click to disable this subproject" class="md-icon-button" ng-click="$event.stopPropagation(); subproject.disabled = !subproject.disabled" aria-label="Click to disabled this subproject">
 							    		<i class="fas fa-toggle-on fa-2x" style="color: green;"></i>
 							    	</md-button>
 							    	
-							    	<md-button class="md-icon-button" ng-click="showDeleteSubprojectDialog($index, $event)" tooltip="Delete project" aria-label="Delete project">
+							    	<md-button class="md-icon-button" ng-click="showDeleteSubprojectDialog($index, $event)" tooltip="Delete subproject" aria-label="Delete subproject">
 								      <ng-md-icon icon="delete"></ng-md-icon>
 								    </md-button>
 								    
-								    <md-button class="md-icon-button" ng-click="cloneSubproject($index, $event)" tooltip="Clone project" aria-label="Clone project">
+								    <md-button class="md-icon-button" ng-click="cloneSubproject($index, $event)" tooltip="Clone subproject" aria-label="Clone subproject">
 								      <ng-md-icon icon="content_copy"></ng-md-icon>
 								    </md-button>
 								    
-								    <md-button class="md-icon-button" ng-click="move_item(selected_project.projects, $index, -1, $event)" tooltip="Move up this project" aria-label="Move up this project">
+								    <md-button class="md-icon-button" ng-click="move_item(selected_project.projects, $index, -1, $event)" tooltip="Move up this subproject" aria-label="Move up this subproject">
 								      <ng-md-icon icon="keyboard_arrow_up"></ng-md-icon>
 								    </md-button>
 								    
-								    <md-button class="md-icon-button" ng-click="move_item(selected_project.projects, $index, 1, $event)" tooltip="Move down this project" aria-label="Move down this project">
+								    <md-button class="md-icon-button" ng-click="move_item(selected_project.projects, $index, 1, $event)" tooltip="Move down this subproject" aria-label="Move down this subproject">
 								      <ng-md-icon icon="keyboard_arrow_down"></ng-md-icon>
 								    </md-button>
 							    </v-pane-header>
 							    <v-pane-content>
 							    
-							    <div ng-include="'templates/subproject.html'"></div>
-							    	
+							    	<v-accordion class="vAccordion--default padding-10" multiple onexpand="select_experiment(index)">
+							      		<v-pane ng-repeat="experiment in selected_subproject.experiments | filter:filter_text | limitTo:10:begin">
+									    	<v-pane-header ng-class="{disabled_pane: experiment.disabled}">
+									    	
+									    		<span md-truncate flex><b>Exp. {{begin+$index+1}}: {{experiment.dataset.id}}</b></span>
+									    	
+									    		<md-chips ng-style="get_pipeline_style(experiment)" layout="row" layout-align="left center" ng-model="experiment.dataset.tags" readonly="true" class="mdchips-inline">
+													<md-chip-template layout="row" layout-align="left center" class="text-small">
+												        <div>
+												          <div><strong>{{$chip.name}}</strong></div>
+												          <div><em class="category">({{$chip.type}})</em></div>
+												        </div>
+													</md-chip-template>
+										    	</md-chips>
+										    	
+										    	<span md-truncate flex class="lighter">
+										    		<b>{{get_total_samples_experiment(experiment) > 0 ? get_total_samples_experiment(experiment) : 'No'}} sample<span ng-if="get_total_samples_experiment(experiment) > 1">s</span></b>
+										    	</span>
+										    	
+										    	<md-button ng-if="experiment.disabled" tooltip="This experiment is disabled. Click to enable this experiment" class="md-icon-button" ng-click="$event.stopPropagation(); experiment.disabled = !experiment.disabled" aria-label="Click to enable this experiment">
+										    		<i class="fas fa-toggle-on fa-2x" data-fa-transform="flip-h" style="color: red;"></i>
+										    	</md-button>
+										    	<md-button ng-if="!subproject.disabled" tooltip="This experiment is enabled. Click to disable this experiment" class="md-icon-button" ng-click="$event.stopPropagation(); experiment.disabled = !experiment.disabled" aria-label="Click to disable this experiment">
+										    		<i class="fas fa-toggle-on fa-2x" style="color: green;"></i>
+										    	</md-button>
+										    	
+										    	<md-button class="md-icon-button" ng-click="showDeleteSubprojectDialog($index, $event)" tooltip="Delete experiment" aria-label="Delete experiment">
+											      <ng-md-icon icon="delete"></ng-md-icon>
+											    </md-button>
+											    
+											    <md-button class="md-icon-button" ng-click="cloneSubproject($index, $event)" tooltip="Clone experiment" aria-label="Clone experiment">
+											      <ng-md-icon icon="content_copy"></ng-md-icon>
+											    </md-button>
+											    
+											    <md-button class="md-icon-button" ng-click="move_item(selected_subproject.experiments, $index, -1, $event)" tooltip="Move up this experiment" aria-label="Move up this experiment">
+											      <ng-md-icon icon="keyboard_arrow_up"></ng-md-icon>
+											    </md-button>
+											    
+											    <md-button class="md-icon-button" ng-click="move_item(selected_subproject.experiments, $index, 1, $event)" tooltip="Move down this experiment" aria-label="Move down this experiment">
+											      <ng-md-icon icon="keyboard_arrow_down"></ng-md-icon>
+											    </md-button>
+									    	
+								    		</v-pane-header>
+								    		<v-pane-content>
+								    			<div ng-include="'templates/subproject.html'"></div>
+							    			</v-pane-content>
+										</v-pane>
+								    </v-accordion>
+							    	<div ng-if="selected_subproject.experiments.length > 0">
+										<md-button ng-disabled="begin == 0" class="md-button md-warn md-raised" ng-click="paginationFirst()" tooltip="Go to the first page" aria-label="Go to the first page">
+											<i class="fas fa-angle-double-left "></i>
+										</md-button>
+										<md-button ng-disabled="begin == 0" class="md-button md-warn md-raised" ng-click="paginationPrevious()" tooltip="Go to the previous page" aria-label="Go to the previous page">
+											<i class="fas fa-arrow-left"></i>
+										</md-button>
+										<div style="display: inline-block;">
+											{{begin+1}} - {{selected_subproject.experiments | filter:filter_text | count | min: begin+10}} of {{selected_subproject.experiments | filter:filter_text | count}}
+										</div>
+										<md-button ng-disabled="begin+1+10 > selected_subproject.experiments.length" class="md-button md-warn md-raised" ng-click="paginationNext(selected_subproject.experiments)" tooltip="Go to the next page" aria-label="Go to the next page">
+											<i class="fas fa-arrow-right"></i>
+										</md-button>
+										<md-button ng-disabled="begin+1+10 > selected_subproject.experiments.length" class="md-button md-warn md-raised" ng-click="paginationLast(selected_subproject.experiments)" tooltip="Go to the last page" aria-label="Go to the last page">
+											<i class="fas fa-angle-double-right "></i>
+										</md-button>
+									</div>
 							    </v-pane-content>
 							  </v-pane>
 							  
 							</v-accordion>
-							<div ng-if="selected_project.projects.length > 0">
-								<md-button ng-disabled="begin == 0" class="md-button md-warn md-raised" ng-click="paginationFirst()" tooltip="Go to the first page" aria-label="Go to the first page">
-									<i class="fas fa-angle-double-left "></i>
-								</md-button>
-								<md-button ng-disabled="begin == 0" class="md-button md-warn md-raised" ng-click="paginationPrevious()" tooltip="Go to the previous page" aria-label="Go to the previous page">
-									<i class="fas fa-arrow-left"></i>
-								</md-button>
-								<div style="display: inline-block;">
-									{{begin+1}} - {{selected_project.projects | filter:filter_text | count | min: begin+10}} of {{selected_project.projects | filter:filter_text | count}}
-								</div>
-								<md-button ng-disabled="begin+10 > selected_project.projects.length" class="md-button md-warn md-raised" ng-click="paginationNext(selected_project.projects)" tooltip="Go to the next page" aria-label="Go to the next page">
-									<i class="fas fa-arrow-right"></i>
-								</md-button>
-								<md-button ng-disabled="begin == selected_project.projects.length-10" class="md-button md-warn md-raised" ng-click="paginationLast(selected_project.projects)" tooltip="Go to the last page" aria-label="Go to the last page">
-									<i class="fas fa-angle-double-right "></i>
-								</md-button>
-							</div>
 						</section>
 						
 						<spacer></spacer>			

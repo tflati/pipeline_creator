@@ -163,8 +163,21 @@ def convert_ncbi_response(samples_set, tree):
             
         if paper_id and paper_id is not None:  
             bioproject_data["dataset"]["paper_id"] = paper_id
-            
-        response.append(bioproject_data)
+        
+        
+        result = [x for x in response if x["id"] == bioproject_id]
+        print(type(result))
+        if not result:
+            empy_project = {
+                "id": bioproject_id,
+                "experiments": []
+            }
+            result = [empy_project]
+            response.append(empy_project)
+
+        project = result[0]
+        
+        project["experiments"].append(bioproject_data)
         
     return response
 
@@ -477,8 +490,8 @@ def save_project(request):
     filepath = os.path.dirname(__file__) + "/data/"+project_id+".json"
     open(filepath, "w").write(json.dumps(data, indent=4, sort_keys=True))
     
-    for group in data["projects"]:
-        print(group["dataset"]["id"], group["dataset"]["pipeline"])
+#     for group in data["projects"]:
+#         print(group["dataset"]["id"], group["dataset"]["pipeline"])
     
     return HttpResponse("Project: '{}' correctly saved.".format(project_id))
 
