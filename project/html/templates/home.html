@@ -37,7 +37,7 @@
 				</div>
 				<md-list flex>
 					<md-divider ></md-divider>
-					<md-list-item class="md-3-line" ng-repeat="project in projects | orderBy : '-creation_epoch'" ng-click="select_project(project)">
+					<md-list-item ng-class="{background_grey: project == selected_project}" class="md-3-line" ng-repeat="project in projects | orderBy : '-creation_epoch'" ng-click="select_project(project)">
 						<img ng-src="{{project.img}}" class="md-avatar" alt="{{project.title}}" />
 						<div class="md-list-item-text" layout="column">
 							<h3>{{ project.title }}</h3>

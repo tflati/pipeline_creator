@@ -78,6 +78,7 @@
 	<md-radio-button value="project">Project-level <span class="lighter">(will be created 1 script within each project directory)</span></md-radio-button>
 	<md-radio-button value="experiment">Experiment-level <span class="lighter">(will be created 1 script within each experiment directory)</span></md-radio-button>
 	<md-radio-button value="sample">Sample-level <span class="lighter">(will be created 1 script within each sample directory)</span></md-radio-button>
+	<md-radio-button value="specific">Specific data</md-radio-button>
 </md-radio-group>
 
 <h4>Command level</h4>
@@ -86,12 +87,13 @@
 	<md-radio-button value="project">Project-level <span class="lighter">(this command will be applied once for each projects)</span></md-radio-button>
 	<md-radio-button value="experiment">Experiment-level <span class="lighter">(this command will be applied once for each experiments)</span></md-radio-button>
 	<md-radio-button value="sample">Sample-level <span class="lighter">(this command will be applied once for each samples)</span></md-radio-button>
+	<md-radio-button value="specific">Specific data</md-radio-button>
 </md-radio-group>
 
 <h4>Internal script parallelism</h4>
 <md-radio-group ng-model="step.command_parallelism_level">
-	<md-radio-button value="seq">Sequential <span class="lighter">(this command will be applied iteratively to all items, but in a serial manner)</span></md-radio-button>
-	<md-radio-button value="parall">Parallel <span class="lighter">(this command will be applied concurrently to all items, in parallel)</span></md-radio-button>
+	<md-radio-button value="sequential">Sequential <span class="lighter">(this command will be applied iteratively to all items, but in a serial manner)</span></md-radio-button>
+	<md-radio-button value="parallel">Parallel <span class="lighter">(this command will be applied concurrently to all items, in parallel)</span></md-radio-button>
 </md-radio-group>
 
 <h4>Internal script grouping</h4>
@@ -100,12 +102,12 @@
 	<md-radio-button value="chunks">Divide in chunks <span class="lighter">(this command will be applied in chunks of <input style="pointer-events: all; width: 50px;" type="number" ng-model="step.command_chunk_size"> items)</span></md-radio-button>
 </md-radio-group>
 
-<md-switch ng-model="step.iterate" aria-label="Iterate samples">
-	Iterate through samples: {{ step.iterate }} <span style="color: grey;">(if enabled, the command is repeated over all sample, individually)</span>
-</md-switch>
-<md-switch ng-model="step.sequential" aria-label="Analysis mode">
-	Sequential analysis: {{ step.sequential }} <span style="color: grey;">(if enabled, each sample is analyzed after the other)</span>
-</md-switch>
+<!-- <md-switch ng-model="step.iterate" aria-label="Iterate samples"> -->
+<!-- 	Iterate through samples: {{ step.iterate }} <span style="color: grey;">(if enabled, the command is repeated over all sample, individually)</span> -->
+<!-- </md-switch> -->
+<!-- <md-switch ng-model="step.sequential" aria-label="Analysis mode"> -->
+<!-- 	Sequential analysis: {{ step.sequential }} <span style="color: grey;">(if enabled, each sample is analyzed after the other)</span> -->
+<!-- </md-switch> -->
 <md-switch ng-model="step.write_stdout_log" aria-label="Stdout to log">
 	Write stdout of this command to log: {{ step.write_stdout_log }}
 </md-switch>

@@ -79,6 +79,7 @@
 <!-- 													</span> -->
 												</td>
 												<td>
+													<span ng-if="data.papers.length == 0">None</span>
 													<span ng-repeat="paperId in data.papers" ng-if="data.papers.length > 0">
 														<a title="Link to Pubmed" style="text-decoration: none;" target="_blank" ng-href="https://www.ncbi.nlm.nih.gov/pubmed/{{paperId}}">
 															<i class="far fa-2x fa-file-alt vertically-centered"></i>
@@ -186,7 +187,7 @@
 							    	<span md-truncate flex><b>Proj. {{$index+1}}: {{subproject.id}}</b></span>
 							    								    	
 							    	<span md-truncate flex class="lighter">
-							    		<b>{{get_total_samples_subproject(subproject) > 0 ? get_total_samples_subproject(subproject) : 'No'}} sample<span ng-if="get_total_samples_subproject(subproject) > 1">s</span></b>
+							    		<b>{{get_total_samples_subproject(subproject) > 0 ? get_total_samples_subproject(subproject) : 'No'}} sample<span ng-if="get_total_samples_subproject(subproject) != 1">s</span></b>
 							    	</span>
 							    	
 							    	<md-button ng-if="subproject.disabled" tooltip="This subproject is disabled. Click to enable this subproject" class="md-icon-button" ng-click="$event.stopPropagation(); subproject.disabled = !subproject.disabled" aria-label="Click to enable this subproject">
@@ -218,7 +219,7 @@
 							      		<v-pane ng-repeat="experiment in selected_subproject.experiments | filter:filter_text | limitTo:10:begin">
 									    	<v-pane-header ng-class="{disabled_pane: experiment.disabled}">
 									    	
-									    		<span md-truncate flex><b>Exp. {{begin+$index+1}}: {{experiment.dataset.id}}</b></span>
+									    		<span md-truncate flex><b>Exp. {{begin+$index+1}}: {{experiment.id}}</b></span>
 									    	
 									    		<md-chips ng-style="get_pipeline_style(experiment)" layout="row" layout-align="left center" ng-model="experiment.dataset.tags" readonly="true" class="mdchips-inline">
 													<md-chip-template layout="row" layout-align="left center" class="text-small">
@@ -230,7 +231,7 @@
 										    	</md-chips>
 										    	
 										    	<span md-truncate flex class="lighter">
-										    		<b>{{get_total_samples_experiment(experiment) > 0 ? get_total_samples_experiment(experiment) : 'No'}} sample<span ng-if="get_total_samples_experiment(experiment) > 1">s</span></b>
+										    		<b>{{get_total_samples_experiment(experiment) > 0 ? get_total_samples_experiment(experiment) : 'No'}} sample<span ng-if="get_total_samples_experiment(experiment) != 1">s</span></b>
 										    	</span>
 										    	
 										    	<md-button ng-if="experiment.disabled" tooltip="This experiment is disabled. Click to enable this experiment" class="md-icon-button" ng-click="$event.stopPropagation(); experiment.disabled = !experiment.disabled" aria-label="Click to enable this experiment">
@@ -258,7 +259,7 @@
 									    	
 								    		</v-pane-header>
 								    		<v-pane-content>
-								    			<div ng-include="'templates/subproject.html'"></div>
+								    			<div ng-include="'templates/experiment.html'"></div>
 							    			</v-pane-content>
 										</v-pane>
 								    </v-accordion>
@@ -302,6 +303,10 @@
 						<md-button class="md-button md-warn md-raised" ng-click="add_pipeline(selected_project)" tooltip="Add a pipeline to this project" aria-label="Add a new pipeline">
 							<i class="fas fa-cogs"></i>
 							Add pipeline
+						</md-button>
+						<md-button class="md-button md-warn md-raised" ng-click="import_pipeline(selected_project)" tooltip="Import a pipeline to this project from pre-defined pipelines" aria-label="Import a new pipeline from pre-defined pipelines">
+							<i class="fas fa-cogs"></i>
+							Import pipeline
 						</md-button>
 						
 						<v-accordion class="vAccordion--default padding-10" multiple onexpand="select_pipeline(index)">

@@ -1,4 +1,4 @@
-app.controller('mainController', function($scope, apiService, moment, messageService, $document, $timeout, $mdDialog, $mdSidenav){
+app.controller('mainController', function($scope, apiService, moment, globalService, messageService, $document, $timeout, $mdDialog, $mdSidenav){
 	
 	$scope.projects = undefined;
 	$scope.selected_project = undefined;
@@ -18,27 +18,28 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	        "description": "",
 	        "creator": "",
 	        "creation_date": "",
+	        "type": "project",
 	        "pipelines": [],
-	        "projects": [
-            ]
+	        "projects": []
 	    };
 	
 	var subproject_template = {
 			"id": "",
 			"disabled": false,
+			"type": "bioproject",
 			"experiments": []
 	};
 	
 	var experiment_template = {
+			"type": "experiment",
+			"id": "",
 			"dataset": {
-	    		"id": "",
 	    		"cluster": "",
 	    		"genome": "",
 	            "basedir": "",
 	            "create_per_sample_directory": true,
 	            "pairedend": false,
-	            "sample_ids": "",
-	            "pipeline": ""
+	            "sample_ids": ""
 	        }
 	};
 	
@@ -112,8 +113,11 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
             },
 	        "modules": [],
 	        "skip": false,
-	        "iterate": true,
-	        "sequential": true,
+	        "script_level": "sample",
+	        "command_level": "sample",
+	        "command_parallelism_level": "sequential",
+	        "command_group_level": "all",
+	        "command_chunk_size": 1,
 	        "write_stdout_log": true,
 	        "write_stderr_log": true,
 	        "conditions": [],
@@ -211,6 +215,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	// $scope.module_url = apiService.get_module_url();
 	
 	$scope.select_project = function(item){
+		
 		console.log("SELECTING PROJECT", item, $scope);
 		$scope.selected_project = item;
 		
@@ -243,7 +248,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		console.log("[CLONE SUBPROJECT]", index, $scope.selected_project.projects[index]);
 		
 		copy = angular.copy($scope.selected_project.projects[index]);
-		copy.dataset.id = "Copy of " + copy.dataset.id;
+		copy.dataset.id = "Copy of " + copy.id;
 		
 		$scope.selected_project.projects.push(copy);
 	};
@@ -324,11 +329,12 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	$scope.get_total_samples = function(selected_project){
 		var total = 0;
 		
-		for(var k=0; k<selected_project.projects.length; k++)
+		for(var k=0; k<selected_project.projects.length; k++){
 			var subproject = selected_project.projects[k];
 		
 			for(var j=0; j<subproject.experiments.length; j++)
 				total += subproject.experiments[j].dataset.sample_ids.split('\n').length;
+		}
 		
 		return total;
 	};
@@ -409,7 +415,7 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 					
 					var paper = experiment.dataset.paper_id;
 					var biosample_id = experiment.dataset.biosample_id;
-					var experiment_id = experiment.dataset.id;
+					var experiment_id = experiment.id;
 					var organism = experiment.dataset.genome;
 					var size = experiment.dataset.size;
 					var platform = experiment.dataset.platform;
@@ -805,6 +811,8 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	    			console.log('Success', resp);
 	    			var duplicated_bioprojects = 0;
 	    			var imported_bioprojects = 0;
+	    			var not_in_sra = 0;
+	    			
 	    			for(var i in resp.data)
 	    			{
 	    				var subproject_data = resp.data[i];
@@ -817,13 +825,17 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	    				}
 	    				
 	    				imported_bioprojects++;
+	    				
+	    				if(subproject_data.experiments.length == 0)
+	    					not_in_sra++;
+	    				
 	    				$scope.add_subproject($scope.selected_project, subproject_data);
 	    			}
 	    			
 	    			$scope.file_sending = false;
     				$scope.bioproject2data = undefined;
 	    			
-	    			var message = imported_bioprojects + " new bioprojects correctly imported ("+duplicated_bioprojects + " duplicated bioprojects have been discarded)";
+	    			var message = imported_bioprojects + " new bioprojects correctly imported. " + not_in_sra + " bioprojects not in SRA. ("+duplicated_bioprojects + " duplicated bioprojects have been discarded)";
 	    			console.log(message);
 	    			messageService.showMessage(message);
 	    			
@@ -899,6 +911,32 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 	$scope.delete_pipeline = function(pipelines, i){
 		console.log("[DELETE PIPELINE]", pipelines[i]);
 		pipelines.splice(i, 1);
+	};
+	
+	$scope.import_pipeline = function(selected_project, $event){
+		var confirm = {
+	    	controller: DialogController,
+			templateUrl: 'templates/dialogs/import_pipeline_dialog.html',
+			parent: angular.element(document.body),
+			targetEvent: $event,
+			clickOutsideToClose:true,
+			fullscreen: $scope.customFullscreen,
+			resolve: {
+		      item: function () {
+		    	  return globalService["pipelines"];
+		      }
+		    }
+	    };
+
+	    $mdDialog.show(confirm).then(function(answer) {
+	    	console.log("DIALOG IMPORT PIPELINE ANSWER", answer);
+	    	if (answer != "Cancel") {
+	    		for(var i in answer){
+	    			selected_project.pipelines.push(answer[i]);
+	    		}
+	    	}
+	    }, function() {
+	    });
 	};
 	
 	$scope.add_step = function(project){
@@ -1011,7 +1049,8 @@ app.controller('mainController', function($scope, apiService, moment, messageSer
 		var tags = [];
 		
 		for(var i in project.projects)
-			tags = tags.concat(project.projects[i].dataset.tags)
+			for(var j in project.projects[i].experiments)
+			tags = tags.concat(project.projects[i].experiments[j].dataset.tags)
 		
 		var keys = {};
 //		console.log(tags);

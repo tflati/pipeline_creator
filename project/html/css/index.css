@@ -171,6 +171,10 @@ spacer {
 	color: grey;
 }
 
+.background_grey {
+	background-color: #DDD;
+}
+
 .disabled_pane {
 	background-color: lightsalmon;
 	fill: bisque !important;

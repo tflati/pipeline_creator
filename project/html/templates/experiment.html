@@ -1,16 +1,16 @@
 <section>
 
-	<md-subheader class="md-primary">Pipeline</md-subheader>
+<!-- 	<md-subheader class="md-primary">Pipeline</md-subheader> -->
 	
-	<label>Associate the pipeline</label>
-	<md-select ng-model="experiment.dataset.pipeline" aria-label="Specifies the pipeline">
-       	<md-option ng-repeat="pipeline in selected_project.pipelines" ng-value="pipeline.id">
-       		<div flex layout="row" layout-align="left center">
-       				<i class="fa fa-cogs"></i>
-       				<p class="margin-left-10" ng-bind="pipeline.id"></p>
-	       	</div>
-       	</md-option>
-	</md-select>
+<!-- 	<label>Associate the pipeline</label> -->
+<!-- 	<md-select ng-model="experiment.dataset.pipeline" aria-label="Specifies the pipeline"> -->
+<!--        	<md-option ng-repeat="pipeline in selected_project.pipelines" ng-value="pipeline.id"> -->
+<!--        		<div flex layout="row" layout-align="left center"> -->
+<!--        				<i class="fa fa-cogs"></i> -->
+<!--        				<p class="margin-left-10" ng-bind="pipeline.id"></p> -->
+<!-- 	       	</div> -->
+<!--        	</md-option> -->
+<!-- 	</md-select> -->
 	
 	<md-subheader class="md-primary">Study</md-subheader>
 	
@@ -71,7 +71,7 @@
 	<md-content layout="column" layout-padding>
 		<md-input-container>
 			<label>Project ID</label>
-			<input label="Project ID" type="text" ng-model="experiment.dataset.id">
+			<input label="Project ID" type="text" ng-model="experiment.id">
 		</md-input-container>
 		
 		<md-subheader class="md-primary">

@@ -17,6 +17,13 @@ app.factory('apiService', function($http, Upload) {
 	  });
   };
   
+  instance.get_pipelines = function(successFx){
+	  var url = SERVER + "pipelines/";
+	  $http.get(url).then(successFx, function(result){
+		  console.log("ERROR WHILE RETRIEVING PIPELINES", result);
+	  });
+  };
+  
   instance.load_project = function(project_id, successFx, errorFx, finallyFx){
 	  var url = SERVER + "load_project/" + project_id + "/";
 	  $http.get(url).then(successFx, errorFx).finally(finallyFx);
