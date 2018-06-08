@@ -141,12 +141,16 @@ def convert_ncbi_response(samples_set, tree):
         
         bioproject_data = {
             "id": experiment_id,
+            "type": "experiment",
             "dataset": {
                 "size": total_size,
                 "bioproject_id": bioproject_id,
                 "platform": platform,
                 "pairedend": layout == "PAIRED",
-                "sample_ids": "\n".join(selected_run_ids),
+                "sample_ids": [{
+                        "type": "run",
+                        "id": x
+                    } for x in selected_run_ids],
                 "attributes": attributes,
                 "biosample_id": biosample_id,
                 "tags": tags,
@@ -164,12 +168,13 @@ def convert_ncbi_response(samples_set, tree):
         if paper_id and paper_id is not None:  
             bioproject_data["dataset"]["paper_id"] = paper_id
         
-        
-        result = [x for x in response if x["id"] == bioproject_id]
-        print(type(result))
+        # Find the bioproject data of this experiment
+        result = [x for x in response if x["id"] == bioproject_id]        
+        # If there's none, this is the first time we create the project for this experiment
         if not result:
             empy_project = {
                 "id": bioproject_id,
+                "type": "bioproject",
                 "experiments": []
             }
             result = [empy_project]
@@ -240,6 +245,7 @@ def create_projects(request):
         for x in not_found:
             response.append({
                     "id": x,
+                    "type": "bioproject",
                     "experiments": []
                 })
          
@@ -595,8 +601,8 @@ def get_tags(dataset, bio_entity, level):
     if level == "sample":
         for project in dataset["projects"]:
             for experiment in project["experiments"]:
-                samples = experiment["dataset"]["sample_ids"].split("\n")
-                if bio_entity not in samples: continue
+                samples = [x["id"] for x in experiment["dataset"]["sample_ids"]]
+                if bio_entity["id"] not in samples: continue
                 
                 for tag in experiment["dataset"]["tags"]:
                     tag_key = tag["name"] + "#" + tag["type"]
@@ -610,11 +616,11 @@ def get_tags(dataset, bio_entity, level):
     
     return tags
 
-def produce_script(v, vertex2name, project, pipeline, step, bioentity, dependencies):
-    if step["skip"]: return
+def produce_script(v, vertex2name, project, pipeline, step, bioentity):
+    if step["skip"]: return None
     
     name = vertex2name[v]
-    bioentity_id = bioentity["id"] if "id" in bioentity else bioentity
+    bioentity_id = bioentity["id"]
     
     script_level = step["script_level"] # where to put the script
     command_level = step["command_level"] # what the command is defined over
@@ -622,7 +628,6 @@ def produce_script(v, vertex2name, project, pipeline, step, bioentity, dependenc
     command_group_level = step["command_group_level"] if "command_group_level" in step else "all" # all - chunks
     #command_chunk_size = step["command_chunk_size"] #
     
-    variables = pipeline["variables"]
     directives = step["hpc_directives"]
     parallel = step["command_parallelism_level"] == "parallel"
     
@@ -630,8 +635,53 @@ def produce_script(v, vertex2name, project, pipeline, step, bioentity, dependenc
     script_level_index = levels.index(script_level)
     command_level_index = levels.index(command_level)
     
+    print("PRODUCE_SCRIPT", pipeline["id"], step["title"], bioentity_id, script_level, script_level_index)
+    
     sh_file = name + ".sh"
-    script_dir = os.path.dirname(__file__) + "/scripts/" + project["id"] + "/sh/"
+    sh_dir = None
+    
+    bioproject = None
+    experiment = None
+    
+    if script_level_index == 0: # top
+        sh_dir = ""
+        
+    if script_level_index == 1: # project
+        bioproject = bioentity
+        sh_dir = bioentity_id + "/"
+        
+    if script_level_index == 2: # experiment
+        bioproject_id = None
+        for biopr in project["projects"]:
+            if bioproject_id is not None: break
+            for exp in biopr["experiments"]:
+                if exp["id"] == bioentity_id:
+                    bioproject_id = biopr["id"]
+                    bioproject = biopr
+                    experiment_id = exp["id"]
+                    experiment = bioentity
+                    break
+        sh_dir = bioproject_id + "/" + bioentity_id + "/"
+        
+    if script_level_index == 3: # sample
+        bioproject_id = None
+        experiment_id = None
+        for biopr in project["projects"]:
+            if bioproject_id is not None: break
+            for exp in biopr["experiments"]:
+                if experiment_id is not None: break
+                for sample in exp["dataset"]["sample_ids"]:
+                    if sample == bioentity:
+                        bioproject_id = biopr["id"]
+                        bioproject = biopr
+                        experiment_id = exp["id"]
+                        experiment = exp
+                        print("FOUND", bioentity, bioproject_id, experiment_id, )
+                        break
+        print(bioproject_id, experiment_id, bioentity)
+        sh_dir = bioproject_id + "/" + experiment_id + "/" + bioentity_id + "/"
+    
+    script_dir = os.path.dirname(__file__) + "/scripts/" + project["id"] + "/data/" + sh_dir
     if not os.path.exists(script_dir): os.makedirs(script_dir)
     filepath = script_dir + sh_file
     file = open(filepath, "w")
@@ -642,9 +692,9 @@ def produce_script(v, vertex2name, project, pipeline, step, bioentity, dependenc
     file.write("# Creation time: {}\n\n".format(datetime.datetime.now()))
     
     job_name = directives["job_name"]
-    job_name = replace_variables(job_name, variables)
+    job_name = replace_variables(job_name, project, bioproject, experiment, pipeline, step, bioentity)
 #     job_name = job_name.replace("${PROJECT}", subproject_id)
-    job_name = job_name.replace("${STEP_NAME}", step["title"].replace(" ", "_"))
+#     job_name = job_name.replace("${STEP_NAME}", step["title"].replace(" ", "_"))
      
     file.write("#SBATCH --job-name={}\n".format(job_name))
     file.write("#SBATCH -N {}\n".format(directives["nodes"]))
@@ -658,27 +708,30 @@ def produce_script(v, vertex2name, project, pipeline, step, bioentity, dependenc
     if "error" not in directives or directives["error"] == "":
         pass
     else:
-        directives["error"] = replace_variables(directives["error"], variables)
-        directives["error"] = directives["error"].replace("${STEP_NAME}", step["title"])
+        directives["error"] = replace_variables(directives["error"], project, bioproject, experiment, pipeline, step, bioentity)
+#         directives["error"] = directives["error"].replace("${STEP_NAME}", step["title"])
         file.write("#SBATCH --error {}\n".format(directives["error"].replace(" ", "-")))
      
     if "output" not in directives or directives["output"] == "":
         pass
     else:
-        directives["output"] = replace_variables(directives["output"], variables)
-        directives["output"] = directives["output"].replace("${STEP_NAME}", step["title"])
+        directives["output"] = replace_variables(directives["output"], project, bioproject, experiment, pipeline, step, bioentity)
+#         directives["output"] = directives["output"].replace("${STEP_NAME}", step["title"])
         file.write("#SBATCH --output {}\n".format(directives["output"].replace(" ", "-")))
      
     file.write("cd $SLURM_SUBMIT_DIR\n\n")
-     
+    
     file.write("\n\n# Module(s) loading\n\n")
      
     for module in step["modules"]:
         file.write("module load autoload {}\n".format(module))
      
     loops = max(0, command_level_index - script_level_index)
+    
+    
      
-    if script_level_index == 0:
+     
+    if script_level_index == 0: # top
         
         if command_level_index == 1:
             file.write("""
@@ -690,6 +743,7 @@ for PROJECT in `cat projects`; do
             file.write("""
 for PROJECT in `cat projects`; do
     cd $PROJECT
+    
     for EXPERIMENT in `cat experiments`; do
         cd $EXPERIMENT
 """)
@@ -703,30 +757,37 @@ for PROJECT in `cat projects`; do
         for SAMPLE in `cat samples`; do
             cd $SAMPLE
 """)
-            
-    if script_level_index == 1:
+    
+    
+    
+    
+    if script_level_index == 1: # project
         
         if command_level_index == 1:
             file.write("""
 PROJECT={}
-cd $PROJECT
 """.format(bioentity_id))
         
         if command_level_index == 2:
             file.write("""
+PROJECT={}
 for EXPERIMENT in `cat experiments`; do
     cd $EXPERIMENT
-""")
+""".format(bioentity_id))
             
         if command_level_index == 3:
             file.write("""
+PROJECT={}
 for EXPERIMENT in `cat experiments`; do
     cd $EXPERIMENT
     for SAMPLE in `cat samples`; do
         cd $SAMPLE
-""")
-            
-    if script_level_index == 2:
+""".format(bioentity_id))
+
+
+
+    
+    if script_level_index == 2: # experiment
         if command_level_index == 2:
             file.write("""
 EXPERIMENT={}
@@ -735,15 +796,21 @@ cd $EXPERIMENT
         
         if command_level_index == 3:
             file.write("""
+    EXPERIMENT={}
     for SAMPLE in `cat samples`; do
         cd $SAMPLE
-""")
-    
-    if script_level_index == 3:
+""".format(bioentity_id))
+
+
+
+
+    if script_level_index == 3: # run
         file.write("""
 SAMPLE={}\n
-cd $SAMPLE
 """.format(bioentity_id))
+            
+            
+            
             
     file.write("    " * loops)
     file.write("execute=1\n")
@@ -753,7 +820,7 @@ cd $SAMPLE
     if conditions:
         for condition in conditions:
             command = condition["command"]
-            command = replace_variables(command, variables)
+            command = replace_variables(command, project, bioproject, experiment, pipeline, step, bioentity)
 #             command = command.replace("${}".format(sample_variable), sample)
 #             command = command.replace("${{{}}}".format(sample_variable), sample)
                 
@@ -774,6 +841,7 @@ cd $SAMPLE
     file.write("    " * loops)
     file.write("# Command line(s)\n")
     command_line = step["commandline"]
+    command_line = replace_variables(command_line, project, bioproject, experiment, pipeline, step, bioentity)
     file.write("    " * loops)
     file.write("set +o xtrace;\n")
     file.write("    " * loops + "if [ $execute -eq 1 ]; then\n")
@@ -801,6 +869,32 @@ wait
      
     st = os.stat(filepath)
     os.chmod(filepath, st.st_mode | stat.S_IEXEC)
+    
+    return filepath
+
+def contains(u_bioentity, v_bioentity):
+    if u_bioentity["id"] == v_bioentity["id"]: return True
+    
+    if u_bioentity["type"] == "project": # top level
+        for bioproject in u_bioentity["projects"]:
+            if contains(bioproject, v_bioentity):
+                return True
+        return False
+    
+    if u_bioentity["type"] == "bioproject": # project level
+        for experiment in u_bioentity["experiments"]:
+            if contains(experiment, v_bioentity):
+                return True
+        return False
+    
+    if u_bioentity["type"] == "experiment": # experiment level
+        for sample in u_bioentity["dataset"]["sample_ids"]:
+            if contains(sample, v_bioentity):
+                return True
+        return False
+    
+    else: #sample level
+        return u_bioentity == v_bioentity
 
 def produce_scripts(request):
     project = json.loads(request.body.decode('utf-8'))
@@ -826,11 +920,11 @@ def produce_scripts(request):
             experiment_dir = bioproject_dir + experiment["id"] + "/"
             if not os.path.exists(experiment_dir): os.mkdir(experiment_dir)
             f = open(experiment_dir + "samples", "w")
-            f.write('\n'.join(experiment["dataset"]["sample_ids"].split("\n")))
+            f.write('\n'.join([x["id"] for x in experiment["dataset"]["sample_ids"]]))
             f.close()
             
-            for sample in experiment["dataset"]["sample_ids"].split("\n"):
-                sample_dir = experiment_dir + sample + "/"
+            for sample in experiment["dataset"]["sample_ids"]:
+                sample_dir = experiment_dir + sample["id"] + "/"
                 if not os.path.exists(sample_dir): os.mkdir(sample_dir)
     
 #     pipelines = project["pipelines"]
@@ -869,24 +963,32 @@ def produce_scripts(request):
             
             # Take the bioentities associated to this step
             bio_entities = []
-            if script_level == "top": bio_entities = []            
+            if script_level == "top": bio_entities = []
             if script_level == "project":
                 for bioproject in project["projects"]:
+                    if "disabled" in bioproject and bioproject["disabled"] == True: continue
                     bio_entities.append(bioproject)
+                    
             if script_level == "experiment":
                 for bioproject in project["projects"]:
+                    if "disabled" in bioproject and bioproject["disabled"] == True: continue
                     for experiment in bioproject["experiments"]:
+                        if "disabled" in experiment and experiment["disabled"] == True: continue
                         bio_entities.append(experiment)
+                        
             if script_level == "sample":
                 for bioproject in project["projects"]:
+                    if "disabled" in bioproject and bioproject["disabled"] == True: continue
                     for experiment in bioproject["experiments"]:
-                        for sample in experiment["dataset"]["sample_ids"].split("\n"):
+                        if "disabled" in experiment and experiment["disabled"] == True: continue
+                        for sample in experiment["dataset"]["sample_ids"]:
+                            if "disabled" in sample and sample["disabled"] == True: continue
                             bio_entities.append(sample)
-            if script_level == "specific":
-                # TODO
+                            
+            if script_level == "specific": # TODO
                 pass
             
-            print(pipeline_id, step_id, script_level, [x["id"] if "id" in x else x for x in bio_entities])
+            print(pipeline_id, step_id, script_level, [x["id"] for x in bio_entities])
             
             # Take only the compatible bioentities
             compatible_bio_entities = []
@@ -898,7 +1000,7 @@ def produce_scripts(request):
             
             # The number of scripts will be the number or required compatible bioentities
             for compatible_bio_entity in compatible_bio_entities:
-                bioentity_id = compatible_bio_entity["id"] if "id" in compatible_bio_entity else compatible_bio_entity
+                bioentity_id = compatible_bio_entity["id"]
                 
                 vertex_name = pipeline_id + "#" + step_id + "#" + bioentity_id 
                 v = vertex_name
@@ -922,29 +1024,12 @@ def produce_scripts(request):
                 print(pipeline_id, step_id, dep_id)
                 
                 for u in step2vertices[dep_id]:
-                    if dep_step["script_level"] == step["script_level"]:
-                        for v in step2vertices[step_id]:
-                            if vertex2name[u].split("#")[-1] == vertex2name[v].split("#")[-1]:
-                                g.add_edge(u, v)
-                    else:
-                        for v in step2vertices[step_id]:
+                    u_bioentity = vertexname2bioentity[u]
+                    for v in step2vertices[step_id]:
+                        v_bioentity = vertexname2bioentity[v]
+                        if contains(u_bioentity, v_bioentity) or contains(v_bioentity, u_bioentity):
                             g.add_edge(u, v)
 
-            # The number of scripts (for this step) is also the number of nodes
-            # associated with this step of the pipeline
-            
-#             if script_level == "top": pass
-#             if script_level == "project": pass
-#             if script_level == "experiment": pass
-#             if script_level == "sample": pass
-#             if script_level == "specific":
-#                 # TODO
-#                 pass
-            
-            # Add nodes in the graph
-            
-            # Add dependencies in the graph
-            
 #     for subproject in project["projects"]:
 #         if "disabled" in subproject and subproject["disabled"] == True: continue
 #         
@@ -1185,25 +1270,102 @@ def produce_scripts(request):
     ret_code = subprocess.run(command, shell=True)
     print("DOT CONVERSION:\nCommand: {}\nReturn code: {}".format(command, ret_code))
     
+    # Master script
+    filepath = script_dir + "/data/" + project["id"] +".sh"
+    file = open(filepath, "w")
+    file.write("#!/bin/bash\n\n")
+    file.write("# Project ID: {}\n".format(project["id"]))
+    file.write("# Title: {}\n".format(project["title"]))
+    file.write("# Subtitle: {}\n".format(project["subtitle"]))
+    file.write("# Description: {}\n".format(project["description"]))
+    file.write("# Creation time: {}\n\n".format(datetime.datetime.now()))
+    file.write("declare -A JOB_IDS\n\n")
+    file.write("BASEDIR=`pwd`\n")
+    
+    vertex2script = {}
     for v in g.nodes():
         name = vertex2name[v]
         if name == "ROOT": continue
         
         step = vertexname2step[name]
         bioentity = vertexname2bioentity[name]
-        dependencies = [vertex2name[e_in[0]] for e_in in g.in_edges(v)]
          
-        produce_script(v, vertex2name, project, pipeline, step, bioentity, dependencies)
+        script_path = produce_script(v, vertex2name, project, pipeline, step, bioentity)
+        vertex2script[v] = script_path
     
-    # Master script
-#     filepath = script_dir + "/" + project["id"] +".sh"
-#     file = open(filepath, "w")
-#     file.write("#!/bin/bash\n\n")
-#     file.write("# Project ID: {}\n".format(project["id"]))
-#     file.write("# Title: {}\n".format(project["title"]))
-#     file.write("# Subtitle: {}\n".format(project["subtitle"]))
-#     file.write("# Description: {}\n".format(project["description"]))
-#     file.write("# Creation time: {}\n\n".format(datetime.datetime.now()))
+    # Graph BFS-search
+    bfs_edges = nx.bfs_edges(g, fake_root)
+    for e in bfs_edges:
+        v = e[1]
+        name = vertex2name[v]
+        
+        script_path = vertex2script[v]
+        final_script_path = script_path.replace(os.path.dirname(__file__) + "/scripts/" + project["id"] + "/data/", "")
+        sh_name = final_script_path.split("/")[-1]
+        basename = '/'.join(final_script_path.split("/")[0:-1])
+        
+        print("VISITING VERTEX={}".format(vertex2name[v]))
+        
+        file.write("\n#{}\n#{} {} {}\n#{}\n".format("="*75, "="*25, name, "="*25, "="*75))
+        
+        dependencies = [e_in[0] for e_in in g.in_edges(v) if vertex2name[e_in[0]] is not "ROOT"]
+        if dependencies:
+            file.write("DEPS=()\n")
+            for dep in dependencies:
+                dep_name = vertex2name[dep]
+                 
+                dep_script = """
+    DEP_JOB_NAME="{}"
+    echo "DEP JOB NAME="$DEP_JOB_NAME
+    DEP_JOB_ID=${{JOB_IDS["$DEP_JOB_NAME"]}}
+    echo "DEPJOBID="$DEP_JOB_ID
+    if [ ! -z $DEP_JOB_ID ]
+    then
+        DEPS+=($DEP_JOB_ID)
+    fi
+    """.format(dep_name)
+                 
+                file.write(dep_script)
+             
+            script = """
+cd {}
+sh_file="{}"
+echo "DEPENDENCIES($sh_file)=" ${{DEPS[@]}}
+set -o xtrace
+if [[ ! -z "$DEPS" ]]
+then
+    job_long_name=$(sbatch --depend=afterany$(printf ":%s" "${{DEPS[@]}}") ./"$sh_file")
+else
+    job_long_name=$(sbatch ./"$sh_file")
+fi
+
+cd $BASEDIR
+ 
+job_id=$(echo $job_long_name | cut -d' ' -f4)
+echo "$sh_file => $job_id"
+JOB_IDS["{}"]=$job_id
+set +o xtrace
+""".format(basename, sh_name, name)
+    
+        else:
+            script = """
+cd {}
+sh_file="{}"
+set -o xtrace
+job_long_name=$(sbatch ./"$sh_file")
+job_id=$(echo $job_long_name | cut -d' ' -f4)
+echo "$sh_file => $job_id"
+cd $BASEDIR
+JOB_IDS["{}"]=$job_id
+set +o xtrace
+""".format(basename, sh_name, name)
+        
+        file.write(script)
+        
+    file.close()
+    st = os.stat(filepath)
+    os.chmod(filepath, st.st_mode | stat.S_IEXEC)
+    
 #     for subproject in project["projects"]:
 #         subproject_id = subproject["id"]
 #         file.write("echo '{}\n{}  Analysing subproject {}  {}\n{}\n'\n".format('#'*50, '#'*3, subproject_id, '#'*3, '#'*50))
@@ -1222,11 +1384,37 @@ def produce_scripts(request):
     
     return HttpResponse("Scripts correctly created for project: '{}'".format(project["id"]))
 
-def replace_variables(x, variables):
-    for variable in variables:
-        x = x.replace("${"+variable["key"]+"}", variable["value"])
-#         x = x.replace("${GENOME}", genome)
-#         x = x.replace("${STEP_NAME}", step["title"])
+def replace_variables(x, project, bioproject, experiment, pipeline, step, bioentity):
+    print("REPLACE_VARIABLES", x, step["title"], bioentity["id"])
+    
+    for variable in pipeline["variables"]:
+        if variable["key_disabled"] is True:
+            k = variable["key"]
+            v = None
+            
+            if k == "sample_variable":
+                v = bioentity["id"]
+            if k == "experiment_variable":
+                if experiment is not None:
+                    v = experiment["id"]
+            if k == "project_variable":
+                if bioproject is not None:
+                    v = bioproject["id"]
+            if k == "ALL_SAMPLES":
+                v = k
+            if k == "cpu_variable":
+                v = str(step["hpc_directives"]["cpu"])
+            if k == "STEP_NAME":
+                v = step["title"]
+            
+            if v is not None:
+                if k in x:
+                    print("\tREPLACING", k, v, "in", x)
+                    x = x.replace("${"+str(k)+"}", v)
+                    x = x.replace("$"+str(k), v)
+            
+        else:
+            x = x.replace("${"+variable["key"]+"}", variable["value"])
         
     return x
 
@@ -1444,9 +1632,8 @@ def download_csv(request):
     bioproject2srr = {}
     for group in project["projects"]:
         bioproject_id = group["dataset"]["bioproject_id"]
-        for srr in group["dataset"]["sample_ids"].split("\n"):
-            if bioproject_id not in bioproject2srr: bioproject2srr[bioproject_id] = []
-            bioproject2srr[bioproject_id].append(group)
+        if bioproject_id not in bioproject2srr: bioproject2srr[bioproject_id] = []
+        bioproject2srr[bioproject_id].append(group)
     
     for bioproject_id in bioproject2srr:
         groups = bioproject2srr[bioproject_id]
@@ -1460,7 +1647,7 @@ def download_csv(request):
         for attribute_key in attribute_keys:
             attribute_values = Counter()
             for group in groups:
-                for run in group["dataset"]["sample_ids"].split("\n"):
+                for run in group["dataset"]["sample_ids"]:
                     if attribute_key in group["dataset"]["attributes"]:
                         value = group["dataset"]["attributes"][attribute_key]
                         attribute_values[value] += 1
@@ -1475,9 +1662,9 @@ def download_csv(request):
         csv_writer = open(script_dir + "/" + bioproject_id + ".csv", "w")
         csv_writer.write("ids," + ",".join([a.replace(" ", "_") for a in attribute_keys]) + "\n")
         for group in groups:
-            for run in group["dataset"]["sample_ids"].split("\n"):
+            for run in group["dataset"]["sample_ids"]:
                 fields = []
-                fields.append(run)
+                fields.append(run["id"])
                 for attribute_key in attribute_keys:
                     value = ""
                     if attribute_key in group["dataset"]["attributes"]:

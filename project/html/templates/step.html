@@ -15,24 +15,24 @@
 	</div>
 </div>
 
-<h3>How this step of the pipeline will be executed</h3>
-<md-select ng-model="step.type" aria-label="Specifies the type of analysis for this step">
-   	<md-option ng-repeat="type in ['per-step', 'per-sample']" ng-value="type">
-   		<div flex layout="row">
-	   		<div>
-	   			<img ng-if="type == 'per-step'" height="50px" src="imgs/per_step.png">
-	   			<img ng-if="type == 'per-sample'" height="50px" src="imgs/per_sample.png">
-	   		</div>
-	   		<div flex layout="row" layout-align="left center" layout-padding>
-		   		<span ng-if="type == 'per-step'" style="color: grey">{{type}}: 1 script - all samples</span>
-	     		<span ng-if="type == 'per-sample'" style="color: grey">{{type}}: 1 script - 1 sample</span>
+<!-- <h3>How this step of the pipeline will be executed</h3> -->
+<!-- <md-select ng-model="step.type" aria-label="Specifies the type of analysis for this step"> -->
+<!--    	<md-option ng-repeat="type in ['per-step', 'per-sample']" ng-value="type"> -->
+<!--    		<div flex layout="row"> -->
+<!-- 	   		<div> -->
+<!-- 	   			<img ng-if="type == 'per-step'" height="50px" src="imgs/per_step.png"> -->
+<!-- 	   			<img ng-if="type == 'per-sample'" height="50px" src="imgs/per_sample.png"> -->
+<!-- 	   		</div> -->
+<!-- 	   		<div flex layout="row" layout-align="left center" layout-padding> -->
+<!-- 		   		<span ng-if="type == 'per-step'" style="color: grey">{{type}}: 1 script - all samples</span> -->
+<!-- 	     		<span ng-if="type == 'per-sample'" style="color: grey">{{type}}: 1 script - 1 sample</span> -->
 	     		
-	     		<span ng-if="type == 'per-step'" style="color: grey">(each step is applied to all samples)</span>
-	     		<span ng-if="type == 'per-sample'" style="color: grey">(each step is applied to each sample)</span>
-	   		</div>
-	   	</div>
-   	</md-option>
-</md-select>
+<!-- 	     		<span ng-if="type == 'per-step'" style="color: grey">(each step is applied to all samples)</span> -->
+<!-- 	     		<span ng-if="type == 'per-sample'" style="color: grey">(each step is applied to each sample)</span> -->
+<!-- 	   		</div> -->
+<!-- 	   	</div> -->
+<!--    	</md-option> -->
+<!-- </md-select> -->
 
 <h3>Skip this step if the following conditions are satisfied</h3>
 <md-button class="md-icon-button" ng-click="create_condition(step.conditions)" tooltip="Add condition" aria-label="Add condition">

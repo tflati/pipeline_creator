@@ -2,20 +2,24 @@
 	"pipelines": [
         {
             "cluster": "galileo",
-            "color": "#ff9933",
+            "color": "#333fff",
             "disabled": false,
-            "id": "Transcriptomic Single End (Homo Sapiens)",
+            "id": "TransSE_Mus",
             "steps": [
                 {
                     "checks": [
                         {
-                            "file": "$SAMPLE/$SAMPLE.fastq"
+                            "file": "$SAMPLE.fastq"
                         }
                     ],
-                    "commandline": "mkdir $SAMPLE\n#ln -s /marconi_scratch/userinternal/tcastign/ferri/hum_PRJNA318275/$SAMPLE/$SAMPLE.fastq $SAMPLE/$SAMPLE.fastq\n\n#rsync login.marconi.cineca.it:/marconi_scratch/userinternal/tcastign/ferri/hum_PRJNA318275/$SAMPLE/$SAMPLE.fastq $SAMPLE/$SAMPLE.fastq\n\n#ln -s ../../data/$SAMPLE.fastq $SAMPLE/$SAMPLE.fastq\n\nfastq-dump $SAMPLE -O $SAMPLE",
+                    "command_chunk_size": 10,
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "fastq-dump $SAMPLE",
                     "conditions": [
                         {
-                            "command": "[ -s $SAMPLE/$SAMPLE.fastq ]"
+                            "command": "[ -s $SAMPLE.fastq ]"
                         }
                     ],
                     "description": "",
@@ -25,7 +29,7 @@
                         "cpu": 1,
                         "dependencies": [],
                         "error": "download_err",
-                        "job_name": "download-${SAMPLE}",
+                        "job_name": "download-${experiment_variable}",
                         "memory": {
                             "quantity": 10,
                             "size": "GB"
@@ -42,6 +46,7 @@
                         "profile/bioinf",
                         "sra/2.8.2"
                     ],
+                    "script_level": "experiment",
                     "sequential": false,
                     "skip": false,
                     "title": "Download",
@@ -52,13 +57,16 @@
                 {
                     "checks": [
                         {
-                            "file": "$SAMPLE/fastqc_before"
+                            "file": "fastqc_before"
                         }
                     ],
-                    "commandline": "mkdir $SAMPLE/fastqc_before; fastqc --nogroup --extract $SAMPLE/$SAMPLE.fastq -o $SAMPLE/fastqc_before",
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "mkdir fastqc_before; fastqc --nogroup --extract $SAMPLE.fastq -o fastqc_before",
                     "conditions": [
                         {
-                            "command": "[ -d $SAMPLE/fastqc_before ]"
+                            "command": "[ -d fastqc_before ]"
                         }
                     ],
                     "description": "",
@@ -70,7 +78,7 @@
                             "Download"
                         ],
                         "error": "fastqc_err",
-                        "job_name": "fastqc_before-$SAMPLE",
+                        "job_name": "fastqc_before-${project_variable}",
                         "memory": {
                             "quantity": 10,
                             "size": "GB"
@@ -87,6 +95,7 @@
                         "profile/bioinf",
                         "fastqc/0.11.5"
                     ],
+                    "script_level": "project",
                     "sequential": false,
                     "skip": false,
                     "title": "Fastqc_before",
@@ -97,13 +106,16 @@
                 {
                     "checks": [
                         {
-                            "file": "$SAMPLE/$SAMPLE.trim.fastq"
+                            "file": "$SAMPLE.trim.fastq"
                         }
                     ],
-                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar SE -threads 36 -phred33 $SAMPLE/$SAMPLE.fastq $SAMPLE/$SAMPLE.trim.fastq ILLUMINACLIP:$TRIMM_ADAPTERS/TruSeq3-SE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 HEADCROP:13",
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar SE -threads 36 -phred33 $SAMPLE.fastq $SAMPLE.trim.fastq ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-SE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 HEADCROP:13",
                     "conditions": [
                         {
-                            "command": "[ -s $SAMPLE/$SAMPLE.trim.fastq ]"
+                            "command": "[ -s $SAMPLE.trim.fastq ]"
                         }
                     ],
                     "description": "",
@@ -115,14 +127,14 @@
                             "Download"
                         ],
                         "error": "trimmomatic_err",
-                        "job_name": "trimming-$SAMPLE",
+                        "job_name": "trimming-${sample_variable}",
                         "memory": {
                             "quantity": 30,
                             "size": "GB"
                         },
                         "mpi_procs": 0,
                         "nodes": 1,
-                        "output": "trimmomatic_err",
+                        "output": "trimmomatic_out",
                         "queue": "gll_usr_prod",
                         "walltime": "00:15:00"
                     },
@@ -132,6 +144,7 @@
                         "profile/bioinf",
                         "trimmomatic/0.36"
                     ],
+                    "script_level": "sample",
                     "sequential": false,
                     "skip": false,
                     "title": "Trimming",
@@ -145,10 +158,13 @@
                             "file": "$SAMPLE/fastqc_after"
                         }
                     ],
-                    "commandline": "mkdir $SAMPLE/fastqc_after; fastqc --nogroup --extract $SAMPLE/$SAMPLE.trim.fastq -o $SAMPLE/fastqc_after",
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "mkdir fastqc_after; fastqc --nogroup --extract $SAMPLE.trim.fastq -o fastqc_after",
                     "conditions": [
                         {
-                            "command": "[ -d $SAMPLE/fastqc_after ]"
+                            "command": "[ -d fastqc_after ]"
                         }
                     ],
                     "description": "",
@@ -160,7 +176,7 @@
                             "Trimming"
                         ],
                         "error": "fastqc_after_err",
-                        "job_name": "fastqc_after-$FILE",
+                        "job_name": "fastqc_after-${project_variable}",
                         "memory": {
                             "quantity": 10,
                             "size": "GB"
@@ -177,6 +193,7 @@
                         "profile/bioinf",
                         "fastqc/0.11.5"
                     ],
+                    "script_level": "project",
                     "sequential": false,
                     "skip": false,
                     "title": "Fastqc_after",
@@ -187,13 +204,16 @@
                 {
                     "checks": [
                         {
-                            "file": "$SAMPLE/$SAMPLE.sam"
+                            "file": "$SAMPLE.sam"
                         }
                     ],
-                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/hg19_UCSC/genome -U $SAMPLE/$SAMPLE.trim.fastq -S $SAMPLE/$SAMPLE.sam",
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p $cpu_variable --dta -q -x $HISAT2_INDEXES/mm10/genome -U $SAMPLE.trim.fastq -S $SAMPLE.sam",
                     "conditions": [
                         {
-                            "command": "[ -s $SAMPLE/$SAMPLE.sam ]"
+                            "command": "[ -s $SAMPLE.sam ]"
                         }
                     ],
                     "description": "",
@@ -205,9 +225,9 @@
                             "Trimming"
                         ],
                         "error": "hisat_err",
-                        "job_name": "hisat-$SAMPLE",
+                        "job_name": "hisat-${sample_variable}",
                         "memory": {
-                            "quantity": 118,
+                            "quantity": 115,
                             "size": "GB"
                         },
                         "mpi_procs": 0,
@@ -220,8 +240,9 @@
                     "iterate": false,
                     "modules": [
                         "profile/bioinf",
-                        "hisat2/2.0.4"
+                        "hisat2/2.1.0"
                     ],
+                    "script_level": "sample",
                     "sequential": false,
                     "skip": false,
                     "title": "Mapping",
@@ -230,8 +251,15 @@
                     "write_stdout_log": true
                 },
                 {
-                    "commandline": "$SAMTOOLS_HOME/bin/samtools sort -@ 36 -o $FILE/$FILE.bam $FILE/$FILE.sam",
-                    "conditions": [],
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$SAMTOOLS_HOME/bin/samtools sort -@ $cpu_variable -o $SAMPLE.bam $SAMPLE.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE.bam ]"
+                        }
+                    ],
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
@@ -241,7 +269,7 @@
                             "Mapping"
                         ],
                         "error": "sort_err",
-                        "job_name": "sort",
+                        "job_name": "sort-${sample_variable}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
@@ -249,35 +277,43 @@
                         "mpi_procs": 0,
                         "nodes": 1,
                         "output": "sort_out",
-                        "queue": "bdw_usr_prod",
+                        "queue": "gll_usr_prod",
                         "walltime": "03:00:00"
                     },
                     "hpc_directives_text": "",
                     "iterate": true,
                     "modules": [
                         "profile/bioinf",
-                        "samtools/1.3.1"
+                        "samtools/1.7"
                     ],
+                    "script_level": "sample",
                     "sequential": true,
-                    "skip": true,
+                    "skip": false,
                     "title": "Sorting",
                     "type": "per-sample",
                     "write_stderr_log": true,
                     "write_stdout_log": true
                 },
                 {
-                    "commandline": "$STRINGTIE_HOME/stringtie  -v -p 36 -G $IG_HG19_ANNOTATION/Genes/genes.gtf -o $FILE/${FILE}_hg19.gtf -l $FILE $FILE/${FILE}_hg19.bam",
-                    "conditions": [],
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$STRINGTIE_HOME/bin/stringtie  -v -p $cpu_variable -G $ANNOTATION/Genes/genes.gtf -o $SAMPLE.gtf -l $SAMPLE $SAMPLE.bam",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE.gtf ]"
+                        }
+                    ],
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
                         "account": "cin_staff",
-                        "cpu": 136,
+                        "cpu": 36,
                         "dependencies": [
                             "Sorting"
                         ],
                         "error": "stringtie_err",
-                        "job_name": "stringtie",
+                        "job_name": "stringtie-${sample_variable}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
@@ -285,25 +321,30 @@
                         "mpi_procs": 0,
                         "nodes": 1,
                         "output": "stringtie_out",
-                        "queue": "bdw_usr_prod",
+                        "queue": "gll_usr_prod",
                         "walltime": "02:00:00"
                     },
                     "hpc_directives_text": "",
                     "iterate": true,
                     "modules": [
                         "profile/bioinf",
-                        "ig_homo_sapiens/hg19",
-                        "stringtie/1.3.1"
+                        "profile/global",
+                        "stringtie/1.3.4",
+                        "ig_Mus_musculus/mm10"
                     ],
+                    "script_level": "sample",
                     "sequential": true,
-                    "skip": true,
+                    "skip": false,
                     "title": "StringTie",
                     "type": "per-sample",
                     "write_stderr_log": true,
                     "write_stdout_log": true
                 },
                 {
-                    "commandline": "echo $FILE/$FILE.gtf >> merge_list_hum.txt",
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "echo $EXPERIMENT/$SAMPLE/$SAMPLE.gtf >> ../../merge_list_hum.txt",
                     "conditions": [],
                     "description": "",
                     "description_short": "",
@@ -314,7 +355,7 @@
                             "StringTie"
                         ],
                         "error": "prepare_err",
-                        "job_name": "prepare",
+                        "job_name": "prepare-${project_variable}",
                         "memory": {
                             "quantity": 1,
                             "size": "GB"
@@ -322,30 +363,40 @@
                         "mpi_procs": 0,
                         "nodes": 1,
                         "output": "prepare_out",
-                        "queue": "bdw_usr_prod",
+                        "queue": "gll_usr_prod",
                         "walltime": "00:01:00"
                     },
                     "hpc_directives_text": "",
                     "iterate": true,
                     "modules": [],
+                    "script_level": "project",
                     "sequential": true,
-                    "skip": true,
+                    "skip": false,
                     "title": "PrepareStringTieMerge",
                     "type": "per-step",
                     "write_stderr_log": true,
                     "write_stdout_log": true
                 },
                 {
-                    "commandline": "$STRINGTIE_HOME/stringtie --merge -p 36 -G $IG_HG19_ANNOTATION/Genes/genes.gtf  -o merged_list_hum.gtf merge_list_hum.txt",
-                    "conditions": [],
+                    "command_group_level": "all",
+                    "command_level": "project",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$STRINGTIE_HOME/bin/stringtie --merge -p $cpu_variable -G $ANNOTATION/Genes/genes.gtf  -o merged_list_hum.gtf merge_list_hum.txt",
+                    "conditions": [
+                        {
+                            "command": "[ -s merged_list_hum.gtf ]"
+                        }
+                    ],
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
                         "account": "cin_staff",
                         "cpu": 36,
-                        "dependencies": [],
+                        "dependencies": [
+                            "PrepareStringTieMerge"
+                        ],
                         "error": "stringtiemerge_err",
-                        "job_name": "stringtiemerge",
+                        "job_name": "stringtiemerge-${project_variable}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
@@ -353,25 +404,30 @@
                         "mpi_procs": 0,
                         "nodes": 1,
                         "output": "stringtiemerge_out",
-                        "queue": "bdw_usr_prod",
-                        "walltime": "1-00:00:00"
+                        "queue": "gll_usr_prod",
+                        "walltime": "10:00:00"
                     },
                     "hpc_directives_text": "",
                     "iterate": true,
                     "modules": [
                         "profile/bioinf",
-                        "ig_homo_sapiens/hg19",
-                        "stringtie/1.3.1"
+                        "profile/global",
+                        "stringtie/1.3.4",
+                        "ig_Mus_musculus/mm10"
                     ],
+                    "script_level": "project",
                     "sequential": true,
-                    "skip": true,
+                    "skip": false,
                     "title": "StringTieMerge",
                     "type": "per-step",
                     "write_stderr_log": true,
                     "write_stdout_log": true
                 },
                 {
-                    "commandline": "$STRINGTIE_HOME/stringtie $FILE/$FILE.bam -B -e -p 36 -G merged_list_hum.gtf",
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$STRINGTIE_HOME/bin/stringtie $SAMPLE.bam -B -e -p $cpu_variable -G ../../merged_list_hum.gtf -o $SAMPLE.ballgown.gtf",
                     "conditions": [],
                     "description": "",
                     "description_short": "",
@@ -381,27 +437,27 @@
                         "dependencies": [
                             "StringTieMerge"
                         ],
-                        "error": "stringtiemerge_err",
-                        "job_name": "stringtieEB",
+                        "error": "stringtiemergeEB_err",
+                        "job_name": "stringtieEB-${sample_variable}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
                         },
                         "mpi_procs": 0,
                         "nodes": 1,
-                        "output": "stringtiemerge_out",
-                        "queue": "bdw_usr_prod",
+                        "output": "stringtiemergeEB_out",
+                        "queue": "gll_usr_prod",
                         "walltime": "02:00:00"
                     },
                     "hpc_directives_text": "",
                     "iterate": true,
                     "modules": [
                         "profile/bioinf",
-                        "ig_homo_sapiens/hg19",
-                        "stringtie/1.3.1"
+                        "stringtie/1.3.4"
                     ],
+                    "script_level": "sample",
                     "sequential": true,
-                    "skip": true,
+                    "skip": false,
                     "title": "StringTieEB",
                     "type": "per-sample",
                     "write_stderr_log": true,
@@ -410,8 +466,12 @@
             ],
             "tags": [
                 {
-                    "name": "Homo sapiens",
+                    "name": "Mus musculus",
                     "type": "Organism"
+                },
+                {
+                    "name": "SE",
+                    "type": "Layout"
                 }
             ],
             "variables": [
@@ -432,6 +492,12 @@
                     "key": "project_variable",
                     "key_disabled": true,
                     "value": "PROJECT"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the experiment ID",
+                    "key": "experiment_variable",
+                    "key_disabled": true,
+                    "value": "EXPERIMENT"
                 },
                 {
                     "description": "Variable to use across scripts to refer to the index of this project",
@@ -455,20 +521,23 @@
         },
         {
             "cluster": "galileo",
-            "color": "#333fff",
+            "color": "#ff9933",
             "disabled": false,
-            "id": "Transcriptomic Single End (Mus musculus)",
+            "id": "TransSE_Homo",
             "steps": [
                 {
                     "checks": [
                         {
-                            "file": "$SAMPLE/$SAMPLE.fastq"
+                            "file": "$SAMPLE.fastq"
                         }
                     ],
-                    "commandline": "mkdir $SAMPLE\n#ln -s /marconi_scratch/userinternal/tcastign/ferri/hum_PRJNA318275/$SAMPLE/$SAMPLE.fastq $SAMPLE/$SAMPLE.fastq\n\n#rsync login.marconi.cineca.it:/marconi_scratch/userinternal/tcastign/ferri/hum_PRJNA318275/$SAMPLE/$SAMPLE.fastq $SAMPLE/$SAMPLE.fastq\n\n#ln -s ../../data/$SAMPLE.fastq $SAMPLE/$SAMPLE.fastq\n\nfastq-dump $SAMPLE -O $SAMPLE",
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "fastq-dump $SAMPLE",
                     "conditions": [
                         {
-                            "command": "[ -s $SAMPLE/$SAMPLE.fastq ]"
+                            "command": "[ -s $SAMPLE.fastq ]"
                         }
                     ],
                     "description": "",
@@ -478,7 +547,7 @@
                         "cpu": 1,
                         "dependencies": [],
                         "error": "download_err",
-                        "job_name": "download-${SAMPLE}",
+                        "job_name": "download-${sample_variable}",
                         "memory": {
                             "quantity": 10,
                             "size": "GB"
@@ -495,6 +564,7 @@
                         "profile/bioinf",
                         "sra/2.8.2"
                     ],
+                    "script_level": "sample",
                     "sequential": false,
                     "skip": false,
                     "title": "Download",
@@ -505,13 +575,15 @@
                 {
                     "checks": [
                         {
-                            "file": "$SAMPLE/fastqc_before"
+                            "file": "fastqc_before"
                         }
                     ],
-                    "commandline": "mkdir $SAMPLE/fastqc_before; fastqc --nogroup --extract $SAMPLE/$SAMPLE.fastq -o $SAMPLE/fastqc_before",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "mkdir fastqc_before; fastqc --nogroup --extract $SAMPLE.fastq -o fastqc_before",
                     "conditions": [
                         {
-                            "command": "[ -d $SAMPLE/fastqc_before ]"
+                            "command": "[ -d fastqc_before ]"
                         }
                     ],
                     "description": "",
@@ -523,7 +595,7 @@
                             "Download"
                         ],
                         "error": "fastqc_err",
-                        "job_name": "fastqc_before-$SAMPLE",
+                        "job_name": "fastqc_before-${project_variable}",
                         "memory": {
                             "quantity": 10,
                             "size": "GB"
@@ -540,6 +612,7 @@
                         "profile/bioinf",
                         "fastqc/0.11.5"
                     ],
+                    "script_level": "project",
                     "sequential": false,
                     "skip": false,
                     "title": "Fastqc_before",
@@ -550,13 +623,15 @@
                 {
                     "checks": [
                         {
-                            "file": "$SAMPLE/$SAMPLE.trim.fastq"
+                            "file": "$SAMPLE.trim.fastq"
                         }
                     ],
-                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar SE -threads 36 -phred33 $SAMPLE/$SAMPLE.fastq $SAMPLE/$SAMPLE.trim.fastq ILLUMINACLIP:$TRIMM_ADAPTERS/TruSeq3-SE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 HEADCROP:13",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar SE -threads 36 -phred33 $SAMPLE.fastq $SAMPLE.trim.fastq ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-SE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 HEADCROP:13",
                     "conditions": [
                         {
-                            "command": "[ -s $SAMPLE/$SAMPLE.trim.fastq ]"
+                            "command": "[ -s $SAMPLE.trim.fastq ]"
                         }
                     ],
                     "description": "",
@@ -568,16 +643,16 @@
                             "Download"
                         ],
                         "error": "trimmomatic_err",
-                        "job_name": "trimming-$SAMPLE",
+                        "job_name": "trimming-${project_variable}",
                         "memory": {
                             "quantity": 30,
                             "size": "GB"
                         },
                         "mpi_procs": 0,
                         "nodes": 1,
-                        "output": "trimmomatic_err",
+                        "output": "trimmomatic_out",
                         "queue": "gll_usr_prod",
-                        "walltime": "00:15:00"
+                        "walltime": "02:00:00"
                     },
                     "hpc_directives_text": "",
                     "iterate": false,
@@ -585,6 +660,7 @@
                         "profile/bioinf",
                         "trimmomatic/0.36"
                     ],
+                    "script_level": "project",
                     "sequential": false,
                     "skip": false,
                     "title": "Trimming",
@@ -595,13 +671,16 @@
                 {
                     "checks": [
                         {
-                            "file": "$SAMPLE/fastqc_after"
+                            "file": "fastqc_after"
                         }
                     ],
-                    "commandline": "mkdir $SAMPLE/fastqc_after; fastqc --nogroup --extract $SAMPLE/$SAMPLE.trim.fastq -o $SAMPLE/fastqc_after",
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "mkdir fastqc_after; fastqc --nogroup --extract $SAMPLE.trim.fastq -o $SAMPLE/fastqc_after",
                     "conditions": [
                         {
-                            "command": "[ -d $SAMPLE/fastqc_after ]"
+                            "command": "[ -d fastqc_after ]"
                         }
                     ],
                     "description": "",
@@ -613,7 +692,7 @@
                             "Trimming"
                         ],
                         "error": "fastqc_after_err",
-                        "job_name": "fastqc_after-$FILE",
+                        "job_name": "fastqc_after-${project_variable}",
                         "memory": {
                             "quantity": 10,
                             "size": "GB"
@@ -630,6 +709,7 @@
                         "profile/bioinf",
                         "fastqc/0.11.5"
                     ],
+                    "script_level": "project",
                     "sequential": false,
                     "skip": false,
                     "title": "Fastqc_after",
@@ -640,13 +720,16 @@
                 {
                     "checks": [
                         {
-                            "file": "$SAMPLE/$SAMPLE.sam"
+                            "file": "$SAMPLE.sam"
                         }
                     ],
-                    "commandline": "$HISAT2_HOME/bin/hisat2 -p 36 --dta -q -x $HISAT2_INDEXES/mm10_UCSC/genome -U $SAMPLE/$SAMPLE.trim.fastq -S $SAMPLE/$SAMPLE.sam",
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p $cpu_variable --dta -q -x $HISAT2_INDEXES/hg19_UCSC/genome -U $SAMPLE.trim.fastq -S $SAMPLE.sam",
                     "conditions": [
                         {
-                            "command": "[ -s $SAMPLE/$SAMPLE.sam ]"
+                            "command": "[ -s $SAMPLE.sam ]"
                         }
                     ],
                     "description": "",
@@ -658,9 +741,9 @@
                             "Trimming"
                         ],
                         "error": "hisat_err",
-                        "job_name": "hisat-$SAMPLE",
+                        "job_name": "hisat-${sample_variable}",
                         "memory": {
-                            "quantity": 118,
+                            "quantity": 115,
                             "size": "GB"
                         },
                         "mpi_procs": 0,
@@ -673,8 +756,9 @@
                     "iterate": false,
                     "modules": [
                         "profile/bioinf",
-                        "hisat2/2.0.4"
+                        "hisat2/2.1.0"
                     ],
+                    "script_level": "sample",
                     "sequential": false,
                     "skip": false,
                     "title": "Mapping",
@@ -683,8 +767,15 @@
                     "write_stdout_log": true
                 },
                 {
-                    "commandline": "$SAMTOOLS_HOME/bin/samtools sort -@ 36 -o $FILE/$FILE.bam $FILE/$FILE.sam",
-                    "conditions": [],
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$SAMTOOLS_HOME/bin/samtools sort -@ $cpu_variable -o $SAMPLE.bam $SAMPLE.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE.bam ]"
+                        }
+                    ],
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
@@ -694,7 +785,7 @@
                             "Mapping"
                         ],
                         "error": "sort_err",
-                        "job_name": "sort",
+                        "job_name": "sort-${sample_variable}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
@@ -702,35 +793,43 @@
                         "mpi_procs": 0,
                         "nodes": 1,
                         "output": "sort_out",
-                        "queue": "bdw_usr_prod",
+                        "queue": "gll_usr_prod",
                         "walltime": "03:00:00"
                     },
                     "hpc_directives_text": "",
                     "iterate": true,
                     "modules": [
                         "profile/bioinf",
-                        "samtools/1.3.1"
+                        "samtools/1.7"
                     ],
+                    "script_level": "sample",
                     "sequential": true,
-                    "skip": true,
+                    "skip": false,
                     "title": "Sorting",
                     "type": "per-sample",
                     "write_stderr_log": true,
                     "write_stdout_log": true
                 },
                 {
-                    "commandline": "$STRINGTIE_HOME/stringtie  -v -p 36 -G $IG_HG19_ANNOTATION/Genes/genes.gtf -o $FILE/${FILE}_hg19.gtf -l $FILE $FILE/${FILE}_hg19.bam",
-                    "conditions": [],
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$STRINGTIE_HOME/bin/stringtie  -v -p $cpu_variable -G $HG19_ANNOTATION/Genes/genes.gtf -o $SAMPLE.gtf -l $SAMPLE $SAMPLE.bam",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE.gtf ]"
+                        }
+                    ],
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
                         "account": "cin_staff",
-                        "cpu": 136,
+                        "cpu": 36,
                         "dependencies": [
                             "Sorting"
                         ],
                         "error": "stringtie_err",
-                        "job_name": "stringtie",
+                        "job_name": "stringtie-${sample_variable}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
@@ -738,25 +837,30 @@
                         "mpi_procs": 0,
                         "nodes": 1,
                         "output": "stringtie_out",
-                        "queue": "bdw_usr_prod",
+                        "queue": "gll_usr_prod",
                         "walltime": "02:00:00"
                     },
                     "hpc_directives_text": "",
                     "iterate": true,
                     "modules": [
                         "profile/bioinf",
-                        "ig_homo_sapiens/hg19",
-                        "stringtie/1.3.1"
+                        "profile/global",
+                        "stringtie/1.3.4",
+                        "ig_homo_sapiens/hg19"
                     ],
+                    "script_level": "sample",
                     "sequential": true,
-                    "skip": true,
+                    "skip": false,
                     "title": "StringTie",
                     "type": "per-sample",
                     "write_stderr_log": true,
                     "write_stdout_log": true
                 },
                 {
-                    "commandline": "echo $FILE/$FILE.gtf >> merge_list_hum.txt",
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "echo $EXPERIMENT/$SAMPLE/$SAMPLE.gtf >> ../../merge_list_hum.txt",
                     "conditions": [],
                     "description": "",
                     "description_short": "",
@@ -767,7 +871,7 @@
                             "StringTie"
                         ],
                         "error": "prepare_err",
-                        "job_name": "prepare",
+                        "job_name": "prepare-${project_variable}",
                         "memory": {
                             "quantity": 1,
                             "size": "GB"
@@ -775,30 +879,40 @@
                         "mpi_procs": 0,
                         "nodes": 1,
                         "output": "prepare_out",
-                        "queue": "bdw_usr_prod",
+                        "queue": "gll_usr_prod",
                         "walltime": "00:01:00"
                     },
                     "hpc_directives_text": "",
                     "iterate": true,
                     "modules": [],
+                    "script_level": "project",
                     "sequential": true,
-                    "skip": true,
+                    "skip": false,
                     "title": "PrepareStringTieMerge",
                     "type": "per-step",
                     "write_stderr_log": true,
                     "write_stdout_log": true
                 },
                 {
-                    "commandline": "$STRINGTIE_HOME/stringtie --merge -p 36 -G $IG_HG19_ANNOTATION/Genes/genes.gtf  -o merged_list_hum.gtf merge_list_hum.txt",
-                    "conditions": [],
+                    "command_group_level": "all",
+                    "command_level": "project",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$STRINGTIE_HOME/bin/stringtie --merge -p $cpu_variable -G $HG19_ANNOTATION/Genes/genes.gtf  -o merged_list_hum.gtf merge_list_hum.txt",
+                    "conditions": [
+                        {
+                            "command": "[ -s merged_list_hum.gtf ]"
+                        }
+                    ],
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
                         "account": "cin_staff",
                         "cpu": 36,
-                        "dependencies": [],
+                        "dependencies": [
+                            "PrepareStringTieMerge"
+                        ],
                         "error": "stringtiemerge_err",
-                        "job_name": "stringtiemerge",
+                        "job_name": "stringtiemerge-${project_variable}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
@@ -806,25 +920,30 @@
                         "mpi_procs": 0,
                         "nodes": 1,
                         "output": "stringtiemerge_out",
-                        "queue": "bdw_usr_prod",
-                        "walltime": "1-00:00:00"
+                        "queue": "gll_usr_prod",
+                        "walltime": "10:00:00"
                     },
                     "hpc_directives_text": "",
                     "iterate": true,
                     "modules": [
                         "profile/bioinf",
+                        "profile/global",
                         "ig_homo_sapiens/hg19",
-                        "stringtie/1.3.1"
+                        "stringtie/1.3.4"
                     ],
+                    "script_level": "project",
                     "sequential": true,
-                    "skip": true,
+                    "skip": false,
                     "title": "StringTieMerge",
                     "type": "per-step",
                     "write_stderr_log": true,
                     "write_stdout_log": true
                 },
                 {
-                    "commandline": "$STRINGTIE_HOME/stringtie $FILE/$FILE.bam -B -e -p 36 -G merged_list_hum.gtf",
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$STRINGTIE_HOME/bin/stringtie $SAMPLE.bam -B -e -p $cpu_variable -G ../../merged_list_hum.gtf -o $SAMPLE.ballgown.gtf",
                     "conditions": [],
                     "description": "",
                     "description_short": "",
@@ -834,8 +953,488 @@
                         "dependencies": [
                             "StringTieMerge"
                         ],
+                        "error": "stringtiemergeEB_err",
+                        "job_name": "stringtieEB-${sample_variable}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "stringtiemergeEB_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": true,
+                    "modules": [
+                        "profile/bioinf",
+                        "stringtie/1.3.4"
+                    ],
+                    "script_level": "sample",
+                    "sequential": true,
+                    "skip": false,
+                    "title": "StringTieEB",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                }
+            ],
+            "tags": [
+                {
+                    "name": "Homo sapiens",
+                    "type": "Organism"
+                },
+                {
+                    "name": "SE",
+                    "type": "Layout"
+                }
+            ],
+            "variables": [
+                {
+                    "description": "Variable to use across scripts to refer to a sample in this project",
+                    "key": "sample_variable",
+                    "key_disabled": true,
+                    "value": "SAMPLE"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to ALL samples in this project",
+                    "key": "all_samples_variable",
+                    "key_disabled": true,
+                    "value": "ALL_SAMPLES"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the project ID",
+                    "key": "project_variable",
+                    "key_disabled": true,
+                    "value": "PROJECT"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the experiment ID",
+                    "key": "experiment_variable",
+                    "key_disabled": true,
+                    "value": "EXPERIMENT"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the index of this project",
+                    "key": "project_index_variable",
+                    "key_disabled": true,
+                    "value": "PROJECT_INDEX"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the number of CPU defined in a step",
+                    "key": "cpu_variable",
+                    "key_disabled": true,
+                    "value": "CPU"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the name of the step",
+                    "key": "step_name_variable",
+                    "key_disabled": true,
+                    "value": "STEP_NAME"
+                }
+            ]
+        },
+        {
+            "cluster": "galileo",
+            "color": "#ffc433",
+            "disabled": false,
+            "id": "TransPE_Mus",
+            "steps": [
+                {
+                    "checks": [
+                        {
+                            "file": "${SAMPLE}_1.fastq"
+                        }
+                    ],
+                    "command_chunk_size": 10,
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "fastq-dump --split-files $SAMPLE",
+                    "conditions": [
+                        {
+                            "command": "[ -s ${SAMPLE}_1.fastq ] && [ -s ${SAMPLE}_2.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [],
+                        "error": "download_err",
+                        "job_name": "download-${experiment_variable}",
+                        "memory": {
+                            "quantity": 10,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "download_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "05:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": false,
+                    "modules": [
+                        "profile/bioinf",
+                        "sra/2.8.2"
+                    ],
+                    "script_level": "experiment",
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Download",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "checks": [
+                        {
+                            "file": "fastqc_before"
+                        }
+                    ],
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "mkdir fastqc_before; fastqc --nogroup --extract ${SAMPLE}_1.fastq -o fastqc_before && fastqc --nogroup --extract ${SAMPLE}_2.fastq -o fastqc_before",
+                    "conditions": [
+                        {
+                            "command": "[ -d fastqc_before ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "Quality control",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [
+                            "Download"
+                        ],
+                        "error": "fastqc_err",
+                        "job_name": "fastqc_before-${project_variable}",
+                        "memory": {
+                            "quantity": 10,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "fastqc_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": false,
+                    "modules": [
+                        "profile/bioinf",
+                        "fastqc/0.11.5"
+                    ],
+                    "script_level": "project",
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Fastqc_before",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "checks": [
+                        {
+                            "file": "${SAMPLE}_1.trimmed.paired.fastq"
+                        },
+                        {
+                            "file": "${SAMPLE}_2.trimmed.paired.fastq"
+                        }
+                    ],
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar PE -threads 36 -phred33 ${SAMPLE}_1.fastq ${SAMPLE}_2.fastq ${SAMPLE}_1.trimmed.paired.fastq ${SAMPLE}_1.trimmed.unpaired.fastq ${SAMPLE}_2.trimmed.paired.fastq ${SAMPLE}_2.trimmed.unpaired.fastq ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 HEADCROP:13",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE/${SAMPLE}_1.trimmed.paired.fastq ] && [ -s $SAMPLE/${SAMPLE}_2.trimmed.paired.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [
+                            "Download"
+                        ],
+                        "error": "trimmomatic_err",
+                        "job_name": "trimming-${sample_variable}",
+                        "memory": {
+                            "quantity": 30,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "trimmomatic_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "00:15:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": false,
+                    "modules": [
+                        "profile/bioinf",
+                        "trimmomatic/0.36"
+                    ],
+                    "script_level": "sample",
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Trimming",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "checks": [
+                        {
+                            "file": "fastqc_after"
+                        }
+                    ],
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "mkdir fastqc_after; fastqc --nogroup --extract ${SAMPLE}_1.fastq -o fastqc_before && fastqc --nogroup --extract ${SAMPLE}_2.fastq -o fastqc_after",
+                    "conditions": [
+                        {
+                            "command": "[ -d fastqc_after ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [
+                            "Trimming"
+                        ],
+                        "error": "fastqc_after_err",
+                        "job_name": "fastqc_after-${project_variable}",
+                        "memory": {
+                            "quantity": 10,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "fastqc_after_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "00:15:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": false,
+                    "modules": [
+                        "profile/bioinf",
+                        "fastqc/0.11.5"
+                    ],
+                    "script_level": "project",
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Fastqc_after",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "checks": [
+                        {
+                            "file": "$SAMPLE.sam"
+                        }
+                    ],
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p $cpu_variable --dta -q -x $HISAT2_INDEXES/mm10/genome -1 ${SAMPLE}_1.trimmed.paired.fastq -2 ${SAMPLE}_2.trimmed.paired.fastq -U ${SAMPLE}_1.trimmed.unpaired.fastq,${SAMPLE}_2.trimmed.unpaired.fastq -S $SAMPLE.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE.sam ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Trimming"
+                        ],
+                        "error": "hisat_err",
+                        "job_name": "hisat-${sample_variable}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "hisat_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "05:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": false,
+                    "modules": [
+                        "profile/bioinf",
+                        "hisat2/2.1.0"
+                    ],
+                    "script_level": "sample",
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Mapping",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$SAMTOOLS_HOME/bin/samtools sort -@ $cpu_variable -o $SAMPLE.bam $SAMPLE.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE.bam ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Mapping"
+                        ],
+                        "error": "sort_err",
+                        "job_name": "sort-${sample_variable}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "sort_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "03:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": true,
+                    "modules": [
+                        "profile/bioinf",
+                        "samtools/1.7"
+                    ],
+                    "script_level": "sample",
+                    "sequential": true,
+                    "skip": false,
+                    "title": "Sorting",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$STRINGTIE_HOME/bin/stringtie  -v -p $cpu_variable -G $ANNOTATION/Genes/genes.gtf -o $SAMPLE.gtf -l $SAMPLE $SAMPLE.bam",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE.gtf ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Sorting"
+                        ],
+                        "error": "stringtie_err",
+                        "job_name": "stringtie-${sample_variable}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "stringtie_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": true,
+                    "modules": [
+                        "profile/bioinf",
+                        "profile/global",
+                        "stringtie/1.3.4",
+                        "ig_Mus_musculus/mm10"
+                    ],
+                    "script_level": "sample",
+                    "sequential": true,
+                    "skip": false,
+                    "title": "StringTie",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "echo $EXPERIMENT/$SAMPLE/$SAMPLE.gtf >> ../../merge_list_hum.txt",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [
+                            "StringTie"
+                        ],
+                        "error": "prepare_err",
+                        "job_name": "prepare-${project_variable}",
+                        "memory": {
+                            "quantity": 1,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "prepare_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "00:01:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": true,
+                    "modules": [],
+                    "script_level": "project",
+                    "sequential": true,
+                    "skip": false,
+                    "title": "PrepareStringTieMerge",
+                    "type": "per-step",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "command_group_level": "all",
+                    "command_level": "project",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$STRINGTIE_HOME/bin/stringtie --merge -p $cpu_variable -G $ANNOTATION/Genes/genes.gtf  -o merged_list_hum.gtf merge_list_hum.txt",
+                    "conditions": [
+                        {
+                            "command": "[ -s merged_list_hum.gtf ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "PrepareStringTieMerge"
+                        ],
                         "error": "stringtiemerge_err",
-                        "job_name": "stringtieEB",
+                        "job_name": "stringtiemerge-${project_variable}",
                         "memory": {
                             "quantity": 115,
                             "size": "GB"
@@ -843,18 +1442,60 @@
                         "mpi_procs": 0,
                         "nodes": 1,
                         "output": "stringtiemerge_out",
-                        "queue": "bdw_usr_prod",
+                        "queue": "gll_usr_prod",
+                        "walltime": "10:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": true,
+                    "modules": [
+                        "profile/bioinf",
+                        "profile/global",
+                        "stringtie/1.3.4",
+                        "ig_Mus_musculus/mm10"
+                    ],
+                    "script_level": "project",
+                    "sequential": true,
+                    "skip": false,
+                    "title": "StringTieMerge",
+                    "type": "per-step",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$STRINGTIE_HOME/bin/stringtie $SAMPLE.bam -B -e -p $cpu_variable -G ../../merged_list_hum.gtf -o $SAMPLE.ballgown.gtf",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "StringTieMerge"
+                        ],
+                        "error": "stringtiemergeEB_err",
+                        "job_name": "stringtieEB-${sample_variable}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "stringtiemergeEB_out",
+                        "queue": "gll_usr_prod",
                         "walltime": "02:00:00"
                     },
                     "hpc_directives_text": "",
                     "iterate": true,
                     "modules": [
                         "profile/bioinf",
-                        "ig_homo_sapiens/hg19",
-                        "stringtie/1.3.1"
+                        "stringtie/1.3.4"
                     ],
+                    "script_level": "sample",
                     "sequential": true,
-                    "skip": true,
+                    "skip": false,
                     "title": "StringTieEB",
                     "type": "per-sample",
                     "write_stderr_log": true,
@@ -865,6 +1506,10 @@
                 {
                     "name": "Mus musculus",
                     "type": "Organism"
+                },
+                {
+                    "name": "PE",
+                    "type": "Layout"
                 }
             ],
             "variables": [
@@ -885,6 +1530,534 @@
                     "key": "project_variable",
                     "key_disabled": true,
                     "value": "PROJECT"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the experiment ID",
+                    "key": "experiment_variable",
+                    "key_disabled": true,
+                    "value": "EXPERIMENT"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the index of this project",
+                    "key": "project_index_variable",
+                    "key_disabled": true,
+                    "value": "PROJECT_INDEX"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the number of CPU defined in a step",
+                    "key": "cpu_variable",
+                    "key_disabled": true,
+                    "value": "CPU"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the name of the step",
+                    "key": "step_name_variable",
+                    "key_disabled": true,
+                    "value": "STEP_NAME"
+                }
+            ]
+        },
+        {
+            "cluster": "galileo",
+            "color": "#15d75f",
+            "disabled": false,
+            "id": "TransPE_Rattus",
+            "steps": [
+                {
+                    "checks": [
+                        {
+                            "file": "${SAMPLE}_1.fastq"
+                        }
+                    ],
+                    "command_chunk_size": 10,
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "fastq-dump --split-files $SAMPLE",
+                    "conditions": [
+                        {
+                            "command": "[ -s ${SAMPLE}_1.fastq ] && [ -s ${SAMPLE}_2.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [],
+                        "error": "download_err",
+                        "job_name": "download-${experiment_variable}",
+                        "memory": {
+                            "quantity": 10,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "download_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "05:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": false,
+                    "modules": [
+                        "profile/bioinf",
+                        "sra/2.8.2"
+                    ],
+                    "script_level": "experiment",
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Download",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "checks": [
+                        {
+                            "file": "fastqc_before"
+                        }
+                    ],
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "mkdir fastqc_before; fastqc --nogroup --extract ${SAMPLE}_1.fastq -o fastqc_before && fastqc --nogroup --extract ${SAMPLE}_2.fastq -o fastqc_before",
+                    "conditions": [
+                        {
+                            "command": "[ -d fastqc_before ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "Quality control",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [
+                            "Download"
+                        ],
+                        "error": "fastqc_err",
+                        "job_name": "fastqc_before-${project_variable}",
+                        "memory": {
+                            "quantity": 10,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "fastqc_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": false,
+                    "modules": [
+                        "profile/bioinf",
+                        "fastqc/0.11.5"
+                    ],
+                    "script_level": "project",
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Fastqc_before",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "checks": [
+                        {
+                            "file": "${SAMPLE}_1.trimmed.paired.fastq"
+                        },
+                        {
+                            "file": "${SAMPLE}_2.trimmed.paired.fastq"
+                        }
+                    ],
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar PE -threads 36 -phred33 ${SAMPLE}_1.fastq ${SAMPLE}_2.fastq ${SAMPLE}_1.trimmed.paired.fastq ${SAMPLE}_1.trimmed.unpaired.fastq ${SAMPLE}_2.trimmed.paired.fastq ${SAMPLE}_2.trimmed.unpaired.fastq ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 HEADCROP:13",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE/${SAMPLE}_1.trimmed.paired.fastq ] && [ -s $SAMPLE/${SAMPLE}_2.trimmed.paired.fastq ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [
+                            "Download"
+                        ],
+                        "error": "trimmomatic_err",
+                        "job_name": "trimming-${sample_variable}",
+                        "memory": {
+                            "quantity": 30,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "trimmomatic_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "00:15:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": false,
+                    "modules": [
+                        "profile/bioinf",
+                        "trimmomatic/0.36"
+                    ],
+                    "script_level": "sample",
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Trimming",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "checks": [
+                        {
+                            "file": "fastqc_after"
+                        }
+                    ],
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "mkdir fastqc_after; fastqc --nogroup --extract ${SAMPLE}_1.fastq -o fastqc_before && fastqc --nogroup --extract ${SAMPLE}_2.fastq -o fastqc_after",
+                    "conditions": [
+                        {
+                            "command": "[ -d fastqc_after ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [
+                            "Trimming"
+                        ],
+                        "error": "fastqc_after_err",
+                        "job_name": "fastqc_after-${project_variable}",
+                        "memory": {
+                            "quantity": 10,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "fastqc_after_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "00:15:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": false,
+                    "modules": [
+                        "profile/bioinf",
+                        "fastqc/0.11.5"
+                    ],
+                    "script_level": "project",
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Fastqc_after",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "checks": [
+                        {
+                            "file": "$SAMPLE.sam"
+                        }
+                    ],
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$HISAT2_HOME/bin/hisat2 -p $cpu_variable --dta -q -x $HISAT2_INDEXES/rn6/genome -1 ${SAMPLE}_1.trimmed.paired.fastq -2 ${SAMPLE}_2.trimmed.paired.fastq -U ${SAMPLE}_1.trimmed.unpaired.fastq,${SAMPLE}_2.trimmed.unpaired.fastq -S $SAMPLE.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE.sam ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Trimming"
+                        ],
+                        "error": "hisat_err",
+                        "job_name": "hisat-${sample_variable}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "hisat_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "05:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": false,
+                    "modules": [
+                        "profile/bioinf",
+                        "hisat2/2.1.0"
+                    ],
+                    "script_level": "sample",
+                    "sequential": false,
+                    "skip": false,
+                    "title": "Mapping",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$SAMTOOLS_HOME/bin/samtools sort -@ $cpu_variable -o $SAMPLE.bam $SAMPLE.sam",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE.bam ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Mapping"
+                        ],
+                        "error": "sort_err",
+                        "job_name": "sort-${sample_variable}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "sort_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "03:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": true,
+                    "modules": [
+                        "profile/bioinf",
+                        "samtools/1.7"
+                    ],
+                    "script_level": "sample",
+                    "sequential": true,
+                    "skip": false,
+                    "title": "Sorting",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$STRINGTIE_HOME/bin/stringtie  -v -p $cpu_variable -G $ANNOTATION/Genes/genes.gtf -o $SAMPLE.gtf -l $SAMPLE $SAMPLE.bam",
+                    "conditions": [
+                        {
+                            "command": "[ -s $SAMPLE.gtf ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "Sorting"
+                        ],
+                        "error": "stringtie_err",
+                        "job_name": "stringtie-${sample_variable}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "stringtie_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": true,
+                    "modules": [
+                        "profile/bioinf",
+                        "profile/global",
+                        "stringtie/1.3.4",
+                        "ig_Rattus_norvegicus/rn6"
+                    ],
+                    "script_level": "sample",
+                    "sequential": true,
+                    "skip": false,
+                    "title": "StringTie",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "echo $EXPERIMENT/$SAMPLE/$SAMPLE.gtf >> ../../merge_list_hum.txt",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 1,
+                        "dependencies": [
+                            "StringTie"
+                        ],
+                        "error": "prepare_err",
+                        "job_name": "prepare-${project_variable}",
+                        "memory": {
+                            "quantity": 1,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "prepare_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "00:01:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": true,
+                    "modules": [],
+                    "script_level": "project",
+                    "sequential": true,
+                    "skip": false,
+                    "title": "PrepareStringTieMerge",
+                    "type": "per-step",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "command_group_level": "all",
+                    "command_level": "project",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$STRINGTIE_HOME/bin/stringtie --merge -p $cpu_variable -G $ANNOTATION/Genes/genes.gtf  -o merged_list_hum.gtf merge_list_hum.txt",
+                    "conditions": [
+                        {
+                            "command": "[ -s merged_list_hum.gtf ]"
+                        }
+                    ],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "PrepareStringTieMerge"
+                        ],
+                        "error": "stringtiemerge_err",
+                        "job_name": "stringtiemerge-${project_variable}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "stringtiemerge_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "10:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": true,
+                    "modules": [
+                        "profile/bioinf",
+                        "profile/global",
+                        "stringtie/1.3.4",
+                        "ig_Rattus_norvegicus/rn6"
+                    ],
+                    "script_level": "project",
+                    "sequential": true,
+                    "skip": false,
+                    "title": "StringTieMerge",
+                    "type": "per-step",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "command_group_level": "all",
+                    "command_level": "sample",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "$STRINGTIE_HOME/bin/stringtie $SAMPLE.bam -B -e -p $cpu_variable -G ../../merged_list_hum.gtf -o $SAMPLE.ballgown.gtf",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "hpc_directives": {
+                        "account": "cin_staff",
+                        "cpu": 36,
+                        "dependencies": [
+                            "StringTieMerge"
+                        ],
+                        "error": "stringtiemergeEB_err",
+                        "job_name": "stringtieEB-${sample_variable}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "stringtiemergeEB_out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "02:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "iterate": true,
+                    "modules": [
+                        "profile/bioinf",
+                        "stringtie/1.3.4"
+                    ],
+                    "script_level": "sample",
+                    "sequential": true,
+                    "skip": false,
+                    "title": "StringTieEB",
+                    "type": "per-sample",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                }
+            ],
+            "tags": [
+                {
+                    "name": "Rattus norvegicus",
+                    "type": "Organism"
+                },
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                }
+            ],
+            "variables": [
+                {
+                    "description": "Variable to use across scripts to refer to a sample in this project",
+                    "key": "sample_variable",
+                    "key_disabled": true,
+                    "value": "SAMPLE"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to ALL samples in this project",
+                    "key": "all_samples_variable",
+                    "key_disabled": true,
+                    "value": "ALL_SAMPLES"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to this project ID",
+                    "key": "project_variable",
+                    "key_disabled": true,
+                    "value": "PROJECT"
+                },
+                {
+                    "description": "Variable to use across scripts to refer to the experiment ID",
+                    "key": "experiment_variable",
+                    "key_disabled": true,
+                    "value": "EXPERIMENT"
                 },
                 {
                     "description": "Variable to use across scripts to refer to the index of this project",

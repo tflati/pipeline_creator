@@ -74,12 +74,15 @@
 			<input label="Project ID" type="text" ng-model="experiment.id">
 		</md-input-container>
 		
+		<md-subheader class="md-primary">Run IDS <span class="lighter">(<span ng-bind="experiment.dataset.sample_ids.length"></span> sample<span ng-if="experiment.dataset.sample_ids.length>1">s</span> defined)</span></md-subheader>
+		<p class="margin-0" ng-repeat="run in experiment.dataset.sample_ids">{{run["id"]}}</p>
+		
 		<md-subheader class="md-primary">
 			Load one or more XLS files or specify the sample IDs manually in the textarea (one per line)
-			<span class="lighter">(<span ng-bind="experiment.dataset.sample_ids.split('\n').length"></span> sample(s) defined)</span>
 		</md-subheader>
 		<md-input-container>
-			<textarea max-rows="3" rows="3" label="Sample IDS" ng-model="experiment.dataset.sample_ids" aria-label="Sample IDs"></textarea>
+			<textarea max-rows="3" rows="3" label="Sample IDS" ng-model="text" aria-label="Sample IDs"></textarea>
+			<md-button class="md-button md-warn md-raised" ng-click="samples_changed(experiment.dataset, text)">Set run IDs</md-button>
 		</md-input-container>
 		<md-input-container>
 			<input type="file" import-sheet-js="xls_loaded" multiple aria-label="Load sample IDS from a file"/>

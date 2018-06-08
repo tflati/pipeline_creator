@@ -125,6 +125,10 @@ md-chip:last-child {
 	margin: 0px;
 }
 
+.margin-small {
+	margin: 10px;
+}
+
 .padding-medium {
 	padding: 15px;
 }
