@@ -697,8 +697,12 @@ def produce_script(v, vertex2name, project, pipeline, step, bioentity):
 #     job_name = job_name.replace("${STEP_NAME}", step["title"].replace(" ", "_"))
      
     file.write("#SBATCH --job-name={}\n".format(job_name))
-    file.write("#SBATCH -N {}\n".format(directives["nodes"]))
-    file.write("#SBATCH -n {}\n".format(directives["cpu"]))
+    if "mpi_procs" in directives and directives["mpi_procs"] > 0:
+        file.write("#SBATCH --ntasks={}\n".format(int(directives["mpi_procs"]) * int(directives["nodes"])))
+        file.write("#SBATCH --ntasks-per-node={}\n".format(directives["mpi_procs"]))
+    else:
+        file.write("#SBATCH -N {}\n".format(directives["nodes"]))
+        file.write("#SBATCH -n {}\n".format(directives["cpu"]))
     #file.write("#SBATCH -n {}\n".format(directives["mpi_procs"]))
     file.write("#SBATCH -p {}\n".format(directives["queue"]))
     file.write("#SBATCH --mem={}{}\n".format(directives["memory"]["quantity"], directives["memory"]["size"]))
@@ -791,7 +795,6 @@ for EXPERIMENT in `cat experiments`; do
         if command_level_index == 2:
             file.write("""
 EXPERIMENT={}
-cd $EXPERIMENT
 """.format(bioentity_id))
         
         if command_level_index == 3:
@@ -1629,31 +1632,35 @@ def download_csv(request):
     if not os.path.exists(script_dir):
         os.makedirs(script_dir)
     
-    bioproject2srr = {}
-    for group in project["projects"]:
-        bioproject_id = group["dataset"]["bioproject_id"]
-        if bioproject_id not in bioproject2srr: bioproject2srr[bioproject_id] = []
-        bioproject2srr[bioproject_id].append(group)
+#     bioproject2srr = {}
+#     for bioproject in project["projects"]:
+#         for exp in bioproject["experiments"]:
+#             bioproject_id = exp["dataset"]["bioproject_id"]
+#             if bioproject_id not in bioproject2srr: bioproject2srr[bioproject_id] = []
+#             bioproject2srr[bioproject_id].append(exp)
     
-    for bioproject_id in bioproject2srr:
-        groups = bioproject2srr[bioproject_id]
+#     for bioproject_id in bioproject2srr:
+#         groups = bioproject2srr[bioproject_id]
+
+    for bioproject in project["projects"]:
+        
+        bioproject_id = bioproject["id"]
         
         attribute_keys = set()
-        for group in groups:
-            for attribute_key in group["dataset"]["attributes"].keys():
+        for exp in bioproject["experiments"]:
+            for attribute_key in exp["dataset"]["attributes"].keys():
                 attribute_keys.add(attribute_key)
         
         attribute_keys_to_remove = []
         for attribute_key in attribute_keys:
             attribute_values = Counter()
-            for group in groups:
-                for run in group["dataset"]["sample_ids"]:
-                    if attribute_key in group["dataset"]["attributes"]:
-                        value = group["dataset"]["attributes"][attribute_key]
-                        attribute_values[value] += 1
+            for exp in bioproject["experiments"]:
+                if attribute_key in exp["dataset"]["attributes"]:
+                    value = exp["dataset"]["attributes"][attribute_key]
+                    attribute_values[value] += 1
                         
             if len(attribute_values.keys()) == 1:
-                print("Discarding column {} for ProjectID={} Counter={}".format(attribute_key, bioproject_id, attribute_values))
+                print("Discarding column {} for ProjectID={} (not discriminating) Total={} Counter={}".format(attribute_key, bioproject_id, len(bioproject["experiments"]), attribute_values))
                 attribute_keys_to_remove.append(attribute_key)
         
         for attribute_key in attribute_keys_to_remove:
@@ -1661,16 +1668,15 @@ def download_csv(request):
         
         csv_writer = open(script_dir + "/" + bioproject_id + ".csv", "w")
         csv_writer.write("ids," + ",".join([a.replace(" ", "_") for a in attribute_keys]) + "\n")
-        for group in groups:
-            for run in group["dataset"]["sample_ids"]:
-                fields = []
-                fields.append(run["id"])
-                for attribute_key in attribute_keys:
-                    value = ""
-                    if attribute_key in group["dataset"]["attributes"]:
-                        value = group["dataset"]["attributes"][attribute_key]
-                    fields.append(value)
-                csv_writer.write(",".join([a.replace(" ", "_") for a in fields]) + "\n")
+        for exp in bioproject["experiments"]:
+            fields = []
+            fields.append(exp["id"])
+            for attribute_key in attribute_keys:
+                value = ""
+                if attribute_key in exp["dataset"]["attributes"]:
+                    value = exp["dataset"]["attributes"][attribute_key]
+                fields.append(value)
+            csv_writer.write(",".join([a.replace(" ", "_") for a in fields]) + "\n")
         csv_writer.close()
         
     archive_name = project["id"] + "_csv.zip"
