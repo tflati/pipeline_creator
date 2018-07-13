@@ -508,6 +508,9 @@ def projects(request):
 def pipelines(request):
     return HttpResponse(json.dumps(json.load(open(os.path.dirname(__file__) + "/utils/pipelines.json"))))
 
+def templates(request):
+    return HttpResponse(json.dumps(json.load(open(os.path.dirname(__file__) + "/utils/templates.json"))))
+
 def load_project(request, project_id):
     filepath = os.path.dirname(__file__) + "/data/"+project_id+".json"
     if os.path.exists(filepath):
@@ -636,7 +639,7 @@ def produce_script(v, vertex2name, project, pipeline, step, bioentity):
     command_level_index = levels.index(command_level)
     
     print("PRODUCE_SCRIPT", pipeline["id"], step["title"], bioentity_id, script_level, script_level_index)
-    
+        
     sh_file = name + ".sh"
     sh_dir = None
     
@@ -684,6 +687,7 @@ def produce_script(v, vertex2name, project, pipeline, step, bioentity):
     script_dir = os.path.dirname(__file__) + "/scripts/" + project["id"] + "/data/" + sh_dir
     if not os.path.exists(script_dir): os.makedirs(script_dir)
     filepath = script_dir + sh_file
+        
     file = open(filepath, "w")
 
     file.write("#!/bin/bash\n\n")
@@ -809,8 +813,10 @@ EXPERIMENT={}
 
     if script_level_index == 3: # run
         file.write("""
+PROJECT={}\n
+EXPERIMENT={}\n
 SAMPLE={}\n
-""".format(bioentity_id))
+""".format(bioproject["id"], experiment["id"], bioentity_id))
             
             
             
@@ -966,7 +972,7 @@ def produce_scripts(request):
             
             # Take the bioentities associated to this step
             bio_entities = []
-            if script_level == "top": bio_entities = []
+            if script_level == "top": bio_entities = [project]
             if script_level == "project":
                 for bioproject in project["projects"]:
                     if "disabled" in bioproject and bioproject["disabled"] == True: continue
@@ -1276,6 +1282,7 @@ def produce_scripts(request):
     # Master script
     filepath = script_dir + "/data/" + project["id"] +".sh"
     file = open(filepath, "w")
+    
     file.write("#!/bin/bash\n\n")
     file.write("# Project ID: {}\n".format(project["id"]))
     file.write("# Title: {}\n".format(project["title"]))
@@ -1284,6 +1291,8 @@ def produce_scripts(request):
     file.write("# Creation time: {}\n\n".format(datetime.datetime.now()))
     file.write("declare -A JOB_IDS\n\n")
     file.write("BASEDIR=`pwd`\n")
+    
+    file.write("rm job_info\n")
     
     vertex2script = {}
     for v in g.nodes():
@@ -1307,7 +1316,10 @@ def produce_scripts(request):
         sh_name = final_script_path.split("/")[-1]
         basename = '/'.join(final_script_path.split("/")[0:-1])
         
-        print("VISITING VERTEX={}".format(vertex2name[v]))
+        step = vertexname2step[name]
+        bioentity = vertexname2bioentity[name]
+        
+#         print("VISITING VERTEX={}".format(vertex2name[v]))
         
         file.write("\n#{}\n#{} {} {}\n#{}\n".format("="*75, "="*25, name, "="*25, "="*75))
         
@@ -1347,8 +1359,11 @@ cd $BASEDIR
 job_id=$(echo $job_long_name | cut -d' ' -f4)
 echo "$sh_file => $job_id"
 JOB_IDS["{}"]=$job_id
+
+echo -e $job_id'\\t'"{}"'\\t'"{}"'\\t'"{}" >> job_info
+
 set +o xtrace
-""".format(basename, sh_name, name)
+""".format(basename, sh_name, name, name, bioentity["id"], bioentity["type"])
     
         else:
             script = """
@@ -1360,10 +1375,17 @@ job_id=$(echo $job_long_name | cut -d' ' -f4)
 echo "$sh_file => $job_id"
 cd $BASEDIR
 JOB_IDS["{}"]=$job_id
+
+echo -e $job_id'\\t'"{}"'\\t'"{}"'\\t'"{}" >> job_info
+
 set +o xtrace
-""".format(basename, sh_name, name)
+""".format(basename, sh_name, name, name, bioentity["id"], bioentity["type"])
         
         file.write(script)
+        
+    # Keep track of submitted jobs
+    file.write('\nrm job_ids; for x in "${JOB_IDS[@]}"; do echo $x >> job_ids; done\n')
+    file.write('date -I > run_info\n')
         
     file.close()
     st = os.stat(filepath)
@@ -1378,6 +1400,57 @@ set +o xtrace
 #     file.close()
 #     st = os.stat(filepath)
 #     os.chmod(filepath, st.st_mode | stat.S_IEXEC)
+    
+    total_experiments = 0
+    total_runs = 0
+    for bioproject in project["projects"]:
+        total_experiments += len(bioproject["experiments"])
+        for experiment in bioproject["experiments"]:
+            total_runs += len(experiment["dataset"]["sample_ids"])
+    
+    filepath = script_dir + "/data/info"
+    file = open(filepath, "w")
+    file.write("PROJECT_NAME={}\n".format(project["id"]))
+    file.write("PROJECT_DESCRIPTION={}\n".format(project["description"]))
+    file.write("PROJECT_CREATION_DATE={}\n".format(project["creation_date"]))
+    file.write("NUM_BIOPROJECT={}\n".format(len(project["projects"])))
+    file.write("NUM_EXPERIMENTS={}\n".format(total_experiments))
+    file.write("NUM_RUNS={}\n".format(total_runs))
+    file.write("NUM_PIPELINES={}\n".format(len(project["pipelines"])))
+    file.close()
+    
+    # Write the monitor script
+    filepath = script_dir + "/data/monitor.sh"
+    file = open(filepath, "w")
+    file.write("""
+CLUSTER=`hostname -f | cut -d'.' -f 2-`
+BASE_DIR="/gss/gss_work/DRES_wrkgalax/pipeline_monitor/$CLUSTER/"
+PROJECT_NAME=`grep "PROJECT_NAME" info | cut -d'=' -f 2`
+TARGET_DIR=$BASE_DIR$PROJECT_NAME
+
+if [ ! -d $TARGET_DIR ]
+then
+        mkdir -p $TARGET_DIR
+fi
+
+TARGET_FILE="$TARGET_DIR/$PROJECT_NAME.monitor"
+
+sacct -P --delimiter="\t" --starttime "`cat run_info`" --format="JobID,ExitCode,User,Time,Elapsed,State,JobName%50" | grep -v "batch" | grep -v "extern" > tmp
+cat tmp | head -n 1 | tr '\n' '\t' > header1
+cat tmp | grep -f job_ids > body
+echo -e "NodeName"'\t'"BioentityID"'\t'"BioentityType" > header2
+
+# Filter out the jobs which do not belong to this project
+join -j 1 -t '\t' body job_info > prefinal
+cat header1 header2 > header
+cat header prefinal > $TARGET_FILE
+rm tmp header1 header2 header body prefinal
+
+echo "Statistics written to: $TARGET_FILE"
+    """)
+    file.close()
+    st = os.stat(filepath)
+    os.chmod(filepath, st.st_mode | stat.S_IEXEC)
     
     # Archive production
     archive_name = script_dir
@@ -1420,6 +1493,42 @@ def replace_variables(x, project, bioproject, experiment, pipeline, step, bioent
             x = x.replace("${"+variable["key"]+"}", variable["value"])
         
     return x
+
+def invoke_monitor(request):
+    project = json.loads(request.body.decode('utf-8'))
+    id = project["id"]
+    cluster = project["pipelines"][0]["cluster"] + ".cineca.it"
+    
+    monitor_dir = os.path.dirname(__file__) + "/clusters/" + cluster + "/"
+    monitor_data = monitor_dir + id + "/" + id + ".monitor"
+    job_status_file = os.path.dirname(__file__) + "/utils/job_statuses.txt"
+    print("Trying to get the statistics from file={}".format(monitor_data))
+    
+    job_codes = {}
+    with open(job_status_file) as f:
+        for line in f:
+            fields = line.strip().split("\t")
+            job_codes[fields[1]] = {"id": fields[1], "code": fields[0], "description": fields[2], "color": fields[3]}
+    
+    header = []
+    data = []
+    with open(monitor_data, "r") as f:
+        for line in f:
+            fields = line.strip().split("\t")
+            if not header:
+                header = fields
+            else:
+                info = {}
+                for i in range(len(header)):
+                    k = header[i]
+                    v = fields[i]
+                    info[k] = v
+                
+                info["State"] = job_codes[info["State"].split(" ")[0]]
+                data.append(info)
+    
+    return HttpResponse(json.dumps(data))
+
 
 # def create_step_all_samples(subproject_id, subproject_dir, step, dataset, pipeline):
 #     directives = step["hpc_directives"]

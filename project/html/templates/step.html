@@ -52,23 +52,55 @@
 <textarea ng-model="step.commandline" rows="5" style="width: 90%;"></textarea>
 
 <h3>Checks</h3>
-<div>
-	<md-button class="md-button md-warn md-raised" ng-click="add_check(step)" tooltip="Add a check to this step" aria-label="Add a new check">
-       	<span class="fa-layers fa-fw">
-			<i class="fas fa-check"></i>
-			<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
-		</span>
-		Add a check
-	</md-button>
-
-	<div ng-repeat="check in step.checks">
-		<label><b>Check {{$index+1}}.</b></label>
-		<md-button class="md-icon-button" ng-click="delete_check(step.checks, check)" tooltip="Delete check" aria-label="Delete check">
-			<ng-md-icon icon="remove_circle" style="fill:red;"></ng-md-icon>
-		</md-button>
-		<textarea ng-model="check.file" rows="2" style="width: 90%;"></textarea>
+<div layout="row">
+	<div layout="column" layout-padding>
+		<my-autocomplete flex on-select="add_to_list(elem, list)" target="step.checks" data="globalService['templates']" label="Search in templates"></my-autocomplete>
+		<div layout="column" layout-align="center start">
+			<div ng-repeat="check in step.checks track by $index" layout="row" layout-align="start center">
+				<div layout="column">
+					<div layout="row" layout-align="start center">
+						<b ng-bind="check.title" tooltip="{{check.description_short}}"></b>
+						<span class="fa-layers fa-fw" ng-click="remove_from_list(step.checks, $index)" layout-margin>
+						    <i class="fas fa-circle" style="color:Tomato"></i>
+						    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i>
+						</span>
+						<md-button class="md-icon-button" ng-click="move_item(step.checks, $index, -1, $event)">
+					      <ng-md-icon icon="keyboard_arrow_up" aria-label="Move up this check"></ng-md-icon>
+					    </md-button>
+					    <md-button class="md-icon-button" ng-click="move_item(step.checks, $index, 1, $event)">
+					      <ng-md-icon icon="keyboard_arrow_down" aria-label="Move down this check"></ng-md-icon>
+					    </md-button>
+				    </div>
+				    <div layout="column">
+				    	<div class="code padding-medium">{{check.commandline}}</div>
+				    	<div layout="row" layout-align="start center" ng-repeat="variable in check.variables">
+				    		<b class="margin-small">{{variable.key}}</b>
+				    		<input ng-model="variable.value"></input>
+				    	</div>
+				    </div>
+			    </div>
+			</div>
+		</div>
 	</div>
 </div>
+
+<!-- <div> -->
+<!-- 	<md-button class="md-button md-warn md-raised" ng-click="add_check(step)" tooltip="Add a check to this step" aria-label="Add a new check"> -->
+<!--        	<span class="fa-layers fa-fw"> -->
+<!-- 			<i class="fas fa-check"></i> -->
+<!-- 			<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i> -->
+<!-- 		</span> -->
+<!-- 		Add a check -->
+<!-- 	</md-button> -->
+	
+<!-- 	<div ng-repeat="check in step.checks"> -->
+<!-- 		<label><b>Check {{$index+1}}.</b></label> -->
+<!-- 		<md-button class="md-icon-button" ng-click="delete_check(step.checks, check)" tooltip="Delete check" aria-label="Delete check"> -->
+<!-- 			<ng-md-icon icon="remove_circle" style="fill:red;"></ng-md-icon> -->
+<!-- 		</md-button> -->
+<!-- 		<textarea ng-model="check.file" rows="2" style="width: 90%;"></textarea> -->
+<!-- 	</div> -->
+<!-- </div> -->
 
 <h3>Step settings</h3>
 
@@ -201,11 +233,11 @@
 <h3>Modules</h3>
 <div layout="row">
 	<div layout="row" layout-padding>
-		<my-autocomplete flex on-select="add_module(elem, list)" target="step.modules" label="Search in modules" url="module_url"></my-autocomplete>
+		<my-autocomplete flex on-select="add_to_list(elem.label, list)" target="step.modules" label="Search in modules" url="module_url"></my-autocomplete>
 		<div layout="column" layout-align="center start">
 			<div ng-repeat="module in step.modules track by $index" layout="row" layout-align="start center">
 				<b ng-bind="module"></b>
-				<span class="fa-layers fa-fw" ng-click="remove_module(step, $index)" layout-margin>
+				<span class="fa-layers fa-fw" ng-click="remove_from_list(step.modules, $index)" layout-margin>
 				    <i class="fas fa-circle" style="color:Tomato"></i>
 				    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i>
 				</span>

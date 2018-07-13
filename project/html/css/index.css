@@ -45,6 +45,37 @@ v-pane-content {
 	width: 100%;	
 }
 
+.condition {
+	padding:10px;
+	width: 30px;
+}
+
+.simple-condition {
+	padding:5px;
+	width: 10px;
+}
+
+.simple-condition-container {
+	background-color: #f4511e;
+	margin:10px;
+	padding: 5px;
+}
+
+.binary-condition {
+	color: white;
+	background-color: #f4511e;
+	margin:10px;
+	padding: 10px;
+}
+
+.over-condition {
+	background-color: green;
+}
+
+.normal-condition {
+	background-color: white;
+}
+
 md-sidenav {
    position: fixed;
    height: 100%;
@@ -109,6 +140,10 @@ tr:nth-child(odd) {background: #FFF}
 
 md-chip:last-child {
 	margin-right: 0px;
+}
+
+my-autocomplete md-content {
+	border: 2px solid;
 }
 
 

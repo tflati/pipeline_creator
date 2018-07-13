@@ -1,4 +1,4 @@
-app.controller('mainController', function($scope, apiService, moment, globalService, messageService, $document, $timeout, $mdDialog, $mdSidenav){
+app.controller('mainController', function($scope, $location, apiService, moment, globalService, messageService, $document, $timeout, $mdDialog, $mdSidenav){
 	
 	$scope.projects = undefined;
 	$scope.selected_project = undefined;
@@ -9,6 +9,9 @@ app.controller('mainController', function($scope, apiService, moment, globalServ
 //	$scope.selected_step = undefined;
 	$scope.color = "FF0000";
 	$scope.keep_sidenav_open = true;
+	$scope.selected_tab = 0;
+	
+	$scope.globalService = globalService;
 	
 	var project_template = {
 			"id": "",
@@ -203,6 +206,39 @@ app.controller('mainController', function($scope, apiService, moment, globalServ
 			for(i in $scope.projects){
 				$scope.projects[i]["creation_epoch"] = moment($scope.projects[i].creation_date).unix();
 			}
+			
+			var path = $location.hash();
+			var pieces = path.split("/");
+			for (var i in pieces){
+				var piece = pieces[i];
+				console.log("PIECE", piece);
+				
+				if (i==0) {
+					for(var j in $scope.projects){
+						var project = $scope.projects[j];
+						if (project.id == piece){
+							$scope.select_project(project);
+						}
+					}
+					if($scope.selected_project == undefined)
+						console.log("NO PROJECT SELECTED");
+				}
+				else if (i==1) {
+					if (piece == "dataset") $scope.selected_tab = 0;
+					else if (piece == "pipeline") $scope.selected_tab = 1;
+					else if (piece == "monitor") $scope.selected_tab = 2;
+					else if (piece == "info") $scope.selected_tab = 3;
+					console.log("SELECTED TAB", $scope.selected_tab);
+				}
+				else if (i==2) {
+					for(var j in $scope.selected_project.pipelines){
+						var pipeline = $scope.selected_project.pipelines[j];
+						if (pipeline.id == piece){
+							$scope.select_pipeline(j);
+						}
+					}
+				}
+			}
 		});
 	};
 	
@@ -241,11 +277,14 @@ app.controller('mainController', function($scope, apiService, moment, globalServ
 		$scope.selected_experiment = experiment;
 	};
 	
-	$scope.select_pipeline = function(item){
+	$scope.select_pipeline = function(item, id, pane){
 		var pipeline = $scope.selected_project.pipelines[item];
-		console.log("SELECTING SUBPROJECT", pipeline,  $scope);
+		console.log("SELECTING PIPELINE", pipeline,  $scope, id, pane);
 		$scope.selected_pipeline = pipeline;
 		$scope.module_url = apiService.get_module_url(pipeline.cluster);
+//		var b = $accordion.hasExpandedPane();
+//		console.log("EXPANDED", b);
+//		if (!b) $accordion.expand(item)
 	};
 	
 	$scope.cloneSubproject = function(index, $event){
@@ -285,16 +324,44 @@ app.controller('mainController', function($scope, apiService, moment, globalServ
 		}
 	};
 	
-	$scope.add_module = function(item, list){
+	$scope.add_to_list = function(item, list){
 		if(item != undefined){
-			console.log("ADDED MODULE", item, list, $scope);
-			list.push(item.label);
+			console.log("ADDED ITEM", item, list, $scope);
+			list.push(item);
 		}
 	};
 	
-	$scope.remove_module = function(step, index){
-		console.log("REMOVING MODULE", step, step.modules[index]);
-		step.modules.splice(index, 1);
+//	$scope.extract_variables = function(check, pipeline){
+//		var variables = [];
+//		
+////		console.log("CHECK VARIABLES", check);
+//		
+//		var command = check.commandline;
+//		
+//		var i = 0;
+////		while(i >= 0){
+//			i = command.indexOf("${", i);
+//			if (i == -1) continue;
+//			
+//			var j = command.indexOf("}", i);
+//			if (j == -1) continue;
+//			
+//			var substring = command.substring(i, j+1);
+//			
+//			variables.push({
+//				key: substring,
+//				value: ""
+//			});
+//			
+//			i = j+1;
+////		}
+//		
+//		return variables;
+//	}
+	
+	$scope.remove_from_list = function(list, index){
+		console.log("REMOVING ITEM", list, index);
+		list.splice(index, 1);
 	};
 	
 	$scope.showAddProjectDialog = function(ev) {
@@ -1216,6 +1283,205 @@ app.controller('mainController', function($scope, apiService, moment, globalServ
 		}, function(result){
 			console.log("[DOWNLOAD SCRIPTS] AJAX RESULT ERROR", result);
 			messageService.showMessage("Server error: " + result.status, "error");
+		});
+	};
+	
+	$scope.update_monitor_data = function(project){
+		console.log("ASKING MONITOR DATA OF", project);
+		apiService.update_monitor_data(project, function(result){
+			console.log("MONITOR RESULT", result);
+			
+			var data = result.data;
+			
+			$scope.monitor = {
+				status: {
+						id: "global",
+						data: [],
+						labels: [],
+						colors: [],
+						options: {
+							legend: {
+					            display: true,
+					            position: "right"
+							}
+						}
+				},
+				elapsed: {
+					data: [[]],
+					labels: [],
+					options: {
+					},
+					series: ["Elapsed"]
+				},
+				project_status: [],
+				experiment_status: [],
+				run_status: [],
+			};
+			
+			for(var i in project.projects){
+				var proj = project.projects[i];
+				
+				var project_stats = {
+					id: proj.id,
+					data: [],
+					labels: [],
+					colors: [],
+					jobs: [],
+					options: {
+						responsive: false
+					}
+				};
+				
+				var closure = [];
+				closure.push(proj.id);
+				for(var j in proj.experiments){
+					var exp = proj.experiments[j];
+					closure.push(exp.id);
+					
+					var exp_stats = {
+							id: exp.id,
+							data: [],
+							labels: [],
+							colors: [],
+							jobs: [],
+							options: {
+								responsive: false
+							}
+						};
+					
+					var exp_closure = [];
+					exp_closure.push(exp.id);
+					
+					for(var k in exp.dataset.sample_ids){
+						var run = exp.dataset.sample_ids[k];
+						closure.push(run.id);
+						exp_closure.push(run.id);
+						
+						var run_closure = [];
+						run_closure.push(run.id);
+						var run_stats = {
+								id: run.id,
+								data: [],
+								labels: [],
+								colors: [],
+								jobs: [],
+								options: {
+									responsive: false
+								}
+							};
+						
+						var run_status = {};
+						var run_counter = [];
+						var run_jobs = {};
+						for(var l in data){
+							var job = data[l];
+							if (run_closure.indexOf(job.BioentityID) !== -1){
+								var s = job.State;
+								if ( !(s.id in run_counter) ) run_counter[s.id] = 0;
+								run_counter[s.id] += 1;
+								run_status[s.id] = s;
+								
+								if (!(s.id in run_jobs) ) run_jobs[s.id] = [];
+								run_jobs[s.id].push(job.JobName);	
+							}
+						}
+						for(var s in run_counter){
+							var st = run_status[s];
+							var description = st.id;
+							run_stats.labels.push(description);
+							run_stats.data.push(run_counter[s]);
+							run_stats.colors.push(st.color);
+							run_stats.jobs.push(run_jobs[s]);
+						}
+						
+//						console.log("RUN", run, run_closure, run_stats);
+						
+						$scope.monitor.run_status.push(run_stats);
+					}
+					
+					var exp_status = {};
+					var exp_counter = [];
+					var exp_jobs = {};
+					for(var l in data){
+						var job = data[l];
+						if (exp_closure.indexOf(job.BioentityID) !== -1){
+							var s = job.State;
+							if ( !(s.id in exp_counter) ) exp_counter[s.id] = 0;
+							exp_counter[s.id] += 1;
+							exp_status[s.id] = s;
+							
+							if (!(s.id in exp_jobs) ) exp_jobs[s.id] = [];
+							exp_jobs[s.id].push(job.JobName);
+						}
+					}
+					for(var s in exp_counter){
+						var st = exp_status[s];
+						var description = st.id;
+						exp_stats.labels.push(description);
+						exp_stats.data.push(exp_counter[s]);
+						exp_stats.colors.push(st.color);
+						exp_stats.jobs.push(exp_jobs[s]);
+					}
+					
+//					console.log("EXP", exp, exp_closure, exp_stats);
+					
+					$scope.monitor.experiment_status.push(exp_stats);
+				}
+				
+				var status = {};
+				var counter = [];
+				var prj_jobs = {};
+				for(var l in data){
+					var job = data[l];
+					if (closure.indexOf(job.BioentityID) !== -1){
+						var s = job.State;
+						if ( !(s.id in counter) ) counter[s.id] = 0;
+						counter[s.id] += 1;
+						status[s.id] = s;
+						
+						if (!(s.id in prj_jobs) ) prj_jobs[s.id] = [];
+						prj_jobs[s.id].push(job.JobName);
+					}
+				}
+				for(var s in counter){
+					var st = status[s];
+					var description = st.id;
+					project_stats.labels.push(description);
+					project_stats.data.push(counter[s]);
+					project_stats.colors.push(st.color);
+					project_stats.jobs.push(prj_jobs[s]);
+				}
+				
+//				console.log("PROJ", proj, closure, project_stats);
+				
+				$scope.monitor.project_status.push(project_stats);
+			}
+			
+			var status = {};
+			var counter = [];
+			for(var i in data){
+				var job = data[i];
+				var s = job.State;
+				if ( !(s.id in counter) ) counter[s.id] = 0;
+				counter[s.id] += 1;
+				status[s.id] = s;
+			}
+			for(var s in counter){
+				var st = status[s];
+				var description = st.id + " ("+st.description+")";
+				$scope.monitor.status.labels.push(description);
+				$scope.monitor.status.data.push(counter[s]);
+				$scope.monitor.status.colors.push(st.color);
+			}
+			
+			for (var i in data){
+				var job = data[i];
+				var name = job.JobName;
+				var s = job.Elapsed;
+				$scope.monitor.elapsed.labels.push(name);
+				$scope.monitor.elapsed.data[0].push(moment.duration(s).seconds());
+			}
+			console.log($scope.monitor);
 		});
 	};
 	

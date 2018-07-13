@@ -26,6 +26,14 @@
 	          		{{item.label}}
 				</span>
 				<span ng-if="item.extra" style="margin: 0px; color: grey">({{item.extra}})</span>
+				<md-chips ng-if="item.tags.length > 0" ng-style="{'background-color': item.color}" ng-model="item.tags" readonly="true" class="mdchips-inline">
+					<md-chip-template class="text-small" style="height: 15px;">
+				        <div>
+				          <div><strong>{{$chip.name}}</strong></div>
+				          <div><em class="category">({{$chip.type}})</em></div>
+				        </div>
+					</md-chip-template>
+		    	</md-chips>
 			</div>
         </md-item-template>
         <md-not-found>

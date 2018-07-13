@@ -13,7 +13,8 @@
 			</div>
 		</md-toolbar>
 		
-		<md-tabs md-dynamic-height md-border-bottom>
+<!-- 		md-dynamic-height md-border-bottom md-stretch-tabs md-swipe-content -->
+		<md-tabs md-selected="selected_tab" md-dynamic-height>
 		
 			<md-tab>
 				<md-tab-label layout="row" layout-align="center center"><i class="fas fa-database fa-2x vertically-centered"></i><span class="margin-left-10">Dataset</span></md-tab-label>
@@ -320,7 +321,7 @@
 							Import pipeline
 						</md-button>
 						
-						<v-accordion class="vAccordion--default padding-10" multiple onexpand="select_pipeline(index)">
+						<v-accordion class="vAccordion--default padding-10" multiple onexpand="select_pipeline(index, id, pane)">
 							  <v-pane ng-repeat="pipeline in selected_project.pipelines track by $index">
 							    <v-pane-header layout="row" layout-align="start center">
 							    	<span md-truncate flex><b>Pipeline {{$index+1}}: {{pipeline.id}}</b></span>
@@ -527,6 +528,160 @@
 			</md-tab>
 			
 			<md-tab>
+				<md-tab-label layout="row" layout-align="center center"><i class="fas fa-chart-pie fa-2x vertically-centered"></i><span class="margin-left-10">Monitor</span></md-tab-label>
+				<md-tab-body>
+					<md-content class="md-padding">
+						
+						<section layout="column" layout-align="start start">
+							<md-subheader class="md-primary">Job information</md-subheader>
+							<md-button class="md-raised md-warn" ng-click="update_monitor_data(selected_project)">Obtain stats</md-button>
+						</section>
+						
+						<md-tabs md-dynamic-height>
+							<md-tab>
+								<md-tab-label layout="row" layout-align="center center"><i class="fas fa-chart-pie fa-2x vertically-centered"></i><span class="margin-left-10">Global</span></md-tab-label>
+								<md-tab-body>
+									<md-content class="md-padding">
+										<section>
+											<div class="full-width" layout="column" layout-align="start stretch">
+												<md-subheader class="md-primary">Job status</md-subheader>
+												<canvas class="chart chart-pie"
+												  chart-data="monitor.status.data"
+												  chart-labels="monitor.status.labels"
+												  chart-options="monitor.status.options"
+												  chart-colors="monitor.status.colors"
+												  >
+												</canvas>
+											</div>
+				<!-- 							<div class="full-width" layout="column" layout-align="start start"> -->
+				<!-- 								<md-subheader class="md-primary">Job elapsed time</md-subheader> -->
+				<!-- 								<canvas class="chart chart-horizontal-bar" -->
+				<!-- 								  chart-data="monitor.elapsed.data" -->
+				<!-- 								  chart-labels="monitor.elapsed.labels" -->
+				<!-- 								  chart-options="monitor.elapsed.options"> -->
+				<!-- 								</canvas> -->
+				<!-- 							</div>							 -->
+										</section>
+									</md-content>
+								</md-tab-body>
+							</md-tab>
+							
+							<md-tab>
+								<md-tab-label layout="row" layout-align="center center">
+									<i class="fas fa-chart-pie fa-2x vertically-centered"></i>
+									<span class="margin-left-10">By BioProject</span>
+								</md-tab-label>
+								<md-tab-body>
+									<md-content class="md-padding">
+										<section layout="column" layout-align="start start">
+											<md-subheader class="md-primary">Job information divided by BioProject</md-subheader>
+											
+											<table>
+												<tr ng-repeat="proj_status in monitor.project_status">
+													<td>{{proj_status.id}}</td>
+													<td>
+														<div ng-if="proj_status.data.length > 0" layout="row" layout-align="start center">
+															<ul>
+																<li title="{{proj_status.jobs[$index] | joiner}}" ng-repeat="label in proj_status.labels track by $index">
+																	<span>{{proj_status.data[$index]}}</span>
+																	<span>{{label}}</span>
+																</li>
+															</ul>
+															<canvas class="chart chart-pie"
+															  chart-data="proj_status.data"
+															  chart-labels="proj_status.labels"
+															  chart-options="proj_status.options"
+															  chart-colors="proj_status.colors"
+															></canvas>
+														</div>
+														<p ng-if="proj_status.data.length == 0">Job statistics not available</p>										  
+													</td>
+												</tr>
+											</table>							
+										</section>
+									</md-content>
+								</md-tab-body>
+							</md-tab>
+							
+							<md-tab>
+								<md-tab-label layout="row" layout-align="center center">
+									<i class="fas fa-chart-pie fa-2x vertically-centered"></i>
+									<span class="margin-left-10">By Experiment</span>
+								</md-tab-label>
+								<md-tab-body>
+									<md-content class="md-padding">
+										<section layout="column" layout-align="start start">
+											<md-subheader class="md-primary">Job information divided by Experiment</md-subheader>
+											
+											<table>
+												<tr ng-repeat="exp_status in monitor.experiment_status">
+													<td>{{exp_status.id}}</td>
+													<td>
+														<div ng-if="exp_status.data.length > 0" layout="row" layout-align="start center">
+															<ul>
+																<li title="{{exp_status.jobs[$index] | joiner}}" ng-repeat="label in exp_status.labels track by $index">
+																	<span>{{exp_status.data[$index]}}</span>
+																	<span>{{label}}</span>
+																</li>
+															</ul>
+															<canvas class="chart chart-pie"
+															  chart-data="exp_status.data"
+															  chart-labels="exp_status.labels"
+															  chart-options="exp_status.options"
+															  chart-colors="exp_status.colors"
+															></canvas>
+														</div>
+														<p ng-if="exp_status.data.length == 0">Job statistics not available</p>										  
+													</td>
+												</tr>
+											</table>							
+										</section>
+									</md-content>
+								</md-tab-body>
+							</md-tab>
+							
+							<md-tab>
+								<md-tab-label layout="row" layout-align="center center">
+									<i class="fas fa-chart-pie fa-2x vertically-centered"></i>
+									<span class="margin-left-10">By Run</span>
+								</md-tab-label>
+								<md-tab-body>
+									<md-content class="md-padding">
+										<section layout="column" layout-align="start start">
+											<md-subheader class="md-primary">Job information divided by Run</md-subheader>
+											
+											<table>
+												<tr ng-repeat="run_status in monitor.run_status">
+													<td>{{run_status.id}}</td>
+													<td>
+														<div ng-if="run_status.data.length > 0" layout="row" layout-align="start center">
+															<ul>
+																<li title="{{run_status.jobs[$index] | joiner}}" ng-repeat="label in run_status.labels track by $index">
+																	<span>{{run_status.data[$index]}}</span>
+																	<span>{{label}}</span>
+																</li>
+															</ul>
+															<canvas class="chart chart-pie"
+															  chart-data="run_status.data"
+															  chart-labels="run_status.labels"
+															  chart-options="run_status.options"
+															  chart-colors="run_status.colors"
+															></canvas>
+														</div>
+														<p ng-if="run_status.data.length == 0">Job statistics not available</p>										  
+													</td>
+												</tr>
+											</table>							
+										</section>
+									</md-content>
+								</md-tab-body>
+							</md-tab>
+					</md-tabs>
+					</md-content>
+				</md-tab-body>
+			</md-tab>
+			
+			<md-tab>
 				<md-tab-label layout="row" layout-align="center center"><i class="fas fa-info-circle fa-2x vertically-centered"></i><span class="margin-left-10">Info</span></md-tab-label>
 				<md-tab-body>
 					<md-content class="md-padding">
@@ -580,8 +735,9 @@
 					</md-content>
 				</md-tab-body>
 			</md-tab>
-		
 		</md-tabs>
+		
+		<spacer></spacer>
 		
 		<div style="position: fixed; bottom: 10px; right: 10px;">
 			<md-button class="md-button md-warn md-raised" ng-click="save(selected_project)" tooltip="Save the steps of this pipeline" aria-label="Save the pipeline">

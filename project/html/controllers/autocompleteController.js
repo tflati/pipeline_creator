@@ -6,6 +6,7 @@ app.controller("autocompleteController", function($scope, $http, $q, $filter, $t
 	
 	$scope.querySearch = function(query){
 		
+		if($scope.url){
 //		console.log("AUTOCOMPLETE", query, $scope, $scope.field);
 		
 //		if ($scope.field.data && $scope.field.data.url){
@@ -24,7 +25,7 @@ app.controller("autocompleteController", function($scope, $http, $q, $filter, $t
 	        	$http.get(url).then(
 						function(response) {
 							
-							console.log("AUTOCOMPLETE AJAX [RESULT]", query, response);
+//							console.log("AUTOCOMPLETE AJAX [RESULT]", query, response);
 							
 							deferred.resolve(response.data);
 						},
@@ -34,20 +35,16 @@ app.controller("autocompleteController", function($scope, $http, $q, $filter, $t
 	        }, 100);
 			
 			return deferred.promise;
-//		}
-//		else {
-//			var results = [];
-//			
-//			if(!query) results = $scope.field.data.subdata;
-//			else if($scope.field.sending) return $scope.field.data.subdata;
-//			else {
-//				results = $scope.field.data.subdata.filter(
-//						function(item)
-//						{
-//							return angular.lowercase(item.label).indexOf(angular.lowercase(query)) >= 0;
-//						});
-//			}
-//		}
+		}
+		else {
+//			console.log("AUTOCOMPLETE WITH DATA", $scope.data.length, $scope.data);
+			
+			return query ? $scope.data : $scope.data.filter(
+				function(item)
+				{
+					return angular.lowercase(item.label).indexOf(angular.lowercase(query)) >= 0;
+				});
+		}
 	};
 	
 	$scope.selectedItemChange = function(x){

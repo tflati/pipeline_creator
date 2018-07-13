@@ -1,0 +1,161 @@
+{
+	"templates": [
+		{
+			"commandline": "fastQValidator --file $SAMPLE_1.fastq &> fastqValidator_1.log; STATUS=$?; if [ $STATUS -eq 0 ]; then echo 'OK' > fastqValidator_1.status; else echo 'ERROR' > fastqValidator_1.status; fi",
+			"details": "fastqValidator_1.status",
+			"command_chunk_size": 1,
+			"command_group_level": "all",
+			"command_level": "sample",
+			"command_parallelism_level": "sequential",
+			"conditions": [],
+			"description": "",
+			"description_short": "Validates a fastq (R1)",
+			"hpc_directives": {
+				"account": "cin_staff",
+				"cpu": 1,
+				"dependencies": [],
+				"error": "validator1.err",
+				"job_name": "validator1-{sample_variable}",
+				"memory": {
+					"quantity": 5,
+					"size": "GB"
+				},
+				"mpi_procs": 0,
+				"nodes": 1,
+				"output": "validator1.out",
+				"queue": "gll_usr_prod",
+				"walltime": "00:30:00"
+			},
+			"hpc_directives_text": "",
+			"modules": [],
+			"script_level": "sample",
+			"skip": false,
+			"title": "FastQValidatorR1",
+			"label": "FastQValidatorR1",
+			"write_stderr_log": true,
+			"write_stdout_log": true,
+			"tags": [
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                }
+            ]
+		},
+		{
+			"commandline": "fastQValidator --file $SAMPLE_2.fastq &> fastqValidator_2.log; STATUS=$?; if [ $STATUS -eq 0 ]; then echo 'OK' > fastqValidator_2.status; else echo 'ERROR' > fastqValidator_2.status; fi",
+			"details": "fastqValidator_2.status",
+			"command_chunk_size": 1,
+			"command_group_level": "all",
+			"command_level": "sample",
+			"command_parallelism_level": "sequential",
+			"conditions": [],
+			"description": "",
+			"description_short": "Validates a fastq (R2)",
+			"hpc_directives": {
+				"account": "cin_staff",
+				"cpu": 1,
+				"dependencies": [],
+				"error": "validator2.err",
+				"job_name": "validator2-{sample_variable}",
+				"memory": {
+					"quantity": 5,
+					"size": "GB"
+				},
+				"mpi_procs": 0,
+				"nodes": 1,
+				"output": "validator2.out",
+				"queue": "gll_usr_prod",
+				"walltime": "00:30:00"
+			},
+			"hpc_directives_text": "",
+			"modules": [],
+			"script_level": "sample",
+			"skip": false,
+			"title": "FastQValidatorR2",
+			"label": "FastQValidatorR2",
+			"write_stderr_log": true,
+			"write_stdout_log": true,
+			"tags": [
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                }
+            ]
+		},
+		{
+			"commandline": "fastQValidator --file $SAMPLE.fastq &> fastqValidator.log; STATUS=$?; if [ $STATUS -eq 0 ]; then echo 'OK' > fastqValidator.status; else echo 'ERROR' > fastqValidator.status; fi",
+			"details": "fastqValidator.status",
+			"command_chunk_size": 1,
+			"command_group_level": "all",
+			"command_level": "sample",
+			"command_parallelism_level": "sequential",
+			"conditions": [],
+			"description": "",
+			"description_short": "Validates a fastq (single end)",
+			"hpc_directives": {
+				"account": "cin_staff",
+				"cpu": 1,
+				"dependencies": [],
+				"error": "validator.err",
+				"job_name": "validator-{sample_variable}",
+				"memory": {
+					"quantity": 5,
+					"size": "GB"
+				},
+				"mpi_procs": 0,
+				"nodes": 1,
+				"output": "validator.out",
+				"queue": "gll_usr_prod",
+				"walltime": "00:30:00"
+			},
+			"hpc_directives_text": "",
+			"modules": [],
+			"script_level": "sample",
+			"skip": false,
+			"title": "FastQValidator",
+			"label": "FastQValidator",
+			"write_stderr_log": true,
+			"write_stdout_log": true,
+			"tags": [
+                {
+                    "name": "SE",
+                    "type": "Layout"
+                }
+            ]
+		},
+		{
+			"commandline": "if [ -s $FILE ]; then echo 'OK' else echo 'ERROR'; fi > exists.status",
+			"details": "exists.status",
+			"command_chunk_size": 1,
+			"command_group_level": "all",
+			"command_parallelism_level": "sequential",
+			"conditions": [],
+			"description": "",
+			"description_short": "Checks the existence of a file",
+			"hpc_directives": {
+				"account": "cin_staff",
+				"cpu": 1,
+				"dependencies": [],
+				"error": "existence.err",
+				"job_name": "existence",
+				"memory": {
+					"quantity": 5,
+					"size": "GB"
+				},
+				"mpi_procs": 0,
+				"nodes": 1,
+				"output": "existence.out",
+				"queue": "gll_usr_prod",
+				"walltime": "00:30:00"
+			},
+			"hpc_directives_text": "",
+			"modules": [],
+			"skip": false,
+			"title": "Existence",
+			"label": "Existence",
+			"write_stderr_log": true,
+			"write_stdout_log": true,
+			"tags": []
+		}
+	]
+}

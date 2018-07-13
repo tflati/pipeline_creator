@@ -24,6 +24,13 @@ app.factory('apiService', function($http, Upload) {
 	  });
   };
   
+  instance.get_templates = function(successFx){
+	  var url = SERVER + "templates/";
+	  $http.get(url).then(successFx, function(result){
+		  console.log("ERROR WHILE RETRIEVING TEMPLATES", result);
+	  });
+  };
+  
   instance.load_project = function(project_id, successFx, errorFx, finallyFx){
 	  var url = SERVER + "load_project/" + project_id + "/";
 	  $http.get(url).then(successFx, errorFx).finally(finallyFx);
@@ -78,7 +85,12 @@ app.factory('apiService', function($http, Upload) {
   instance.create_projects = function(list, successFx, errorFx, finallyFx){
 	  var url = SERVER + "create_projects/";
 	  $http.post(url, {"list": list}).then(successFx, errorFx).finally(finallyFx);
-  }
+  };
+  
+  instance.update_monitor_data = function(project, successFx, errorFx, finallyFx){
+	  var url = SERVER + "invoke_monitor/";
+	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);
+  };
   
   return instance;
 });

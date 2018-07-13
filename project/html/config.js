@@ -12,7 +12,9 @@ var app = angular.module('pipelineCreator',
 			'ngFileUpload',
 			'vAccordion',
 			'angularMoment',
-			'mdColorPicker'
+			'mdColorPicker',
+			'chart.js',
+			'ngDragDrop'
 		]);
 
 app.config(function($mdThemingProvider, $httpProvider) {

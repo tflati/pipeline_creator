@@ -38,7 +38,9 @@
 
 	<toaster-container toaster-options="{'position-class': 'toast-top-right'}"></toaster-container>
 	
-	<div class="main-content full-height" ng-view></div>
+	<div class="main-content full-height" ng-view>
+<!-- 		<div ng-controller="mainController as ctrl" ng-include="'templates/home.html'"></div> -->
+	</div>
 	
 	<script defer src="https://use.fontawesome.com/releases/v5.0.9/js/all.js" integrity="sha384-8iPTk2s/jMVj81dnzb/iFR2sdA7u06vHJyyLlAd4snFpCl/SnyUjRrbdJsw1pGIl" crossorigin="anonymous"></script>
 	
@@ -63,8 +65,14 @@
 <!-- 	<script type="text/javascript" src="bower_components/angular-color-picker/dist/angularjs-color-picker.min.js"></script> -->
 <!-- 	<script type="text/javascript" src="bower_components/angular-colorpicker-directive/js/color-picker.min.js"></script> -->
 	<script type="text/javascript" src="bower_components/md-color-picker/dist/mdColorPicker.min.js"></script>
-
-
+	<script type="text/javascript" src="bower_components/chart.js/dist/Chart.min.js"></script>
+	<script type="text/javascript" src="bower_components/angular-chart.js/dist/angular-chart.min.js"></script>
+	
+	<script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
+	<script type="text/javascript" src="bower_components/jquery-ui/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="bower_components/angular-dragdrop/src/angular-dragdrop.js"></script>
+	
+	
 	<script type="text/javascript" src="config.js"></script>
 
 	<script type="text/javascript" src="services/apiService.js"></script>
@@ -73,6 +81,7 @@
 	<script type="text/javascript" src="controllers/mainController.js"></script>
 	<script type="text/javascript" src="controllers/dialogController.js"></script>
 	<script type="text/javascript" src="controllers/autocompleteController.js"></script>
+	<script type="text/javascript" src="controllers/conditionController.js"></script>
 	
 	<script type="text/javascript" src="directives/myAutocomplete.js"></script>
 	<script type="text/javascript" src="directives/xls.js"></script>
