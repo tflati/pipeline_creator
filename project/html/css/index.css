@@ -146,6 +146,14 @@ my-autocomplete md-content {
 	border: 2px solid;
 }
 
+.md-chip-input-container {
+	border: 2px solid;
+}
+
+.md-chip-input-container div {
+	padding: 10px;
+}
+
 
 .code {
 	display:block;
@@ -184,6 +192,10 @@ my-autocomplete md-content {
 	padding-left: 10px;
 }
 
+.padding-left-15 {
+	padding-left: 15px;
+}
+
 .padding-left-30 {
 	padding-left: 30px;
 }
@@ -193,11 +205,15 @@ my-autocomplete md-content {
 }
 
 .padding-30 {
-	padding: 30px;
+	padding: 30px !important;
+}
+
+.no-padding {
+	padding: 0px !important;
 }
 
 .no-margin {
-	margin: 0px;
+	margin: 0px !important;
 }
 
 spacer {

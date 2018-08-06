@@ -48,6 +48,33 @@
 	<textarea class="code padding-10" ng-model="condition.command" rows="3" style="width: 90%;"></textarea>
 </div>
 
+<h3>Additional executables</h3>
+<md-button class="md-button md-warn md-raised" ng-click="add_executable(step)" tooltip="Add an executable to this step" aria-label="Add an executable to this step">
+	Add executable
+</md-button>
+
+<md-list flex>
+<!-- 	<md-subheader class="md-no-sticky">3 line item (with hover)</md-subheader> -->
+	<md-list-item class="md-2-line padding-30" ng-repeat="exec in step.executables">
+		<div layout="column">
+			<img src="imgs/script.png" class="md-avatar" alt="Script" />
+		  	<span class="fa-layers fa-fw" title="Remove this script from the list" ng-click="remove_from_list(step.executables, $index)" layout-margin>
+			    <i class="fas fa-circle" style="color:Tomato"></i>
+			    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i>
+			</span>	
+		</div>
+		<div class="md-list-item-text" layout="column">
+   			<label>Filename</label>
+			<input ng-model="exec.filename" style="width: 90%;"></textarea>
+
+			<label>Script</label>
+			<textarea ng-model="exec.command" rows="5" style="width: 90%;"></textarea>
+		</div>
+		<md-divider></md-divider>
+	</md-list-item>
+</md-list>
+        
+
 <h3>Command line</h3>
 <textarea ng-model="step.commandline" rows="5" style="width: 90%;"></textarea>
 

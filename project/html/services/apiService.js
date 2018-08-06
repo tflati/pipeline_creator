@@ -70,6 +70,11 @@ app.factory('apiService', function($http, Upload) {
 	  return SERVER + "modules/" + clusterId + "/";   
   };
   
+  instance.upload_pipeline = function(pipeline, successFx, errorFx, finallyFx){
+	  var url = SERVER + "upload_pipeline/";
+	  $http.post(url, pipeline).then(successFx, errorFx).finally(finallyFx);
+  };
+  
   instance.upload_samples = function(files, successFx, errorFx, finallyFx){
 	  var url = SERVER + "upload_samples/";
 	  

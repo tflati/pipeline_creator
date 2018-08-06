@@ -508,6 +508,24 @@ def projects(request):
 def pipelines(request):
     return HttpResponse(json.dumps(json.load(open(os.path.dirname(__file__) + "/utils/pipelines.json"))))
 
+def upload_pipeline(request):
+    pipeline = json.loads(request.body.decode('utf-8'))
+
+    current_pipelines = json.load(open(os.path.dirname(__file__) + "/utils/pipelines.json"))
+    print(len(current_pipelines))
+    for p in current_pipelines["pipelines"]:
+        if p["id"] == pipeline["id"]:
+            return HttpResponse(json.dumps({"type": "error", "message": "Pipeline " + pipeline["id"] + " already existing."}))
+    
+    # Append the new pipeline
+    current_pipelines["pipelines"].append(pipeline)
+    
+    # Save the new file
+    filepath = os.path.dirname(__file__) + "/utils/pipelines.json"
+    open(filepath, "w").write(json.dumps(current_pipelines, indent=4, sort_keys=True))
+    
+    return HttpResponse(json.dumps({"type": "info", "message": "Pipeline " + pipeline["id"] + " correctly added to the repository."}))
+    
 def templates(request):
     return HttpResponse(json.dumps(json.load(open(os.path.dirname(__file__) + "/utils/templates.json"))))
 
@@ -701,7 +719,7 @@ def produce_script(v, vertex2name, project, pipeline, step, bioentity):
 #     job_name = job_name.replace("${STEP_NAME}", step["title"].replace(" ", "_"))
      
     file.write("#SBATCH --job-name={}\n".format(job_name))
-    if "mpi_procs" in directives and directives["mpi_procs"] > 0:
+    if "mpi_procs" in directives and directives["mpi_procs"] is not None and directives["mpi_procs"] > 0:
         file.write("#SBATCH --ntasks={}\n".format(int(directives["mpi_procs"]) * int(directives["nodes"])))
         file.write("#SBATCH --ntasks-per-node={}\n".format(directives["mpi_procs"]))
     else:
@@ -717,7 +735,7 @@ def produce_script(v, vertex2name, project, pipeline, step, bioentity):
         pass
     else:
         directives["error"] = replace_variables(directives["error"], project, bioproject, experiment, pipeline, step, bioentity)
-#         directives["error"] = directives["error"].replace("${STEP_NAME}", step["title"])
+#             directives["error"] = directives["error"].replace("${STEP_NAME}", step["title"])
         file.write("#SBATCH --error {}\n".format(directives["error"].replace(" ", "-")))
      
     if "output" not in directives or directives["output"] == "":
@@ -878,6 +896,15 @@ wait
      
     st = os.stat(filepath)
     os.chmod(filepath, st.st_mode | stat.S_IEXEC)
+    
+    if "executables" in step:
+        for executable in step["executables"]:
+            p = script_dir + "/" + executable["filename"]
+            f = open(p, "w")
+            f.write(executable["command"])
+            f.close()
+            st = os.stat(p)
+            os.chmod(p, st.st_mode | stat.S_IEXEC)
     
     return filepath
 
@@ -1464,7 +1491,7 @@ def replace_variables(x, project, bioproject, experiment, pipeline, step, bioent
     print("REPLACE_VARIABLES", x, step["title"], bioentity["id"])
     
     for variable in pipeline["variables"]:
-        if variable["key_disabled"] is True:
+        if "key_disabled" in variable and variable["key_disabled"] is True:
             k = variable["key"]
             v = None
             
@@ -1491,6 +1518,7 @@ def replace_variables(x, project, bioproject, experiment, pipeline, step, bioent
             
         else:
             x = x.replace("${"+variable["key"]+"}", variable["value"])
+            x = x.replace("$"+variable["key"], variable["value"])
         
     return x
 

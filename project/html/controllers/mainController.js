@@ -42,7 +42,8 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 	            "basedir": "",
 	            "create_per_sample_directory": true,
 	            "pairedend": false,
-	            "sample_ids": ""
+	            "sample_ids": "",
+	            "tags": []
 	        }
 	};
 	
@@ -102,6 +103,7 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 	        "description": "",
 	        "description_short": "",
 	        "commandline": "",
+	        "executable": [],
 	        "checks": [],
 	        "hpc_directives_text": "",
 	        "hpc_directives": {
@@ -130,6 +132,11 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 	        "write_stderr_log": true,
 	        "conditions": [],
 	    };
+	
+	var executable_template = {
+		"filename": "",
+		"command": ""
+	};
 	
 	var condition_template = {
 		"command": ""
@@ -208,6 +215,7 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 			}
 			
 			var path = $location.hash();
+			console.log("PATH", path);
 			var pieces = path.split("/");
 			for (var i in pieces){
 				var piece = pieces[i];
@@ -858,6 +866,22 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 		}
 	};
 	
+	$scope.addPipelineToRepository = function(pipeline, $event){
+		console.log("SAVING PIPELINE", pipeline);
+		
+		apiService.upload_pipeline(pipeline, function(resp){
+			console.log(resp);
+			var message = resp.data.message;
+			messageService.showMessage(message, resp.data.type);
+			
+		}, function(resp){
+			messageService.showMessage(resp, "warn");
+			console.log('Error', resp);
+		});
+		
+		$event.stopPropagation();
+	};
+	
 	$scope.create_projects_from_list = function($event){
 		var confirm = {
 	    	controller: DialogController,
@@ -960,6 +984,16 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 		project.projects.push(subproject);
 	};
 	
+	$scope.add_empty_experiment = function(project){
+		console.log("[ADD EMPTY SUBPROJECT]", project, experiment_template);
+		project.experiments.push(angular.copy(experiment_template));
+	};
+	
+	$scope.add_experiment = function(project, experiment){
+		console.log("[ADD EXPERIMENT]", project, experiment);
+		project.experiments.push(experiment);
+	};
+	
 	$scope.add_pipeline = function(project){
 		console.log("[ADD PIPELINE]", project, pipeline_template);
 		project.pipelines.push(angular.copy(pipeline_template));
@@ -1010,8 +1044,9 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 	    });
 	};
 	
-	$scope.add_step = function(project){
-		project.steps.push(angular.copy(step_template));
+	$scope.add_executable = function(step){
+		if( ! step.executables ) step.executables = [];
+		step.executables.push(angular.copy(executable_template));
 	};
 	
 	$scope.append_step = function(pipeline, step){
@@ -1128,16 +1163,37 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 //		$scope.selected_step = $scope.selected_subproject.steps[index];
 //	};
 	
+	$scope.transformChip = function(chip){
+		if (angular.isObject(chip)) return chip;
+  
+		if(chip.indexOf("#") != -1){
+			var values = chip.split("#");
+			return { name: values[0], type: values[1] }
+		}
+		else return { name: chip, type: 'custom' }
+	};
+	
 	$scope.searchTags = function(project, search){
 		var tags = [];
+		var met = [];
 		
 		for(var i in project.projects)
 			for(var j in project.projects[i].experiments)
-			tags = tags.concat(project.projects[i].experiments[j].dataset.tags)
+				for(var k in project.projects[i].experiments[j].dataset.tags)
+				{
+					var t = project.projects[i].experiments[j].dataset.tags[k];
+					if(met.indexOf(t.name+"#"+t.type) == -1) tags.push(t)
+					met.push(t.name+"#"+t.type);
+					// if (tags.indexOf(t) == -1) tags.push(t)
+					//tags = tags.concat(project.projects[i].experiments[j].dataset.tags)
+				}
 		
+		console.log("AUTOCOMPLETE TAGS (ALL)", tags, project["title"]);
+				
 		var keys = {};
 //		console.log(tags);
 		tags = tags.filter(function(x){
+			console.log("AUTOCOMPLETE TAGS FILTER", x);
 			if(x.name.toLowerCase().indexOf(search.toLowerCase()) == -1 && x.type.toLowerCase().indexOf(search.toLowerCase()) == -1) return false;
 			
 			var k = x.name + "#" + x.type;

@@ -135,7 +135,7 @@
 										<i class="fas fa-list-ol"></i>
 										<i class="fas fa-plus" data-fa-transform="shrink-4 down-8 right-10"></i>
 									</span>
-									Add empty
+									Add empty project
 								</md-button>
 								
 								<md-button class="md-button md-warn md-raised" ng-click="delete_subprojects(selected_project)" tooltip="Deletes selected subprojects" aria-label="Deletes selected subprojects">
@@ -226,6 +226,19 @@
 								    </md-button>
 							    </v-pane-header>
 							    <v-pane-content>
+							    
+							    	<md-input-container>
+										<label>Project ID</label>
+										<input label="Project ID" type="text" ng-model="subproject.id">
+									</md-input-container>
+									
+									<md-button class="md-button md-warn md-raised" ng-click="add_empty_experiment(subproject)" tooltip="Add an empty experiment to this project" aria-label="Add an empty new experiment">
+							          	<span class="fa-layers fa-fw">
+											<i class="fas fa-list-ol"></i>
+											<i class="fas fa-plus" data-fa-transform="shrink-4 down-8 right-10"></i>
+										</span>
+										Add empty experiment
+									</md-button>
 							    
 							    	<v-accordion class="vAccordion--default padding-10" multiple onexpand="select_experiment(index)">
 							      		<v-pane ng-repeat="experiment in selected_subproject.experiments | filter:filter_text | limitTo:10:begin">
@@ -338,6 +351,10 @@
 										</md-chip-template>
 							    	</md-chips>
 							    	
+							    	<md-button class="md-icon-button" ng-click="addPipelineToRepository(pipeline, $event)" tooltip="Save pipeline" aria-label="Save pipeline">
+								      <ng-md-icon icon="gavel"></ng-md-icon>
+								    </md-button>
+							    	
 							    	<md-button class="md-icon-button" ng-click="showDeletePipelineDialog($index, $event)" tooltip="Delete pipeline" aria-label="Delete pipeline">
 								      <ng-md-icon icon="delete"></ng-md-icon>
 								    </md-button>
@@ -362,81 +379,105 @@
 							    		</md-input-container>
 							    	</section>
 							    	<section>
-							    		<md-subheader class="md-primary">Tags</md-subheader>
-							    		<md-chips
-							    			md-autocomplete-snap
-									        ng-model="pipeline.tags"
-									        readonly="false"
-									        md-removable="true"
-									        placeholder="Enter a tag (e.g., SE, SingleEnd, Transcriptomic)"
-									        delete-button-label="Remove Tag"
-									        delete-hint="Press delete to remove tag"
-									        secondary-placeholder="+Tag">
-									        
-												<md-autocomplete
-										          md-selected-item="selectedItem"
-										          md-search-text="searchText"
-										          md-items="item in searchTags(selected_project, searchText) | orderBy: item.type"
-										          md-item-text="item.name"
-										          md-min-length="0"
-										          md-match-case-insensitive="true"
-										          placeholder="Search for a tag">
-													<md-item-template>
-												    	<span>
-												        	<span>{{item.name}}</span>
-												        	<span class="category">({{item.type}})</span>
-												    	</span>
-												  	</md-item-template>
-												  	<md-not-found>
-												    	No matches found.
-												  	</md-not-found>
-												</md-autocomplete>
-												
-												<md-chip-template>
-											        <span>
-											          <strong>{{$chip.name}}</strong>
-											          <em class="category">({{$chip.type}})</em>
-											        </span>
-												</md-chip-template>
-								        </md-chips>
+							    		<v-accordion class="no-padding">
+										  	<v-pane>
+											    <v-pane-header class="no-margin">
+											    	<md-subheader class="md-primary">Tags</md-subheader>
+											    </v-pane-header>
+											    <v-pane-content>
+										    		<p>
+											    		You can select from the drop-down or create your own tags.
+											    		If you type a string without '#', then a new tag will be created with cutom type "custom".
+											    		If you type a string containing '#' (e.g., "Poplar#Organism"), then a new tag will be created with name and type equal to the string split by '#' (e.g., name="Poplar" and type="Organism").
+										    		</p>
+										    		
+										    		<p><b>Current tags</b></p>
+										    		<md-chips
+										    			md-autocomplete-snap
+												        ng-model="pipeline.tags"
+												        readonly="false"
+												        md-removable="true"
+												        md-require-match="false"
+												        md-transform-chip="transformChip($chip)"
+												        placeholder="Enter a tag (e.g., SE, SingleEnd, Transcriptomic)"
+												        delete-button-label="Remove Tag"
+												        delete-hint="Press delete to remove tag"
+												     >
+												        
+															<md-autocomplete
+													          md-selected-item="selectedItem"
+													          md-no-cache="true"
+													          md-search-text="searchText"
+													          md-items="item in searchTags(selected_project, searchText) | orderBy: item.type"
+													          md-item-text="item.name"
+													          md-min-length="0"
+													          md-match-case-insensitive="true"
+													          placeholder="Search for a tag (or create)">
+																<md-item-template>
+															    	<span>
+															        	<span>{{item.name}}</span>
+															        	<span class="category">({{item.type}})</span>
+															    	</span>
+															  	</md-item-template>
+															  	<md-not-found>
+															    	No matches found.
+															  	</md-not-found>
+															</md-autocomplete>
+															
+															<md-chip-template>
+														        <span>
+														          <strong>{{$chip.name}}</strong>
+														          <em class="category">({{$chip.type}})</em>
+														        </span>
+															</md-chip-template>
+											        </md-chips>
+										    	</v-pane-content>
+											</v-pane>
+										</v-accordion>
 							    	</section>
 									<section>
-										<md-subheader class="md-primary">Variables and constants (system-reserved variables have their keys disabled, but you can still edit their values)</md-subheader>
-											<div ng-repeat="variable in pipeline.variables">
-												<md-input-container layout="row" flex>
-													<input ng-disabled="variable.key_disabled" label="Description" type="text" ng-model="variable.description" aria-label="Variable description">
-												</md-input-container>
-												<div layout="row" layout-align="start center" layout-margin>
-													<md-input-container>
-														<input ng-disabled="variable.key_disabled" label="Key" type="text" ng-model="variable.key" aria-label="Variable key">
-													</md-input-container>
-													<md-input-container>
-														<input label="Value" type="text" ng-model="variable.value" aria-label="Variable value">
-													</md-input-container>
-													<md-switch ng-disabled="variable.key_disabled" md-invert ng-model="variable.constant" aria-label="Constant value?">
-												    	Constant value? {{ variable.constant }}
-												  	</md-switch>
-												  	<md-button ng-if="!variable.key_disabled" class="md-icon-button" ng-click="delete_variable(pipeline, $index, $event)" tooltip="Delete this variable" aria-label="Remove this variable">
-												      <ng-md-icon icon="delete" style="fill: grey;"></ng-md-icon>
-												    </md-button>
-												 </div>
-											</div>
-											<div layout-margin>
-												<md-button class="md-button md-warn md-raised" ng-click="add_variable(pipeline)" tooltip="Add a variable to this pipeline" aria-label="Add a new variable">
-											       	<span class="fa-layers fa-fw">
-														<i class="fas fa-list-ol"></i>
-														<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
-													</span>
-													Add a variable
-												</md-button>
-											</div>		
+											<v-accordion class="no-padding">
+											  	<v-pane>
+												    <v-pane-header class="no-margin">
+												    	<md-subheader class="md-primary">Variables and constants (system-reserved variables have their keys disabled, but you can still edit their values)</md-subheader>
+												    </v-pane-header>
+												    <v-pane-content>
+														<div ng-repeat="variable in pipeline.variables">
+															<md-input-container layout="row" flex>
+																<input ng-disabled="variable.key_disabled" label="Description" type="text" ng-model="variable.description" aria-label="Variable description">
+															</md-input-container>
+															<div layout="row" layout-align="start center" layout-margin>
+																<md-input-container>
+																	<input ng-disabled="variable.key_disabled" label="Key" type="text" ng-model="variable.key" aria-label="Variable key">
+																</md-input-container>
+																<md-input-container>
+																	<input label="Value" type="text" ng-model="variable.value" aria-label="Variable value">
+																</md-input-container>
+																<md-switch ng-disabled="variable.key_disabled" md-invert ng-model="variable.constant" aria-label="Constant value?">
+															    	Constant value? {{ variable.constant }}
+															  	</md-switch>
+															  	<md-button ng-if="!variable.key_disabled" class="md-icon-button" ng-click="delete_variable(pipeline, $index, $event)" tooltip="Delete this variable" aria-label="Remove this variable">
+															      <ng-md-icon icon="delete" style="fill: grey;"></ng-md-icon>
+															    </md-button>
+															 </div>
+														</div>
+														<div layout-margin>
+															<md-button class="md-button md-warn md-raised" ng-click="add_variable(pipeline)" tooltip="Add a variable to this pipeline" aria-label="Add a new variable">
+														       	<span class="fa-layers fa-fw">
+																	<i class="fas fa-list-ol"></i>
+																	<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
+																</span>
+																Add a variable
+															</md-button>
+														</div>
+												    </v-pane-content>
+											  </v-pane>
+										</v-accordion>
 									</section>
 									
 									<section>
-										<md-subheader class="md-primary">Analysis type</md-subheader>
-										
-									  	<label>Select the cluster</label>
-										<md-select ng-model="pipeline.cluster" aria-label="Specifies the cluster" ng-change="cluster_changed(pipeline.cluster)">
+										<md-subheader class="md-primary">Cluster</md-subheader>
+										<md-select class="padding-left-15" ng-model="pipeline.cluster" aria-label="Specifies the cluster" ng-change="cluster_changed(pipeline.cluster)">
 									       	<md-option ng-repeat="cluster in clusters" ng-value="cluster.id">
 									       		<div flex layout="row">
 									       			<div>
@@ -468,6 +509,47 @@
 										<v-accordion multiple>
 										  <v-pane ng-repeat="step in pipeline.steps">
 										    <v-pane-header ng-class="{disabled_pane: step.skip}">
+					
+												<div style="display: inline-block; vertical-align: middle;">
+										    		<span class="fa-layers fa-fw fa-2x" ng-if="step.script_level == 'top'">
+														<i class="fas fa-square" style="color:orange"></i>
+													    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">Top</span>
+													</span>
+										    		<span class="fa-layers fa-fw fa-2x" ng-if="step.script_level == 'project'">
+														<i class="fas fa-square" style="color:blue"></i>
+													    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">Prj</span>
+													</span>
+													<span class="fa-layers fa-fw fa-2x" ng-if="step.script_level == 'experiment'">
+														<i class="fas fa-square" style="color:green"></i>
+													    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">Exp</span>
+													</span>
+													<span class="fa-layers fa-fw fa-2x" ng-if="step.script_level == 'sample'">
+														<i class="fas fa-square" style="color:red"></i>
+													    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">Run</span>
+													</span>													
+										    	</div>
+										    	<div style="display: inline-block; vertical-align: middle;">
+										    		<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level != step.script_level && step.command_level == 'top'">
+														<i class="fas fa-recycle" style="color:orange"></i>
+													    <span class="fa-layers-text" data-fa-transform="shrink-10" style="font-weight: bold;">Top</span>
+													</span>
+										    		<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level != step.script_level && step.command_level == 'project'">
+														<i class="fas fa-recycle" style="color:blue"></i>
+													    <span class="fa-layers-text" data-fa-transform="shrink-10" style="font-weight: bold;">Prj</span>
+													</span>
+													<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level != step.script_level && step.command_level == 'experiment'">
+														<i class="fas fa-recycle" style="color:green"></i>
+													    <span class="fa-layers-text" data-fa-transform="shrink-10" style="font-weight: bold;">Exp</span>
+													</span>
+													<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level != step.script_level && step.command_level == 'sample'">
+														<i class="fas fa-recycle" style="color:red"></i>
+													    <span class="fa-layers-text" data-fa-transform="shrink-10" style="font-weight: bold;">Run</span>
+													</span>
+													<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level == step.script_level">
+														<i class="fas fa-recycle" style="color:lightgray"></i>
+													    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">No</span>
+													</span>
+										    	</div>
 										    
 										    	<md-button ng-if="step.skip" class="md-icon-button" aria-label="Skip this step">
 											      <ng-md-icon icon="low_priority"></ng-md-icon>

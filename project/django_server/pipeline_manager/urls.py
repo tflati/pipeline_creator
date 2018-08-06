@@ -31,6 +31,7 @@ urlpatterns = [
     path('pipelines/', views.pipelines),
     path('templates/', views.templates),
     path('upload_samples/', views.upload_samples),
+    path('upload_pipeline/', views.upload_pipeline),
     path('create_projects/', views.create_projects),
     path('invoke_monitor/', views.invoke_monitor),
     path('test/', views.test)

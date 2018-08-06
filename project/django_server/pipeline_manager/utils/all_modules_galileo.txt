@@ -1,4 +1,3 @@
-Profile: global
 Profile: advanced
 		applications
 			stata
@@ -8,7 +7,8 @@ Profile: advanced
 			cuda
 			 9.0
 			pgi
-			 17.5
+			 17.10
+			 18.5
 		data
 		environment
 		libraries
@@ -33,8 +33,11 @@ Profile: archive
 			 5.0.4
 			namd
 			 2.12
+			openfoam
+			 2.4.0
 		compilers
 			cuda
+			 7.0.28
 			 7.5.18
 			 8.0.61
 			gnu
@@ -43,6 +46,12 @@ Profile: archive
 			 cs-xe-2015--binary
 			intelmpi
 			 5.0.2--binary
+			mvapich2
+			 2.1--gnu--4.9.2
+			openmpi
+			 1.8.4--gnu--4.9.2
+			pgi
+			 17.5
 			python
 			 3.5.2
 		data
@@ -53,15 +62,22 @@ Profile: archive
 			numpy
 			 1.11.2--python--3.5.2
 		tools
+			cmake
+			 3.7.1
 Profile: base
 		applications
 		compilers
+			cuda
+			 8.0.61
+			 9.0
 			gnu
 			 6.1.0
 			intel
 			 pe-xe-2017--binary
+			 pe-xe-2018--binary
 			intelmpi
 			 2017--binary
+			 2018--binary
 			jre
 			 1.8.0_111--binary
 			openmpi
@@ -86,8 +102,13 @@ Profile: base
 			 1.8.17--intel--pe-xe-2017--binary
 			lapack
 			 3.6.1--intel--pe-xe-2017--binary
+			libunwind
+			 1.2.1--intel--pe-xe-2017--binary
 			mkl
 			 2017--binary
+			 2018--binary
+			mpi4py
+			 1.3.1--intelmpi--2017--binary
 			netcdf
 			 4.4.1--intelmpi--2017--binary
 			 4.4.1--intel--pe-xe-2017--binary
@@ -96,8 +117,15 @@ Profile: base
 			 4.4.4--intel--pe-xe-2017--binary
 			numpy
 			 1.13.1--python--2.7.12
+			papi
+			 5.6.0--intel--pe-xe-2017--binary
+			petsc
+			 3.7.5--intelmpi--2017--binary
+			pnetcdf
+			 1.8.1--intelmpi--2017--binary
 			qt
 			 5.7.0--intelmpi--2017--binary
+			 5.9--gnu--6.1.0
 			scalapack
 			 2.0.2--intelmpi--2017--binary
 			scipy
@@ -109,15 +137,31 @@ Profile: base
 			 1.2.8--gnu--6.1.0
 		tools
 			cmake
-			 3.7.1
+			 3.12.0
+			cube
+			 4.3.5
+			extrae
+			 3.5.2
+			FastQValidator
+			 1
+			gnuplot
+			 5.0.0
+			paraver
+			 4.7.2
 			rcm
 			 meta
+			scalasca
+			 2.3.1
 			superc
 			 2.0
+			totalview
+			 2016.07
 			turbovnc
 			 svn
 			virtualgl
 			 2.3.90
+			vtune
+			 2018
 Profile: bioinf
 		applications
 			annovar
@@ -139,6 +183,8 @@ Profile: bioinf
 			 2.1.0
 			plink
 			 1.90
+			r
+			 3.5.1
 			samtools
 			 1.7
 			sra
@@ -206,6 +252,8 @@ Profile: deeplrn
 			 14.4.1--gnu--4.9.2
 			szip
 			 2.1--gnu--4.9.2
+			tensorflow
+			 1.5.0--python--2.7.12
 			theano
 			 theano-20170712--python--2.7.12
 			zlib
@@ -217,8 +265,18 @@ Profile: deeplrn
 			 1.8.2
 Profile: eng
 		applications
+			abaqus
+			 2017
+			ansa
+			 18.1.0
+			ansys
+			 190
+			 191
+			karalit
+			 4.0
 			openfoam
 			 5.0
+			 6.0
 			openfoam+
 			 v1712
 			openfoam-ext
@@ -227,7 +285,12 @@ Profile: eng
 			 11.04
 			 11.06
 			 13.02
+			 13.02.013-r8
 		compilers
+			gnu
+			 4.9.2
+			openmpi
+			 1.8.4--gnu--4.9.2
 		data
 		environment
 		libraries
@@ -242,18 +305,21 @@ Profile: eng
 			zlib
 			 1.2.11--intel--pe-xe-2017--binary
 		tools
-Profile: lifesc
+			matlab
+			 r2017a
+			 R2018a
+Profile: global
 		applications
-			gromacs
-			 2016.3
-		compilers
-		data
-		environment
-		libraries
-		tools
-		applications
+			abaqus
+			 2017
 			annovar
 			 2016Feb01
+			ansa
+			 18.1.0
+			ansys
+			 180
+			 190
+			 191
 			bedtools2
 			 2.27.1
 			bowtie2
@@ -276,6 +342,8 @@ Profile: lifesc
 			 5.0.4
 			hisat2
 			 2.1.0
+			karalit
+			 4.0
 			lammps
 			 16feb2016
 			 20jan2015
@@ -286,6 +354,7 @@ Profile: lifesc
 			nig
 			 0.1
 			openfoam
+			 2.4.0
 			 5.0
 			openfoam+
 			 v1712
@@ -300,6 +369,7 @@ Profile: lifesc
 			 6.2
 			r
 			 3.4.2
+			 3.5.1
 			samtools
 			 1.7
 			sra
@@ -309,6 +379,7 @@ Profile: lifesc
 			 11.04
 			 11.06
 			 13.02
+			 13.02.013-r8
 			stata
 			 13
 			 14
@@ -334,8 +405,10 @@ Profile: lifesc
 			 cs-xe-2015--binary
 			 pe-xe-2016--binary
 			 pe-xe-2017--binary
+			 pe-xe-2018--binary
 			intelmpi
 			 2017--binary
+			 2018--binary
 			 5.0.2--binary
 			 5.0.3--binary
 			 5.1.1--binary
@@ -347,12 +420,16 @@ Profile: lifesc
 			mvapich2
 			 2.1--gnu--4.9.2
 			openmpi
+			 1.8.4--gnu--4.9.2
 			 1.8.4--intel--cs-xe-2015--binary
 			 2.1.1--gnu--6.1.0
 			 3.0.0--gnu--6.1.0
 			pgi
+			 15.9
+			 16.3
 			 17.10
 			 17.5
+			 18.5
 			python
 			 2.7.12
 			 3.5.2
@@ -369,6 +446,8 @@ Profile: lifesc
 			 mm10
 			ig_Rattus_norvegicus
 			 rn6
+			ig_Sus_scrofa
+			 Sscrofa11.1
 			Ramazzottius_varieornatus
 			 scaffold
 		environment
@@ -376,11 +455,17 @@ Profile: lifesc
 			blas
 			 3.6.0--gnu--6.1.0
 			 3.6.0--intel--pe-xe-2017--binary
+			 3.8.0--intel--pe-xe-2018--binary
 			boost
 			 1.57.0--gnu--4.9.2
+			 1.58--intelmpi--2018--binary
 			 1.61.0--intelmpi--2017--binary
+			 1.61.0--intelmpi--2018--binary
+			 1.67.0--intelmpi--2018--binary
 			cgal
 			 4.10--intel--pe-xe-2017--binary
+			cubelib
+			 4.4--intelmpi--2018--binary
 			cudnn
 			 6.0--cuda--8.0.61
 			 7.0--cuda--9.0
@@ -406,10 +491,13 @@ Profile: lifesc
 			lapack
 			 3.6.1--gnu--6.1.0
 			 3.6.1--intel--pe-xe-2017--binary
+			 3.8.0--intel--pe-xe-2018--binary
 			leveldb
 			 1.10
 			libgpuarray
 			 0.6.8--cuda--8.0.61
+			libunwind
+			 1.2.1--intel--pe-xe-2017--binary
 			lmdb
 			 0.9.70
 			magma
@@ -421,8 +509,11 @@ Profile: lifesc
 			 11.3.0--binary
 			 11.3.3--binary
 			 2017--binary
+			 2018--binary
 			mpfr
 			 3.1.5--intel--pe-xe-2017--binary
+			mpi4py
+			 1.3.1--intelmpi--2017--binary
 			nccl
 			 1.3.4-1--cuda--8.0.61
 			neon
@@ -443,12 +534,19 @@ Profile: lifesc
 			 1.14.2--python--2.7.12
 			opencv
 			 3.2.0--gnu--4.9.2
+			papi
+			 5.6.0--intel--pe-xe-2017--binary
+			petsc
+			 3.7.5--intelmpi--2017--binary
+			pnetcdf
+			 1.8.1--intelmpi--2017--binary
 			protobuf
 			 3.1.0
 			pytorch
 			 2.3.0--python--2.7.12
 			qt
 			 5.7.0--intelmpi--2017--binary
+			 5.9--gnu--6.1.0
 			scalapack
 			 2.0.2--intelmpi--2017--binary
 			scipy
@@ -476,14 +574,55 @@ Profile: lifesc
 			bazel
 			 0.7.0
 			cmake
+			 3.12.0
 			 3.7.1
+			cube
+			 4.3.5
+			extrae
+			 3.5.2
+			fastq-validator
+			 0.1.1a
+			git
+			 2.17.0
+			git-lfs
+			 2.4.0
+			gnuplot
+			 5.0.0
+			matlab
+			 r2017a
+			 R2018a
 			ninja
 			 1.8.2
+			octave
+			 4.2.2
+			paraver
+			 4.7.2
 			rcm
 			 meta
+			scalasca
+			 2.3.1
+			 2.4
+			scorep
+			 2.0.2
+			 4.0
 			superc
 			 2.0
+			tmux
+			 2.7
+			totalview
+			 2016.07
 			turbovnc
 			 svn
 			virtualgl
 			 2.3.90
+			vtune
+			 2018
+Profile: lifesc
+		applications
+			gromacs
+			 2016.3
+		compilers
+		data
+		environment
+		libraries
+		tools
