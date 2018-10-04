@@ -128,7 +128,7 @@
                     "description_short": "",
                     "hpc_directives": {
                         "account": "cin_staff",
-                        "cpu": 1,
+                        "cpu": 36,
                         "dependencies": [
                             "Download"
                         ],
@@ -142,7 +142,7 @@
                         "nodes": 1,
                         "output": "trimmomatic_out",
                         "queue": "gll_usr_prod",
-                        "walltime": "00:15:00"
+                        "walltime": "02:00:00"
                     },
                     "hpc_directives_text": "",
                     "iterate": false,

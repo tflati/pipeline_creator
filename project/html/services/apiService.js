@@ -86,6 +86,11 @@ app.factory('apiService', function($http, Upload) {
 	  $http.post(url, pipeline).then(successFx, errorFx).finally(finallyFx);
   };
   
+  instance.upload_step = function(step, successFx, errorFx, finallyFx){
+	  var url = SERVER + "upload_step/";
+	  $http.post(url, step).then(successFx, errorFx).finally(finallyFx);
+  };
+  
   instance.upload_samples = function(files, successFx, errorFx, finallyFx){
 	  var url = SERVER + "upload_samples/";
 	  

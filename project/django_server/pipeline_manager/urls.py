@@ -35,6 +35,8 @@ urlpatterns = [
     path('templates/', views.templates),
     path('upload_samples/', views.upload_samples),
     path('upload_pipeline/', views.upload_pipeline),
+    path('upload_step/<overwrite>/', views.upload_step),
+    path('upload_step/', views.upload_step),
     path('create_projects/', views.create_projects),
     path('invoke_monitor/', views.invoke_monitor),
     path('test/', views.test)

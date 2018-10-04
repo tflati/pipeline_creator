@@ -895,7 +895,7 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 		}
 	};
 	
-	$scope.addPipelineToRepository = function(pipeline, $event){
+	$scope.addPipelineToRepository = function(pipeline, event){
 		console.log("SAVING PIPELINE", pipeline);
 		
 		apiService.upload_pipeline(pipeline, function(resp){
@@ -908,7 +908,37 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 			console.log('Error', resp);
 		});
 		
-		$event.stopPropagation();
+		event.stopPropagation();
+	};
+	
+	$scope.addStepToRepository = function(step, event){
+		console.log("SAVING STEP", step);
+		
+		apiService.upload_step(step, function(resp){
+			console.log(resp);
+			var message = resp.data.message;
+			messageService.showMessage(message, resp.data.type);
+			
+			if(resp.data.type == "error"){
+				var confirm = $mdDialog.confirm()
+		          .title('Message from server')
+		          .textContent(message + "\n" + "Would you like to overwrite the existing step?")
+		          .targetEvent(event)
+		          .ok('OK')
+		          .cancel('Cancel');
+
+			    $mdDialog.show(confirm).then(function() {
+			    	messageService.showMessage("Your step has been overwritten", "info");
+			    }, function() {
+			    });
+			}
+			
+		}, function(resp){
+			messageService.showMessage(resp, "warn");
+			console.log('Error', resp);
+		});
+		
+		event.stopPropagation();
 	};
 	
 	$scope.create_projects_from_list = function($event){

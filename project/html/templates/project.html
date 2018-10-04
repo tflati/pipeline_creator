@@ -583,6 +583,10 @@
 										    	<span><i class="fas fa-memory" style="color: darkgreen"></i>{{step.hpc_directives.memory.quantity}}{{step.hpc_directives.memory.size}}</span>
 										    	<span><i class="fas fa-clock" style="color: blue"></i>{{step.hpc_directives.walltime}}</span>
 										    	
+										    	<md-button class="md-icon-button" ng-click="addStepToRepository(step, $event)" tooltip="Save step" aria-label="Save step">
+											      <ng-md-icon icon="gavel"></ng-md-icon>
+											    </md-button>
+										    	
 										    	<md-button class="md-icon-button" ng-click="showDeleteStepDialog(step, $event)" tooltip="Delete this step" aria-label="Remove step">
 											      <ng-md-icon icon="delete"></ng-md-icon>
 											    </md-button>

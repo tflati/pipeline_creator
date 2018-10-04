@@ -563,6 +563,38 @@ def upload_pipeline(request):
     open(filepath, "w").write(json.dumps(current_pipelines, indent=4, sort_keys=True))
     
     return HttpResponse(json.dumps({"type": "info", "message": "Pipeline " + pipeline["id"] + " correctly added to the repository."}))
+
+def upload_step(request, overwrite=False):
+    
+    print("OVERWRITE", overwrite)
+    
+    step = json.loads(request.body.decode('utf-8'))
+
+    filepath = os.path.dirname(__file__) + "/utils/steps.json"
+    current_steps = {"steps": []}
+    if os.path.exists(filepath):
+        current_steps = json.load(open(filepath))
+    print(len(current_steps))
+    
+    to_replace = None
+    for s in current_steps["steps"]:
+        if s["title"] == step["title"]:
+            to_replace = s
+            break
+        
+    if to_replace is not None:
+        if not overwrite:
+            return HttpResponse(json.dumps({"type": "error", "message": "Step " + step["title"] + " already existing."}))
+        else:
+            current_steps["steps"].remove(to_replace)
+    
+    # Append the new pipeline
+    current_steps["steps"].append(step)
+    
+    # Save the new file
+    open(filepath, "w").write(json.dumps(current_steps, indent=4, sort_keys=True))
+    
+    return HttpResponse(json.dumps({"type": "info", "message": "Step " + step["title"] + " correctly added to the repository."}))
     
 def templates(request):
     return HttpResponse(json.dumps(json.load(open(os.path.dirname(__file__) + "/utils/templates.json"))))
