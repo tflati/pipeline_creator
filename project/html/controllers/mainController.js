@@ -112,6 +112,7 @@ app.controller('mainController', function($scope, $location, apiService, moment,
                 "account": "",
                 "nodes": 1,
                 "cpu": 1,
+                "queue": "",
                 "mpi_procs": 0,
                 "memory": {
                     "quantity": 1,
@@ -166,10 +167,29 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 		}, 1000);
 	};
 	
+	$scope.load_qos = function(clusterId){
+		console.log("LOADING QOS", clusterId);
+		
+		return $timeout(function() {
+			$scope.genomes = [];
+			apiService.get_qos(clusterId, function(result){
+				console.log("QOS", result);
+				$scope.queues = result.data;
+			});
+		}, 1000);
+	};
+	
 	$scope.cluster_changed = function(clusterId){
 		console.log("CHANGED CLUSTER", clusterId, $scope);
 		$scope.module_url = apiService.get_module_url(clusterId);
 		console.log("MODULE URL", $scope.module_url);
+	};
+	
+	$scope.queue_changed = function(pipeline, queue){
+		console.log("CHANGED QUEUE", pipeline, queue);
+		angular.forEach(pipeline.steps, function(step){
+			step.hpc_directives.queue = queue;
+		});
 	};
 	
 	$scope.clusters = [
@@ -290,6 +310,8 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 		console.log("SELECTING PIPELINE", pipeline,  $scope, id, pane);
 		$scope.selected_pipeline = pipeline;
 		$scope.module_url = apiService.get_module_url(pipeline.cluster);
+		$scope.account_url = apiService.get_account_url(pipeline.cluster);
+		
 //		var b = $accordion.hasExpandedPane();
 //		console.log("EXPANDED", b);
 //		if (!b) $accordion.expand(item)
@@ -337,6 +359,13 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 			console.log("ADDED ITEM", item, list, $scope);
 			list.push(item);
 		}
+	};
+	
+	$scope.select_account = function(pipeline, accountItem){
+		console.log("SELECTED ACCOUNT: ", accountItem);
+		angular.forEach(pipeline.steps, function(step){
+			step.hpc_directives.account = accountItem.label;
+		});
 	};
 	
 //	$scope.extract_variables = function(check, pipeline){
@@ -1047,6 +1076,10 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 	$scope.add_executable = function(step){
 		if( ! step.executables ) step.executables = [];
 		step.executables.push(angular.copy(executable_template));
+	};
+	
+	$scope.add_step = function(pipeline){
+		pipeline.steps.push(angular.copy(step_template));
 	};
 	
 	$scope.append_step = function(pipeline, step){

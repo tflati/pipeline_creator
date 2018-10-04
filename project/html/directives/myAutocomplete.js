@@ -8,7 +8,8 @@ app.directive('myAutocomplete', function() {
         url: '=',
         data: '=',
         onSelect: '&',
-        target: '='
+        target: '=?',
+        deselectOnClick: '=?'
     }
   };
 });

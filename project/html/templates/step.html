@@ -78,6 +78,28 @@
 <h3>Command line</h3>
 <textarea ng-model="step.commandline" rows="5" style="width: 90%;"></textarea>
 
+<h3>Modules</h3>
+<div layout="row">
+	<div layout="row" layout-padding>
+		<my-autocomplete flex on-select="add_to_list(elem.label, list)" target="step.modules" label="Search in modules" url="module_url"></my-autocomplete>
+		<div layout="column" layout-align="center start">
+			<div ng-repeat="module in step.modules track by $index" layout="row" layout-align="start center">
+				<b ng-bind="module"></b>
+				<span class="fa-layers fa-fw" ng-click="remove_from_list(step.modules, $index)" layout-margin>
+				    <i class="fas fa-circle" style="color:Tomato"></i>
+				    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i>
+				</span>
+				<md-button class="md-icon-button" ng-click="move_item(step.modules, $index, -1, $event)">
+			      <ng-md-icon icon="keyboard_arrow_up" aria-label="Move up this module"></ng-md-icon>
+			    </md-button>
+			    <md-button class="md-icon-button" ng-click="move_item(step.modules, $index, 1, $event)">
+			      <ng-md-icon icon="keyboard_arrow_down" aria-label="Move down this module"></ng-md-icon>
+			    </md-button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <h3>Checks</h3>
 <div layout="row">
 	<div layout="column" layout-padding>
@@ -213,7 +235,16 @@
 	</md-input-container>
 	<md-input-container>
 		<label>Queue/Partition</label>
-		<input type="text" ng-model="step.hpc_directives.queue">
+<!-- 		<input type="text" ng-model="step.hpc_directives.queue"> -->
+		<md-select md-on-open="load_qos(pipeline.cluster)" ng-model="step.hpc_directives.queue" aria-label="Specifies the cluster">
+	       	<md-option ng-repeat="qos in queues" ng-value="qos.id">
+	       		<div flex layout="row">
+		       		<div layout="row" layout-align="left center">
+						<span>{{qos.name}} &nbsp;</span><span ng-if="qos.info" class="lighter">({{qos.info}})</span>
+		       		</div>
+		       	</div>
+	       	</md-option>
+		</md-select>
 	</md-input-container>
 	<md-input-container>
 		<label>Group list</label>
@@ -256,25 +287,3 @@
 		<input type="text" ng-model="step.hpc_directives.error">
 	</md-input-container>
 </md-content>
-		
-<h3>Modules</h3>
-<div layout="row">
-	<div layout="row" layout-padding>
-		<my-autocomplete flex on-select="add_to_list(elem.label, list)" target="step.modules" label="Search in modules" url="module_url"></my-autocomplete>
-		<div layout="column" layout-align="center start">
-			<div ng-repeat="module in step.modules track by $index" layout="row" layout-align="start center">
-				<b ng-bind="module"></b>
-				<span class="fa-layers fa-fw" ng-click="remove_from_list(step.modules, $index)" layout-margin>
-				    <i class="fas fa-circle" style="color:Tomato"></i>
-				    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i>
-				</span>
-				<md-button class="md-icon-button" ng-click="move_item(step.modules, $index, -1, $event)">
-			      <ng-md-icon icon="keyboard_arrow_up" aria-label="Move up this module"></ng-md-icon>
-			    </md-button>
-			    <md-button class="md-icon-button" ng-click="move_item(step.modules, $index, 1, $event)">
-			      <ng-md-icon icon="keyboard_arrow_down" aria-label="Move down this module"></ng-md-icon>
-			    </md-button>
-			</div>
-		</div>
-	</div>
-</div>

@@ -17,6 +17,13 @@ app.factory('apiService', function($http, Upload) {
 	  });
   };
   
+  instance.get_qos = function(clusterId, successFx){
+	  var url = SERVER + "qos/" + clusterId + "/";
+	  $http.get(url).then(successFx, function(result){
+		  console.log("ERROR WHILE RETRIEVING QOS", result);
+	  });
+  };
+  
   instance.get_pipelines = function(successFx){
 	  var url = SERVER + "pipelines/";
 	  $http.get(url).then(successFx, function(result){
@@ -68,6 +75,10 @@ app.factory('apiService', function($http, Upload) {
   
   instance.get_module_url = function(clusterId){
 	  return SERVER + "modules/" + clusterId + "/";   
+  };
+  
+  instance.get_account_url = function(clusterId){
+	  return SERVER + "accounts/" + clusterId + "/";   
   };
   
   instance.upload_pipeline = function(pipeline, successFx, errorFx, finallyFx){

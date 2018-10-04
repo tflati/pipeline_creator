@@ -2895,6 +2895,7 @@
             "color": "#ffc433",
             "disabled": false,
             "id": "GenPipe_Plants",
+            "queue": "gll_usr_prod",
             "steps": [
                 {
                     "checks": [
@@ -2915,7 +2916,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 1,
                         "dependencies": [],
                         "error": "download_err",
@@ -2938,7 +2939,7 @@
                     ],
                     "script_level": "experiment",
                     "sequential": false,
-                    "skip": false,
+                    "skip": true,
                     "title": "Download",
                     "type": "per-sample",
                     "write_stderr_log": true,
@@ -2962,7 +2963,7 @@
                     "description": "",
                     "description_short": "Quality control",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 1,
                         "dependencies": [
                             "Download"
@@ -2987,7 +2988,7 @@
                     ],
                     "script_level": "project",
                     "sequential": false,
-                    "skip": false,
+                    "skip": true,
                     "title": "Fastqc_before",
                     "type": "per-sample",
                     "write_stderr_log": true,
@@ -3014,7 +3015,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 1,
                         "dependencies": [
                             "Download"
@@ -3029,7 +3030,7 @@
                         "nodes": 1,
                         "output": "trimmomatic_out",
                         "queue": "gll_usr_prod",
-                        "walltime": "00:15:00"
+                        "walltime": "02:00:00"
                     },
                     "hpc_directives_text": "",
                     "iterate": false,
@@ -3039,7 +3040,7 @@
                     ],
                     "script_level": "sample",
                     "sequential": false,
-                    "skip": false,
+                    "skip": true,
                     "title": "Trimming",
                     "type": "per-sample",
                     "write_stderr_log": true,
@@ -3063,7 +3064,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 1,
                         "dependencies": [
                             "Trimming"
@@ -3088,7 +3089,7 @@
                     ],
                     "script_level": "project",
                     "sequential": false,
-                    "skip": false,
+                    "skip": true,
                     "title": "Fastqc_after",
                     "type": "per-sample",
                     "write_stderr_log": true,
@@ -3112,7 +3113,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 36,
                         "dependencies": [
                             "Trimming"
@@ -3137,7 +3138,7 @@
                     ],
                     "script_level": "sample",
                     "sequential": false,
-                    "skip": false,
+                    "skip": true,
                     "title": "Mapping",
                     "type": "per-sample",
                     "write_stderr_log": true,
@@ -3156,7 +3157,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 36,
                         "dependencies": [
                             "Mapping"
@@ -3171,7 +3172,7 @@
                         "nodes": 1,
                         "output": "sort_out",
                         "queue": "gll_usr_prod",
-                        "walltime": "03:00:00"
+                        "walltime": "10:00:00"
                     },
                     "hpc_directives_text": "",
                     "iterate": true,
@@ -3181,7 +3182,7 @@
                     ],
                     "script_level": "sample",
                     "sequential": true,
-                    "skip": false,
+                    "skip": true,
                     "title": "Sorting",
                     "type": "per-sample",
                     "write_stderr_log": true,
@@ -3202,7 +3203,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 36,
                         "dependencies": [
                             "Sorting"
@@ -3225,7 +3226,7 @@
                         "picardtools/2.3.0"
                     ],
                     "script_level": "experiment",
-                    "skip": false,
+                    "skip": true,
                     "title": "MergeBams",
                     "write_stderr_log": true,
                     "write_stdout_log": true
@@ -3245,7 +3246,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 1,
                         "dependencies": [
                             "MergeBams"
@@ -3268,7 +3269,7 @@
                         "picardtools/2.3.0"
                     ],
                     "script_level": "experiment",
-                    "skip": false,
+                    "skip": true,
                     "title": "AddOrReplaceReadGroups",
                     "write_stderr_log": true,
                     "write_stdout_log": true
@@ -3288,7 +3289,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 1,
                         "dependencies": [
                             "AddOrReplaceReadGroups"
@@ -3311,7 +3312,7 @@
                         "picardtools/2.3.0"
                     ],
                     "script_level": "experiment",
-                    "skip": false,
+                    "skip": true,
                     "title": "Indexing",
                     "write_stderr_log": true,
                     "write_stdout_log": true
@@ -3331,7 +3332,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 36,
                         "dependencies": [
                             "Indexing"
@@ -3346,7 +3347,7 @@
                         "nodes": 1,
                         "output": "hapcall-out",
                         "queue": "gll_usr_prod",
-                        "walltime": "04:00:00"
+                        "walltime": "08:00:00"
                     },
                     "hpc_directives_text": "",
                     "modules": [
@@ -3354,7 +3355,7 @@
                         "gatk/3.6"
                     ],
                     "script_level": "experiment",
-                    "skip": false,
+                    "skip": true,
                     "title": "HaplotypeCaller",
                     "write_stderr_log": true,
                     "write_stdout_log": true
@@ -3372,7 +3373,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 1,
                         "dependencies": [
                             "HaplotypeCaller"
@@ -3394,7 +3395,7 @@
                     "modules": [],
                     "script_level": "project",
                     "sequential": true,
-                    "skip": false,
+                    "skip": true,
                     "title": "PrepareGenotypeGVCF",
                     "type": "per-step",
                     "write_stderr_log": true,
@@ -3413,7 +3414,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 10,
                         "dependencies": [
                             "PrepareGenotypeGVCF"
@@ -3438,7 +3439,7 @@
                     ],
                     "script_level": "project",
                     "sequential": true,
-                    "skip": false,
+                    "skip": true,
                     "title": "GenotypeGVCF",
                     "type": "per-step",
                     "write_stderr_log": true,
@@ -3459,7 +3460,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 1,
                         "dependencies": [
                             "GenotypeGVCF"
@@ -3482,7 +3483,7 @@
                         "gatk/3.6"
                     ],
                     "script_level": "project",
-                    "skip": false,
+                    "skip": true,
                     "title": "SNPextraction",
                     "write_stderr_log": true,
                     "write_stdout_log": true
@@ -3502,7 +3503,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 1,
                         "dependencies": [
                             "GenotypeGVCF"
@@ -3525,7 +3526,7 @@
                         "gatk/3.6"
                     ],
                     "script_level": "project",
-                    "skip": false,
+                    "skip": true,
                     "title": "INDELSextraction",
                     "write_stderr_log": true,
                     "write_stdout_log": true
@@ -3545,7 +3546,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 1,
                         "dependencies": [
                             "SNPextraction"
@@ -3568,7 +3569,7 @@
                         "gatk/3.6"
                     ],
                     "script_level": "project",
-                    "skip": false,
+                    "skip": true,
                     "title": "SNPfiltering",
                     "write_stderr_log": true,
                     "write_stdout_log": true
@@ -3588,7 +3589,7 @@
                     "description": "",
                     "description_short": "",
                     "hpc_directives": {
-                        "account": "cin_staff",
+                        "account": "elix3_manniron",
                         "cpu": 1,
                         "dependencies": [
                             "INDELSextraction"
@@ -3611,8 +3612,211 @@
                         "gatk/3.6"
                     ],
                     "script_level": "project",
-                    "skip": false,
+                    "skip": true,
                     "title": "INDELSfiltering",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "checks": [],
+                    "command_chunk_size": 1,
+                    "command_group_level": "all",
+                    "command_level": "project",
+                    "command_parallelism_level": "sequential",
+                    "commandline": ">dedupAdd.txt\n\nfor EXPERIMENT in `cat experiments`\ndo\n    readlink -f $EXPERIMENT/$EXPERIMENT.dedupAdd.bam >> dedupAdd.txt\ndone",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "executable": [],
+                    "hpc_directives": {
+                        "account": "elix3_manniron",
+                        "cpu": 1,
+                        "dependencies": [
+                            "AddOrReplaceReadGroups"
+                        ],
+                        "error": "PrepareBcftools.err",
+                        "job_name": "PrepareBcftools-${project_variable}",
+                        "memory": {
+                            "quantity": 1,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "PrepareBcftools.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "00:01:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [],
+                    "script_level": "project",
+                    "skip": false,
+                    "title": "PrepareBcftoools",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "checks": [],
+                    "command_chunk_size": 1,
+                    "command_group_level": "all",
+                    "command_level": "project",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "cut -f1 $REFERENCE.fai | xargs -I {} -P 36 sh -c \"samtools mpileup -g -B -C50 -m 4 -f $REFERENCE -r \\\"{}\\\" -b dedupAdd.txt | bcftools call -mv -O v -o bcf_\\\"{}\\\"_part.vcf\"\n\n>list.txt\nfor i in bcf_*_part.vcf; do \n    echo $(pwd)/$i >> list.txt;\ndone\n\nbcftools concat -f list.txt --output bcftools_concat.g.vcf\ngzip bcftools_concat.g.vcf\n\nbcftools view bcftools_concat.g.vcf.gz -v snps > bcftools_concat_snps.g.vcf\nbcftools view bcftools_concat.g.vcf.gz -v indels > bcftools_concat_indels.g.vcf",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "executable": [],
+                    "hpc_directives": {
+                        "account": "elix3_manniron",
+                        "cpu": 36,
+                        "dependencies": [
+                            "PrepareBcftoools"
+                        ],
+                        "error": "bcftools.err",
+                        "job_name": "Bcftools-${project_variable}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "bcftools.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "10:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/global",
+                        "samtools/1.7",
+                        "bcftools/1.9"
+                    ],
+                    "script_level": "project",
+                    "skip": false,
+                    "title": "BcfTools",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "checks": [],
+                    "command_chunk_size": 1,
+                    "command_group_level": "all",
+                    "command_level": "project",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "cut -f1 $REFERENCE.fai | xargs -P 36 -I {} sh -c \"freebayes -f $REFERENCE -r {} -C 5 -L dedupAdd.txt > part.fb.\\\"{}\\\".vcf\"\n\n>list.txt\nfor i in part.fb*.vcf; do \n    echo $(pwd)/$i >> list.txt;\ndone\n\nbcftools concat -f list.txt --output freebayes_concat.g.vcf\ngzip freebayes_concat.g.vcf\nbcftools view freebayes_concat.g.vcf.gz -v snps > freebayes_concat_snps.g.vcf\nbcftools view freebayes_concat.g.vcf.gz -v indels > freebayes_concat_indels.g.vcf",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "executable": [],
+                    "hpc_directives": {
+                        "account": "elix3_manniron",
+                        "cpu": 36,
+                        "dependencies": [
+                            "PrepareBcftoools"
+                        ],
+                        "error": "freebayes.err",
+                        "job_name": "Freebayes-${project_variable}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "freebayes.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "10:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/global",
+                        "freebayes/1.1.0",
+                        "bcftools/1.9"
+                    ],
+                    "script_level": "project",
+                    "skip": false,
+                    "title": "Freebayes",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "checks": [],
+                    "command_chunk_size": 1,
+                    "command_group_level": "all",
+                    "command_level": "project",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "14_june_18_intersect.snps.with.infos.pl bcftools_concat_snps.g.vcf freebayes_concat_snps.g.vcf Combined_snps_filt.vcf",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "executable": [],
+                    "hpc_directives": {
+                        "account": "elix3_manniron",
+                        "cpu": 1,
+                        "dependencies": [
+                            "Freebayes",
+                            "BcfTools",
+                            "SNPfiltering"
+                        ],
+                        "error": "consensusSNPs.err",
+                        "job_name": "consensusSNPs-${project_variable}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "consensusSNPs.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "01:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/global",
+                        "filter_vcf/1.0"
+                    ],
+                    "script_level": "project",
+                    "skip": false,
+                    "title": "ConsensusSNPS",
+                    "write_stderr_log": true,
+                    "write_stdout_log": true
+                },
+                {
+                    "checks": [],
+                    "command_chunk_size": 1,
+                    "command_group_level": "all",
+                    "command_level": "project",
+                    "command_parallelism_level": "sequential",
+                    "commandline": "14_june_18_intersect.indels.with.infos.pl bcftools_concat_indels.g.vcf freebayes_concat_indels.g.vcf Combined_indels_filt.vcf",
+                    "conditions": [],
+                    "description": "",
+                    "description_short": "",
+                    "executable": [],
+                    "hpc_directives": {
+                        "account": "elix3_manniron",
+                        "cpu": 1,
+                        "dependencies": [
+                            "Freebayes",
+                            "BcfTools",
+                            "INDELSfiltering"
+                        ],
+                        "error": "consensusINDELs.err",
+                        "job_name": "consensusINDELs-${project_variable}",
+                        "memory": {
+                            "quantity": 115,
+                            "size": "GB"
+                        },
+                        "mpi_procs": 0,
+                        "nodes": 1,
+                        "output": "consensusINDELs.out",
+                        "queue": "gll_usr_prod",
+                        "walltime": "01:00:00"
+                    },
+                    "hpc_directives_text": "",
+                    "modules": [
+                        "profile/global",
+                        "filter_vcf/1.0"
+                    ],
+                    "script_level": "project",
+                    "skip": false,
+                    "title": "ConsensusINDELs",
                     "write_stderr_log": true,
                     "write_stdout_log": true
                 }

@@ -3,6 +3,7 @@ from django.http import HttpResponse
 import json
 import os
 import time
+import re
 import glob
 import datetime
 import stat
@@ -199,14 +200,18 @@ def create_projects(request):
     samples = data["list"].split("\n")
     
     db = "sra"
-    bioproject_search = True
+#     prefixes = Counter()
+#     if samples:
+#         for sample in samples:
+#             prefix = sample.replace("[0-9]*$")
+#             prefixes[prefix] += 1
+#     print(prefixes)
     
+#     bioproject_search = True
     samples_set = set()
     if samples and (samples[0].startswith("SRR") or samples[0].startswith("DRR") or samples[0].startswith("ERR")):
-        bioproject_search = False
+#         bioproject_search = False
         samples_set = set(samples)
-#     elif samples and samples[0].startswith("PRJ"):
-#         db = "bioproject"
     
     print("DB=", db)
     
@@ -233,22 +238,23 @@ def create_projects(request):
     
     response = convert_ncbi_response(samples_set, tree)
 
-    if bioproject_search:
-        found = set()
-        for bioproject in response:
-            found.add(bioproject["id"])
-        print("FOUND", found)    
+    found = set()
+    for bioproject in response:
+        found.add(bioproject["id"])
+    print("FOUND", found)
+    
+    for x in samples:
+        prefix = re.sub('\d', '', x)
         
-        not_found = set(samples).difference(found)
-        print("NOT_FOUND", not_found)
-        
-        for x in not_found:
+        if prefix == "PRJNA":
+            print("NOT_FOUND", x)
+
             response.append({
                     "id": x,
                     "type": "bioproject",
                     "experiments": []
                 })
-         
+
     return HttpResponse(json.dumps(response))
 
 # def single_step_allsamples_writer(step, file, vertex2name, dataset, pipeline, g, u):
@@ -445,6 +451,38 @@ def modules(request, cluster_id, prefix = None):
             elif prefix is None or prefix.lower() in last_module.lower():
                 modules[last_category+"#"+last_module + "/" +line.strip()] = {"label": last_module + "/" +line.strip(), "extra": last_category}
     return HttpResponse(json.dumps(list(modules.values())))
+
+def accounts(request, cluster_id, prefix = None):
+    accounts = []
+    ids = set()
+
+    for line in open(os.path.dirname(__file__) + "/utils/all_accounts_" + cluster_id + ".txt"):
+        line = line.rstrip()
+        if prefix is None or prefix in line:
+            if line not in ids:
+                ids.add(line)
+                accounts.append({"label": line})
+        
+    return HttpResponse(json.dumps(accounts))
+
+def qos(request, cluster_id):
+    qos = []
+    
+    map = {
+        "galileo": "gll",
+        "marconi_broadwell": "bdw",
+        "marconi_knl": "knl",
+        "marconi_skl": "skl"
+    }
+    
+    for line in open(os.path.dirname(__file__) + "/utils/all_qos.txt"):
+        fields = line.rstrip().split("\t")
+        name = fields[0]
+        limits = fields[1] if len(fields) > 1 else ""
+        if name.startswith(map[cluster_id]):
+            qos.append({"id": name, "name": name, "info": limits})
+        
+    return HttpResponse(json.dumps(qos))
 
 def genomes(request, cluster_id):
     
@@ -1455,9 +1493,9 @@ BASE_DIR="/gss/gss_work/DRES_wrkgalax/pipeline_monitor/$CLUSTER/"
 PROJECT_NAME=`grep "PROJECT_NAME" info | cut -d'=' -f 2`
 TARGET_DIR=$BASE_DIR$PROJECT_NAME
 
-if [ ! -d $TARGET_DIR ]
+if [ ! -d "$TARGET_DIR" ]
 then
-        mkdir -p $TARGET_DIR
+        mkdir -p "$TARGET_DIR"
 fi
 
 TARGET_FILE="$TARGET_DIR/$PROJECT_NAME.monitor"
@@ -1470,7 +1508,7 @@ echo -e "NodeName"'\t'"BioentityID"'\t'"BioentityType" > header2
 # Filter out the jobs which do not belong to this project
 join -j 1 -t '\t' body job_info > prefinal
 cat header1 header2 > header
-cat header prefinal > $TARGET_FILE
+cat header prefinal > "$TARGET_FILE"
 rm tmp header1 header2 header body prefinal
 
 echo "Statistics written to: $TARGET_FILE"

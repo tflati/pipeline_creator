@@ -6,6 +6,8 @@ Profile: advanced
 		compilers
 			cuda
 			 9.0
+			openmpi
+			 3.1.1--gnu--6.1.0
 			pgi
 			 17.10
 			 18.5
@@ -20,13 +22,23 @@ Profile: advanced
 			 1.8.17--gnu--6.1.0
 			lapack
 			 3.6.1--gnu--6.1.0
+			libunwind
+			 1.2.1--intel--pe-xe-2017--binary
 			netcdf
 			 4.4.1--gnu--6.1.0
 			netcdff
 			 4.4.4--gnu--6.1.0
+			papi
+			 5.6.0--intel--pe-xe-2017--binary
 			zlib
 			 1.2.11--intel--pe-xe-2017--binary
 		tools
+			cube
+			 4.3.5
+			extrae
+			 3.5.2
+			paraver
+			 4.7.2
 Profile: archive
 		applications
 			gromacs
@@ -90,11 +102,15 @@ Profile: base
 		libraries
 			blas
 			 3.6.0--intel--pe-xe-2017--binary
+			 3.8.0--intel--pe-xe-2018--binary
 			boost
+			 1.58--intelmpi--2018--binary
 			 1.61.0--intelmpi--2017--binary
+			 1.61.0--intelmpi--2018--binary
 			fftw
 			 2.1.5--intelmpi--2017--binary
 			 3.3.5--intelmpi--2017--binary
+			 3.3.8--intelmpi--2018--binary
 			gsl
 			 2.2.1--intel--pe-xe-2017--binary
 			hdf5
@@ -102,8 +118,7 @@ Profile: base
 			 1.8.17--intel--pe-xe-2017--binary
 			lapack
 			 3.6.1--intel--pe-xe-2017--binary
-			libunwind
-			 1.2.1--intel--pe-xe-2017--binary
+			 3.8.0--intel--pe-xe-2018--binary
 			mkl
 			 2017--binary
 			 2018--binary
@@ -117,8 +132,6 @@ Profile: base
 			 4.4.4--intel--pe-xe-2017--binary
 			numpy
 			 1.13.1--python--2.7.12
-			papi
-			 5.6.0--intel--pe-xe-2017--binary
 			petsc
 			 3.7.5--intelmpi--2017--binary
 			pnetcdf
@@ -140,14 +153,11 @@ Profile: base
 			 3.12.0
 			cube
 			 4.3.5
-			extrae
-			 3.5.2
 			FastQValidator
-			 1
 			gnuplot
 			 5.0.0
-			paraver
-			 4.7.2
+			nco
+			 4.6.7
 			rcm
 			 meta
 			scalasca
@@ -168,6 +178,8 @@ Profile: bioinf
 			 2016Feb01
 			bedtools2
 			 2.27.1
+			blast+
+			 2.7.1
 			bowtie2
 			 2.2.9
 			bwa
@@ -178,6 +190,7 @@ Profile: bioinf
 			 1.1.0
 			gatk
 			 3.6
+			 3.8
 			 4.0
 			hisat2
 			 2.1.0
@@ -206,6 +219,12 @@ Profile: bioinf
 		environment
 		libraries
 		tools
+			bcftools
+			 1.9
+			fastq-validator
+			 0.1.1a
+			filter_vcf
+			 1.0
 Profile: deeplrn
 		applications
 			caffe
@@ -279,6 +298,7 @@ Profile: eng
 			 6.0
 			openfoam+
 			 v1712
+			 v1806
 			openfoam-ext
 			 3.2
 			starccm+
@@ -289,6 +309,10 @@ Profile: eng
 		compilers
 			gnu
 			 4.9.2
+			intel
+			 pe-xe-2018--binary
+			intelmpi
+			 2018--binary
 			openmpi
 			 1.8.4--gnu--4.9.2
 		data
@@ -305,6 +329,8 @@ Profile: eng
 			zlib
 			 1.2.11--intel--pe-xe-2017--binary
 		tools
+			dakota
+			 6.8
 			matlab
 			 r2017a
 			 R2018a
@@ -322,6 +348,8 @@ Profile: global
 			 191
 			bedtools2
 			 2.27.1
+			blast+
+			 2.7.1
 			bowtie2
 			 2.2.9
 			bwa
@@ -336,6 +364,7 @@ Profile: global
 			 1.1.0
 			gatk
 			 3.6
+			 3.8
 			 4.0
 			gromacs
 			 2016.3
@@ -358,6 +387,7 @@ Profile: global
 			 5.0
 			openfoam+
 			 v1712
+			 v1806
 			openfoam-ext
 			 3.2
 			picardtools
@@ -424,6 +454,7 @@ Profile: global
 			 1.8.4--intel--cs-xe-2015--binary
 			 2.1.1--gnu--6.1.0
 			 3.0.0--gnu--6.1.0
+			 3.1.1--gnu--6.1.0
 			pgi
 			 15.9
 			 16.3
@@ -437,6 +468,8 @@ Profile: global
 		data
 			ig_Bos_taurus
 			 bosTau8
+			ig_ENS_Mus_Musculus
+			 GRCm38
 			ig_homo_sapiens
 			 hg19
 			 hg38
@@ -474,6 +507,7 @@ Profile: global
 			 3.3.4--intelmpi--2017--binary
 			 3.3.4--intelmpi--5.0.2--binary
 			 3.3.5--intelmpi--2017--binary
+			 3.3.8--intelmpi--2018--binary
 			gflags
 			 2.1.2
 			glog
@@ -546,6 +580,7 @@ Profile: global
 			 2.3.0--python--2.7.12
 			qt
 			 5.7.0--intelmpi--2017--binary
+			 5.7.0--intelmpi--2018--binary
 			 5.9--gnu--6.1.0
 			scalapack
 			 2.0.2--intelmpi--2017--binary
@@ -573,15 +608,23 @@ Profile: global
 			 0.7
 			bazel
 			 0.7.0
+			bcftools
+			 1.9
 			cmake
 			 3.12.0
 			 3.7.1
 			cube
 			 4.3.5
+			cubegui
+			 4.4
+			dakota
+			 6.8
 			extrae
 			 3.5.2
 			fastq-validator
 			 0.1.1a
+			filter_vcf
+			 1.0
 			git
 			 2.17.0
 			git-lfs
@@ -591,6 +634,8 @@ Profile: global
 			matlab
 			 r2017a
 			 R2018a
+			nco
+			 4.6.7
 			ninja
 			 1.8.2
 			octave

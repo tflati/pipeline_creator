@@ -489,7 +489,29 @@
 										       	</div>
 									       	</md-option>
 										</md-select>
+										
+										<md-subheader class="md-primary">Cluster info</md-subheader>
+										
+										<md-input-container>
+											<label>Account</label>
+											<my-autocomplete flex on-select="select_account(pipeline, elem)" deselect-on-click="false" label="Search in accounts" url="account_url"></my-autocomplete>
+										</md-input-container>
+										
+										<md-input-container>
+											<label>Queue</label>
+											<md-select md-on-open="load_qos(pipeline.cluster)" class="padding-left-15" ng-model="pipeline.queue" aria-label="Specifies the cluster" ng-change="queue_changed(pipeline, pipeline.queue)">
+										       	<md-option ng-repeat="qos in queues" ng-value="qos.id">
+										       		<div flex layout="row">
+											       		<div layout="row" layout-align="left center">
+															<span>{{qos.name}} &nbsp;</span><span ng-if="qos.info" class="lighter">({{qos.info}})</span>
+											       		</div>
+											       	</div>
+										       	</md-option>
+											</md-select>
+										</md-input-container>
 									</section>
+									
+									
 									
 									<section>
 										<md-subheader class="md-primary">Steps</md-subheader>
@@ -551,11 +573,15 @@
 													</span>
 										    	</div>
 										    
-										    	<md-button ng-if="step.skip" class="md-icon-button" aria-label="Skip this step">
-											      <ng-md-icon icon="low_priority"></ng-md-icon>
-											    </md-button>
+<!-- 										    	<md-button ng-if="step.skip" class="md-icon-button" aria-label="Skip this step"> -->
+<!-- 											      <ng-md-icon icon="low_priority"></ng-md-icon> -->
+<!-- 											    </md-button> -->
 										    	
 										    	<span tooltip="<b>Command line</b>:<br/>{{step.commandline}}" md-truncate flex><b ng-if="step.skip">(skipped)&nbsp;</b><b>Step {{$index+1}}: {{step.title}}</b></span>
+										    	
+										    	<span><i class="fas fa-microchip" style="color: red"></i>{{step.hpc_directives.cpu}}CPUS</span>
+										    	<span><i class="fas fa-memory" style="color: darkgreen"></i>{{step.hpc_directives.memory.quantity}}{{step.hpc_directives.memory.size}}</span>
+										    	<span><i class="fas fa-clock" style="color: blue"></i>{{step.hpc_directives.walltime}}</span>
 										    	
 										    	<md-button class="md-icon-button" ng-click="showDeleteStepDialog(step, $event)" tooltip="Delete this step" aria-label="Remove step">
 											      <ng-md-icon icon="delete"></ng-md-icon>

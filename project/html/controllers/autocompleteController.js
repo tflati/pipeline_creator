@@ -2,6 +2,9 @@ app.controller("autocompleteController", function($scope, $http, $q, $filter, $t
     
 	var self = this;
 	
+	if($scope.deselectOnClick === undefined)
+		$scope.deselectOnClick = true;
+	
 //	console.log("AUTOCOMPLETE", $scope);
 	
 	$scope.querySearch = function(query){
@@ -52,7 +55,8 @@ app.controller("autocompleteController", function($scope, $http, $q, $filter, $t
 			console.log("AUTOCOMPLETE SELECTED", x, $scope);
 			$scope.onSelect({elem: x, list: $scope.target});
 			
-			$scope.value = undefined;
+			if($scope.deselectOnClick === true)
+				$scope.value = undefined;
 		}
 	}
 });
