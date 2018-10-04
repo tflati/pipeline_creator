@@ -546,6 +546,10 @@ def projects(request):
 def pipelines(request):
     return HttpResponse(json.dumps(json.load(open(os.path.dirname(__file__) + "/utils/pipelines.json"))))
 
+def steps(request):
+    return HttpResponse(json.dumps(json.load(open(os.path.dirname(__file__) + "/utils/steps.json"))))
+
+
 def upload_pipeline(request):
     pipeline = json.loads(request.body.decode('utf-8'))
 

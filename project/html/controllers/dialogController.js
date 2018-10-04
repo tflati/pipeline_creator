@@ -1,6 +1,9 @@
 function DialogController($scope, $mdDialog, item) {
 	
 	$scope.item = item;
+	
+	console.log("DIALOG CONTROLLER", item);
+	
 	$scope.checked = [];
 	
     $scope.hide = function() {

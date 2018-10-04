@@ -91,6 +91,11 @@ app.factory('apiService', function($http, Upload) {
 	  $http.post(url, step).then(successFx, errorFx).finally(finallyFx);
   };
   
+  instance.get_steps = function(successFx, errorFx, finallyFx){
+	  var url = SERVER + "steps/";
+	  $http.post(url).then(successFx, errorFx).finally(finallyFx);
+  };
+  
   instance.upload_samples = function(files, successFx, errorFx, finallyFx){
 	  var url = SERVER + "upload_samples/";
 	  

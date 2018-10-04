@@ -1145,6 +1145,39 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 	    $event.stopPropagation();
 	};
 	
+	$scope.showImportStepDialog = function(pipeline, $event) {
+		
+		apiService.get_steps(function(result){
+			  console.log("STEPS", result);
+			  
+			  var confirm = {
+				    	controller: DialogController,
+						templateUrl: 'templates/dialogs/import_step_dialog.html',
+						parent: angular.element(document.body),
+						targetEvent: $event,
+						clickOutsideToClose:true,
+						fullscreen: $scope.customFullscreen,
+						resolve: {
+						      item: function () {
+						    	  return result.data.steps;
+						      }
+						    }
+				    };
+
+				    $mdDialog.show(confirm).then(function(answer) {
+				    	console.log("DIALOG ANSWER", answer);
+				    	if (answer != "Cancel") {
+				    		for(var i in answer){
+				    			$scope.append_step(pipeline, answer[i]);
+				    		}
+				    	}
+				    }, function() {
+				    });
+		  });
+	    
+	    $event.stopPropagation();
+	};
+	
 	$scope.samples_changed = function(experiment, text){
 		console.log("SAMPLE_CHANGED", $scope, experiment, text);
 		experiment.sample_ids = [];

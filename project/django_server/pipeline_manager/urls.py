@@ -32,6 +32,7 @@ urlpatterns = [
     path('accounts/<cluster_id>/', views.accounts),
     path('qos/<cluster_id>/', views.qos),
     path('pipelines/', views.pipelines),
+    path('steps/', views.steps),
     path('templates/', views.templates),
     path('upload_samples/', views.upload_samples),
     path('upload_pipeline/', views.upload_pipeline),

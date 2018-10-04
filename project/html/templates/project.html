@@ -614,6 +614,13 @@
 										</v-accordion>
 										
 										<div layout-margin>
+										
+											<md-button class="md-button md-warn md-raised" ng-click="showImportStepDialog(pipeline, $event)" tooltip="Import a step to this pipeline" aria-label="Import a step">
+													<i class="fas fa-file-import"></i>
+												</span>
+												Import a step
+											</md-button>
+										
 											<md-button class="md-button md-warn md-raised" ng-click="add_step(pipeline)" tooltip="Add a step to this pipeline" aria-label="Add a new step">
 										       	<span class="fa-layers fa-fw">
 													<i class="fas fa-list-ol"></i>

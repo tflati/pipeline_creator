@@ -1,0 +1,62 @@
+<md-dialog aria-label="Copy dialog" style="min-width: 70%;">
+
+	<form ng-cloak>
+	    <md-toolbar class="md-hue-2">
+	      <div class="md-toolbar-tools">
+	        <h2>Import step(s) from pipelines</h2>
+	        <span flex></span>
+	        <md-button class="md-icon-button" ng-click="cancel()">
+	          <ng-md-icon icon="close" aria-label="Close dialog"></ng-md-icon>
+	        </md-button>
+	      </div>
+	    </md-toolbar>
+	</form>
+	
+	<md-dialog-content>
+      <div class="md-dialog-content">
+      
+      	<div layout="row" layout-align="start center" layout-margin>
+      		<img src="imgs/clone.png">      
+			<p>Select the step(s) to copy:</p>
+		</div>
+		
+<!-- 		<div ng-repeat="step in item"> -->
+<!-- 			<v-accordion class="vAccordion--default" multiple> -->
+<!-- 			  <v-pane> -->
+<!-- 			    <v-pane-header> -->
+<!-- 					<span ng-bind="pipeline.id"></span> -->
+<!-- 			    </v-pane-header> -->
+<!-- 			    <v-pane-content> -->
+			    	<v-accordion class="vAccordion--default padding-10" multiple>
+			    		<v-pane ng-repeat="step in item">
+			    			<v-pane-header>
+			    				<md-checkbox ng-checked="exists(step, checked)" ng-click="toggle(step, checked, $event)" aria-label="Select this step">
+								</md-checkbox>
+								<span tooltip="<b>Command line</b>:<br/>{{step.commandline}}" md-truncate flex><b ng-if="step.skip">(skipped)&nbsp;</b><b>Step {{$index+1}}: {{step.title}}</b></span>
+			    			</v-pane-header>
+			    			<v-pane-content>
+<!-- 			    				<h3>Command line</h3> -->
+<!-- 								<textarea class="code padding-10" ng-model="step.commandline" rows="5" style="width: 90%;"></textarea> -->
+								<ng-include src="'templates/step.html'"></ng-include>
+			    			</v-pane-content>
+			    		</v-pane>
+			    	</v-accordion>			    
+<!-- 			    </v-pane-content> -->
+<!-- 			  </v-pane> -->
+<!-- 			</v-accordion> -->
+<!-- 		</div> -->
+		
+      </div>
+    </md-dialog-content>
+    
+    <md-dialog-actions layout="row">
+      <span flex></span>
+      <md-button ng-click="answer('Cancel')">
+       Cancel
+      </md-button>
+      <md-button ng-click="answer(checked)">
+        Import selected
+      </md-button>
+    </md-dialog-actions>
+	
+</md-dialog>
