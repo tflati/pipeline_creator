@@ -739,7 +739,7 @@ def produce_script(v, vertex2name, project, pipeline, step, bioentity):
     experiment = None
     
     if script_level_index == 0: # top
-        sh_dir = ""
+        sh_dir = "./"
         
     if script_level_index == 1: # project
         bioproject = bioentity

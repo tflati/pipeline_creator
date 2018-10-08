@@ -1007,7 +1007,7 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 		project.projects.splice(index, 1);
 	};
 	
-	$scope.showDeleteStepDialog = function(step, $event) {
+	$scope.showDeleteStepDialog = function(pipeline, step, $event) {
 		
 	    var confirm = {
 	    	controller: DialogController,
@@ -1026,7 +1026,7 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 
 	    $mdDialog.show(confirm).then(function(answer) {
 	    	console.log("DIALOG ANSWER", answer);
-	    	if (answer == "OK") $scope.remove_step($scope.selected_pipeline.steps, $scope.selected_pipeline.steps.indexOf(step));
+	    	if (answer == "OK") $scope.remove_step(pipeline.steps, pipeline.steps.indexOf(step));
 	    }, function() {
 	    });
 	    
@@ -1210,6 +1210,7 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 	
 	
 	$scope.remove_step = function(list, index){
+		console.log("REMOVING STEP", list, index);
 		list.splice(index, 1);
 	};
 	
