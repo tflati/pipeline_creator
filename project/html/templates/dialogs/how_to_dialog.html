@@ -1,0 +1,38 @@
+<md-dialog aria-label="How to">
+	<form ng-cloak>
+	    <md-toolbar class="md-hue-2">
+	      <div class="md-toolbar-tools">
+	        <h2>How to use this portal</h2>
+	        <span flex></span>
+	        <md-button class="md-icon-button" ng-click="cancel()">
+	          <ng-md-icon icon="close" aria-label="Close dialog"></ng-md-icon>
+	        </md-button>
+	      </div>
+	    </md-toolbar>
+	</form>
+	<md-dialog-content>
+		<div class="md-dialog-content">
+      
+      		<p>In order to use this portal, you will have to add the following public key to your
+	      .ssh/authorized_keys in your $HOME directory on the CINECA's cluster
+	      	</p>
+	      
+			<div class="code" style="word-wrap: break-word">
+	      		{{item}}
+	      	</div>
+			<div layout-margin layout="row" layout-align="start center" class="padding-small" ngclipboard-success="onSuccess('Key successfully copied to your clipboard :)')" ngclipboard data-clipboard-text="{{item}}">
+      			<div class="fa fa-clipboard fa-2x"></div>
+      			<div>Click to copy on clipboard</div>
+      		</div>
+		
+      </div>
+    </md-dialog-content>
+    
+    <md-dialog-actions layout="row">
+      <span flex></span>
+      <md-button ng-click="answer()">
+        OK
+      </md-button>
+    </md-dialog-actions>
+	
+</md-dialog>

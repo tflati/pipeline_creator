@@ -1,4 +1,4 @@
-function DialogController($scope, $mdDialog, item) {
+function DialogController($scope, $mdDialog, messageService, item) {
 	
 	$scope.item = item;
 	
@@ -34,4 +34,14 @@ function DialogController($scope, $mdDialog, item) {
 		
 		return list.indexOf(item) > -1;
 	};
+	
+	$scope.onSuccess = function (x) {
+		messageService.showMessage(x, "success");
+	};
+	
+//	$scope.copy_to_clipboard = function(x){
+//		copyText.select();
+//        document.execCommand("copy");
+//        console.log("CLIPBOARD", window.clipboardData);
+//	};
 }

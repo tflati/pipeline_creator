@@ -63,6 +63,11 @@ app.factory('apiService', function($http, Upload) {
 	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);
   };
   
+  instance.launch_scripts = function(project, successFx, errorFx, finallyFx){
+	  var url = SERVER + "launch_scripts/";
+	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);
+  };
+  
   instance.download_scripts = function(project, successFx, errorFx, finallyFx){
 	  var url = SERVER + "download_scripts/";
 	  $http.post(url, project).then(successFx, errorFx).finally(finallyFx);
@@ -98,6 +103,19 @@ app.factory('apiService', function($http, Upload) {
   
   instance.upload_samples = function(files, successFx, errorFx, finallyFx){
 	  var url = SERVER + "upload_samples/";
+	  
+	  Upload.upload({
+          url: url,
+          data: {file: files}
+      }).then(successFx, errorFx, function (evt) {
+          var progressPercentage = parseInt(100.0 * evt.loaded / evt.total);
+          console.log('progress: ' + progressPercentage + '% ' + evt.config.data.file.name);
+      });
+  };
+  
+  instance.add_papers = function(selected_project, bioproject_id, files, successFx, errorFx, finallyFx){
+	  var url = SERVER + "add_papers/" + selected_project.id + "/" + bioproject_id + "/";
+	  console.log("Uploading papers", selected_project, bioproject_id, files);
 	  
 	  Upload.upload({
           url: url,

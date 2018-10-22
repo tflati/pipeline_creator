@@ -51,6 +51,9 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 		"id": "",
 		"steps": [],
     	"disabled": false,
+    	"cluster": "",
+    	"username": "",
+    	"remote_path": "",
     	"tags": [],
 		"variables": [
             {
@@ -226,6 +229,24 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 		$scope.selected_subproject.dataset.sample_ids = data;
 	};
 	
+	$scope.show_how_to = function(){
+		
+		var confirm = {
+	    	controller: DialogController,
+			templateUrl: 'templates/dialogs/how_to_dialog.html',
+			parent: angular.element(document.body),
+			clickOutsideToClose:true,
+			fullscreen: $scope.customFullscreen,
+			resolve: {
+		      item: function () {
+		    	  return "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/vggD6IJLoy1l2foO9crvrlN0u0hKnZnRmfpQzzv0VO1qv9c6wXsacrOCuJZpphf9OResmKWD4tZnyv+tysla0gqtyqJCCRitkZ4JbzXodptbdnojnzD72O8ikIsUS4rLSG2+R63NfZLH8ygbQ75e0iKuMRN6UBxSYMw85kGZrky1d7gWnqbLHYgM5GT1vrV0ymouNfkTrW7Xs5a8u3K13PaZ9ZOg9nksvO2g9dilkUZeRK8n1cNcQoCudofVjdbf/AxDdJxvlNdcnFoYbSRCXRo86CrPGC14DEXdjfGuzMc6+Zz79FnafCr41vxRUlbybHzWGDZZZd7JExP28A35 flati@DTFLATI00220575";
+		      }
+		    }
+	    };
+
+	    $mdDialog.show(confirm);
+	};
+	
 	$scope.refresh = function(){
 		apiService.get_projects(function(result){
 			console.log("[REFRESH] AJAX RESULT", result);
@@ -288,9 +309,10 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 		console.log("SELECTING PROJECT", item, $scope);
 		$scope.selected_project = item;
 		
-		$scope.bioproject2data = undefined;
 		$scope.begin = 0;
 		$mdSidenav('sidenav').close();
+		
+		$scope.get_paper_projects();
 	};
 	
 	$scope.select_subproject = function(item){
@@ -493,59 +515,59 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 		return Object.keys(platforms);
 	};
 	
-	$scope.get_paper_projects = function(selected_project){
-		if($scope.bioproject2data) return $scope.bioproject2data;
-		else
+	$scope.get_paper_projects = function(){
+		$scope.bioproject2data = {};
+		for(var k=0; k<$scope.selected_project.projects.length; k++)
 		{
-			$scope.bioproject2data = {};
-			for(var k=0; k<selected_project.projects.length; k++)
-			{
-				var subproject = selected_project.projects[k];
-				
-				var bioproject_id = subproject.id;
-				if (! (bioproject_id in $scope.bioproject2data) )
-				{
-					$scope.bioproject2data[bioproject_id] = {
-						"bioprojects": [],
-						"runs": [],
-						"experiments": [],
-						"samples": [],
-						"organisms": [],
-						"size": 0,
-						"papers": [],
-						"platforms": [],
-						"layouts": []
-					};
-				}
-				
-				for(var j=0; j<subproject.experiments.length; j++){
-					
-					var experiment = subproject.experiments[j];
-					
-					var paper = experiment.dataset.paper_id;
-					var biosample_id = experiment.dataset.biosample_id;
-					var experiment_id = experiment.id;
-					var organism = experiment.dataset.genome;
-					var size = experiment.dataset.size;
-					var platform = experiment.dataset.platform;
-					var layout = experiment.dataset.pairedend ? "PE": "SE";
-					if(paper != undefined && $scope.bioproject2data[bioproject_id]["papers"].indexOf(paper) == -1) $scope.bioproject2data[bioproject_id]["papers"].push(paper);
-					for(var i in experiment.dataset.sample_ids){
-						var sample = experiment.dataset.sample_ids[i];
-						if(sample["id"] in $scope.bioproject2data[bioproject_id]["runs"]) continue;
-						$scope.bioproject2data[bioproject_id]["runs"].push(sample["id"]);
-					}
-					if($scope.bioproject2data[bioproject_id]["samples"].indexOf(biosample_id) == -1) $scope.bioproject2data[bioproject_id]["samples"].push(biosample_id);
-					if($scope.bioproject2data[bioproject_id]["experiments"].indexOf(experiment_id) == -1) $scope.bioproject2data[bioproject_id]["experiments"].push(experiment_id);
-					if($scope.bioproject2data[bioproject_id]["organisms"].indexOf(organism) == -1) $scope.bioproject2data[bioproject_id]["organisms"].push(organism);
-					if($scope.bioproject2data[bioproject_id]["platforms"].indexOf(platform) == -1) $scope.bioproject2data[bioproject_id]["platforms"].push(platform);
-					$scope.bioproject2data[bioproject_id]["size"] += size;
-					if($scope.bioproject2data[bioproject_id]["layouts"].indexOf(layout) == -1) $scope.bioproject2data[bioproject_id]["layouts"].push(layout);
-				}
-			}
+			var subproject = $scope.selected_project.projects[k];
 			
-			console.log("GET PAPER PROJECTS", $scope.bioproject2data);
+			var bioproject_id = subproject.id;
+			if (! (bioproject_id in $scope.bioproject2data) )
+			{
+				$scope.bioproject2data[bioproject_id] = {
+					bioprojects: [],
+					runs: [],
+					experiments: [],
+					samples: [],
+					organisms: [],
+					size: 0,
+					papers: [],
+					platforms: [],
+					layouts: []
+				};
+			}
+
+			var papers = $scope.get_papers($scope.selected_project, subproject);
+			angular.forEach(papers, function(paper){
+				$scope.bioproject2data[bioproject_id].papers.push(paper);	
+			});
+			subproject.papers = papers;
+			
+			
+			for(var j=0; j<subproject.experiments.length; j++){
+				
+				var experiment = subproject.experiments[j];
+				var biosample_id = experiment.dataset.biosample_id;
+				var experiment_id = experiment.id;
+				var organism = experiment.dataset.genome;
+				var size = experiment.dataset.size;
+				var platform = experiment.dataset.platform;
+				var layout = experiment.dataset.pairedend ? "PE": "SE";
+				for(var i in experiment.dataset.sample_ids){
+					var sample = experiment.dataset.sample_ids[i];
+					if(sample.id in $scope.bioproject2data[bioproject_id].runs) continue;
+					$scope.bioproject2data[bioproject_id].runs.push(sample.id);
+				}
+				if($scope.bioproject2data[bioproject_id].samples.indexOf(biosample_id) == -1) $scope.bioproject2data[bioproject_id].samples.push(biosample_id);
+				if($scope.bioproject2data[bioproject_id].experiments.indexOf(experiment_id) == -1) $scope.bioproject2data[bioproject_id].experiments.push(experiment_id);
+				if($scope.bioproject2data[bioproject_id].organisms.indexOf(organism) == -1) $scope.bioproject2data[bioproject_id].organisms.push(organism);
+				if($scope.bioproject2data[bioproject_id].platforms.indexOf(platform) == -1) $scope.bioproject2data[bioproject_id].platforms.push(platform);
+				$scope.bioproject2data[bioproject_id].size += size;
+				if($scope.bioproject2data[bioproject_id].layouts.indexOf(layout) == -1) $scope.bioproject2data[bioproject_id].layouts.push(layout);
+			}
 		}
+		
+		console.log("GET PAPER PROJECTS", $scope.bioproject2data);
 		
 		return $scope.bioproject2data;
 	};
@@ -591,20 +613,30 @@ app.controller('mainController', function($scope, $location, apiService, moment,
     };
     
 	
-	$scope.get_papers = function(selected_project){
+	$scope.get_papers = function(selected_project, selected_subproject){
 		var papers = {};
+		
+		if (selected_subproject && selected_subproject.papers) return selected_subproject.papers;
 		
 		for(var k=0; k<selected_project.projects.length; k++)
 		{
 			var subproject = selected_project.projects[k]; 
+			if(selected_subproject && subproject != selected_subproject) continue;
 			
 			for(var j=0; j<subproject.experiments.length; j++){
 				var paper = subproject.experiments[j].dataset.paper_id;
-				if(paper) papers[paper] = 1;
+				if (paper && !paper.id)
+					paper = {
+							id: paper,
+							source: "automatic",
+							url: "https://www.ncbi.nlm.nih.gov/pubmed/" + paper
+					};
+				
+				if(paper) papers[paper.id] = paper;
 			}
 		}
 		
-		return Object.keys(papers);
+		return Object.values(papers);
 	};
 	
 	$scope.get_total_samples_pe = function(selected_project){
@@ -885,7 +917,34 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 				}
 				
 				$scope.file_sending = false;
-				$scope.bioproject2data = undefined;
+				$scope.get_paper_projects();
+				
+			}, function(resp){
+				console.log('Error status: ', resp);
+				
+				$scope.file_sending = false;
+			});
+		}
+	};
+	
+	$scope.add_papers = function(selected_project, bioproject_id, files){
+		if (files && files.length) {
+			$scope.file_sending = true;
+			apiService.add_papers(selected_project, bioproject_id, files, function(resp){
+				console.log('Success', resp);
+				
+				$scope.file_sending = false;
+				angular.forEach(selected_project.projects, function(project){
+					if(project.id == bioproject_id){
+						angular.forEach(resp.data, function(paper){
+							if(!project.papers) project.papers = [];
+							project.papers.push(paper);
+						});						
+					}
+				});
+				
+				$scope.get_paper_projects();
+				
 				
 			}, function(resp){
 				console.log('Error status: ', resp);
@@ -987,7 +1046,7 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 	    			}
 	    			
 	    			$scope.file_sending = false;
-    				$scope.bioproject2data = undefined;
+	    			$scope.get_paper_projects();
 	    			
 	    			var message = imported_bioprojects + " new bioprojects correctly imported. " + not_in_sra + " bioprojects not in SRA. ("+duplicated_bioprojects + " duplicated bioprojects have been discarded)";
 	    			console.log(message);
@@ -1069,7 +1128,7 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 		
 		$scope.checked_subproject = [];
 		if(project.projects.length == 0)
-			$scope.bioproject2data = undefined;
+			$scope.get_paper_projects();
 	};
 	
 	$scope.delete_pipeline = function(pipelines, i){
@@ -1333,50 +1392,74 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 		return tags;
 	};
 	
-	$scope.get_compatible_pipeline = function(data){
-		var compatiblePipeline = undefined;
+	$scope.get_compatible_pipelines = function(data){
+		var compatiblePipelines = [];
 		
 		for(var i in $scope.selected_project.pipelines){
 			var pipeline = $scope.selected_project.pipelines[i];
 			
 			var compatible = true;
 			
-			for(var j in pipeline.tags){
-				var pTag = pipeline.tags[j];
+			// Divide the tags into categories, based on their type
+			var types2values = {};
+			for(var i in pipeline.tags){
+				var tag = pipeline.tags[i];
+				if (!(tag.type in types2values))
+					types2values[tag.type] = [];
 				
-				var tags = $scope.get_tags(data);
-				
-				var found = false;
-				for(var k in tags) {
-					var eTag = tags[k];
-					
-					if(eTag.type == pTag.type && eTag.name == pTag.name)
-					{
-						found = true;
-						break;
-					}
-				}
-				
-				if(!found) {compatible = false; break;}
-			}
+				types2values[tag.type].push(tag.name);
+			};
 			
-			if(compatible) {
-				compatiblePipeline = pipeline;
-			}
+			var dataTypes2values = {};
+			var dataTags = $scope.get_tags(data);
+			for(var i in dataTags){
+				var tag = dataTags[i];
+				if (!(tag.type in dataTypes2values))
+					dataTypes2values[tag.type] = [];
+				
+				dataTypes2values[tag.type].push(tag.name);
+			};
+			
+			// For each type
+			for(var type in dataTypes2values){
+				
+				if(!(type in types2values)) continue;
+
+				// We have to check for each tag of that type and see if it is contained
+				var pValues = new Set(types2values[type]);
+				var values = new Set(dataTypes2values[type]);
+				
+				var intersection = new Set(Array.from(values).filter(x => pValues.has(x)));
+				
+				if(data.id == "SRX016320")
+					console.log(type, pValues, values, intersection);
+				
+				if(intersection.size != values.size) {
+					compatible = false;
+					break;
+				}
+			};
+			
+			if(compatible)
+				compatiblePipelines.push(pipeline);
 		}
 		
-		return compatiblePipeline;
-	}
+		return compatiblePipelines;
+	};
 	
 	$scope.get_pipeline_style = function(subproject){
-		var color = "#FFF";
+		var color = undefined;
 		
-		var compatiblePipeline = $scope.get_compatible_pipeline(subproject);
+		var compatiblePipelines = $scope.get_compatible_pipelines(subproject);
 		
-		if(compatiblePipeline != undefined){
-//			subproject.dataset.pipeline = compatiblePipeline.id;
-			color = compatiblePipeline.color;
-		}
+		if(subproject.id == "SRX016320")
+			console.log(subproject, compatiblePipelines);
+		
+		if(compatiblePipelines.length == 0) color = "#FFFFFF";
+		else if(compatiblePipelines.length == 1) color = compatiblePipelines[0].color;
+		else if(compatiblePipelines.length > 0) color = "#505050";
+		
+		subproject.pipelines = compatiblePipelines;
 		
 		return {
 			"background-color": color
@@ -1413,6 +1496,18 @@ app.controller('mainController', function($scope, $location, apiService, moment,
 		}, function(result){
 			console.log("[PRODUCE SCRIPTS] AJAX RESULT ERROR", result);
 			messageService.showMessage("Server error: " + result.status, "error");
+		});
+	};
+	
+	$scope.launch_scripts = function(project){
+		apiService.launch_scripts(project, function(result){
+			console.log("[LAUNCH SCRIPTS] AJAX RESULT", result);
+			angular.forEach(result.data, function(m){
+				messageService.showMessage(m.message, m.type, undefined, 5000);
+			});
+		}, function(result){
+			console.log("[LAUNCH SCRIPTS] AJAX RESULT ERROR", result);
+			messageService.showMessage("Server error: " + result.status, "error", undefined, 5000);
 		});
 	};
 	

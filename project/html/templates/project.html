@@ -72,7 +72,7 @@
 												<th>Size</th>
 												<th>Platform(s)</th>
 											</tr>
-											<tr ng-repeat="(bioproject_id, data) in get_paper_projects(selected_project)">
+											<tr ng-repeat="(bioproject_id, data) in bioproject2data">
 												<td>
 <!-- 													<span ng-repeat="bioproject in data.bioprojects"> -->
 														<a tooltip="See this BioProject in NCBI" target="_blank" ng-href="https://www.ncbi.nlm.nih.gov/bioproject/{{bioproject_id}}">{{bioproject_id}}</a>
@@ -80,13 +80,18 @@
 <!-- 													</span> -->
 												</td>
 												<td>
-													<span ng-if="data.papers.length == 0">None</span>
-													<span ng-repeat="paperId in data.papers" ng-if="data.papers.length > 0">
-														<a title="Link to Pubmed" style="text-decoration: none;" target="_blank" ng-href="https://www.ncbi.nlm.nih.gov/pubmed/{{paperId}}">
+													<div ng-if="data.papers.length == 0">
+														<span>None</span>
+													</div>
+													<span ng-repeat="paper in data.papers" ng-if="data.papers.length > 0">
+														<a title="See the paper" style="text-decoration: none;" target="_blank" ng-href="{{paper.url}}">
 															<i class="far fa-2x fa-file-alt vertically-centered"></i>
 														</a>
 														<span ng-if="!$last">,</span>
 													</span>
+													<md-button ngf-select="add_papers(selected_project, bioproject_id, $files)" multiple="multiple" class="md-button md-warn md-raised" tooltip="Upload paper" aria-label="Upload paper">
+														Add paper(s)
+													</md-button>
 												</td>
 												<td>{{data.layouts | joiner}}</td>
 												<td>{{data.runs | count}}</td>
@@ -258,6 +263,8 @@
 												        </div>
 													</md-chip-template>
 										    	</md-chips>
+										    	
+										    	<span title="{{pipeline.id}}" ng-repeat="pipeline in experiment.pipelines" class="vertically-centered margin-left-10 circle" style="display:inline-block;" ng-style="{'background-color': pipeline.color}"></span>
 										    	
 										    	<md-button ng-if="experiment.disabled" tooltip="This experiment is disabled. Click to enable this experiment" class="md-icon-button" ng-click="$event.stopPropagation(); experiment.disabled = !experiment.disabled" aria-label="Click to enable this experiment">
 										    		<i class="fas fa-toggle-on fa-2x" data-fa-transform="flip-h" style="color: red;"></i>
@@ -477,6 +484,17 @@
 									
 									<section>
 										<md-subheader class="md-primary">Cluster</md-subheader>
+										
+										<md-input-container style="width:100%;">
+											<label>Username</label>
+											<input placeholder="Type here the user with which to launch your pipeline" type="text" ng-model="pipeline.username">
+										</md-input-container>
+										
+										<md-input-container style="width:100%;">
+											<label>Remote path</label>
+											<input placeholder="Type here the path from which to launch your pipeline" type="text" ng-model="pipeline.remote_path">
+										</md-input-container>
+										
 										<md-select class="padding-left-15" ng-model="pipeline.cluster" aria-label="Specifies the cluster" ng-change="cluster_changed(pipeline.cluster)">
 									       	<md-option ng-repeat="cluster in clusters" ng-value="cluster.id">
 									       		<div flex layout="row">
@@ -870,6 +888,10 @@
 			<md-button class="md-button md-warn md-raised" ng-click="download_scripts(selected_project)" tooltip="Produces the files on the server" aria-label="Download a ZIP file with the project's scripts">
 				<i class="fas fa-download"></i>
 				3. Download
+			</md-button>
+			<md-button class="md-button md-warn md-raised" ng-click="launch_scripts(selected_project)" tooltip="Automatically launches the pipeline" aria-label="Automatically launches the pipeline">
+				<i class="fas fa-cogs"></i>
+				4. Launch scripts
 			</md-button>
 		</div>
 	</div>

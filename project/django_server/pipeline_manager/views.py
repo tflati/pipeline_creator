@@ -30,6 +30,26 @@ def init_ncbi_tools():
     Entrez.email = "tiziano.flati@gmail.com"
     Entrez.api_key = "ae48c58f9a840e56ee71d28cb464cc988408"
 
+def add_papers(request, project_id, bioproject_id):
+    print(request)
+    
+    response = []
+    print(request.FILES)
+    samples_set = set()
+    for file in request.FILES.values():
+        paper_dir = os.path.dirname(__file__) + "/data/"+project_id+"/" + bioproject_id + "/papers/"
+        if not os.path.exists(paper_dir):
+            os.makedirs(paper_dir)
+        filepath = paper_dir + file.name
+        default_storage.save(filepath, ContentFile(file.read()))
+         
+        response.append({
+            "url": filepath.replace(os.path.dirname(__file__) + "/", ""),
+            "source": "manual"
+        })
+        
+    return HttpResponse(json.dumps(response))
+
 def upload_samples(request):
     print(request)
     print(request.FILES)
@@ -1597,14 +1617,29 @@ def replace_variables(x, project, bioproject, experiment, pipeline, step, bioent
     return x
 
 def invoke_monitor(request):
+    
+    #identity_file = os.path.dirname(__file__) + "/../../../pipeline_id_rsa"
+    identity_file = "/pipeline_id_rsa"
+    
     project = json.loads(request.body.decode('utf-8'))
     id = project["id"]
-    cluster = project["pipelines"][0]["cluster"] + ".cineca.it"
     
-    monitor_dir = os.path.dirname(__file__) + "/clusters/" + cluster + "/"
-    monitor_data = monitor_dir + id + "/" + id + ".monitor"
+    username = project["pipelines"][0]["username"]
+    cluster = project["pipelines"][0]["cluster"] + ".cineca.it"
+    remote_path = project["pipelines"][0]["remote_path"]
+    
+    # monitor_dir = os.path.dirname(__file__) + "/clusters/" + cluster + "/" + id + "/"
+    monitor_dir = os.path.dirname(__file__) + "/temp/"
+    monitor_data = monitor_dir + id + ".monitor"
+    
+    result = execute_remote_command(["scp", "-i " + identity_file, username+"@"+"login."+cluster+":"+remote_path + "/data/"+id+".monitor", monitor_data])
+    if result["exit_code"] == 1:
+        print(result)
+        return HttpResponse(json.dumps(result))
+    
+    print("Loading statistics from file={}".format(monitor_data))
+    
     job_status_file = os.path.dirname(__file__) + "/utils/job_statuses.txt"
-    print("Trying to get the statistics from file={}".format(monitor_data))
     
     job_codes = {}
     with open(job_status_file) as f:
@@ -1835,6 +1870,63 @@ def download_scripts(request):
             "url": "download/" + project["id"] + ".zip",
             "filename": project["id"] + ".zip"
          }))
+
+def execute_remote_command(COMMAND, messageOK="", ignore_output=False):
+    print("Executing command:" + " ".join(COMMAND))
+    
+    p = subprocess.Popen(COMMAND,
+                       shell=False,
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE)
+    
+    try:
+        stdout, stderr = p.communicate()
+        ret_code = p.returncode
+        if ret_code != 0:
+            return {"type": "warning", "exit_code": ret_code, "message": "Exit code: " + str(ret_code) + " Message: '" + str(stderr.decode("utf-8").strip() + "'")}
+        else:
+            output = messageOK
+            if not ignore_output:
+                out = str(stdout.decode("utf-8").strip())
+                if out != "":
+                    output = out
+                    
+            return {"type": "success", "exit_code": ret_code, "message": output}
+    except Exception as e:
+        print(e)
+        return {"type": "error", "message": str(e)}
+
+def launch_scripts(request):
+    project = json.loads(request.body.decode('utf-8'))
+    
+    print("PWD", os.getcwd())
+    
+    produce_scripts(request)
+    
+    hostname = "login." + project["pipelines"][0]["cluster"] + ".cineca.it"
+    
+    if "username" not in project["pipelines"][0]:
+        HttpResponse(json.dumps([{"type": "error", "message": "Please specify a username"}]))
+    if "remote_path" not in project["pipelines"][0]:
+        HttpResponse(json.dumps([{"type": "error", "message": "Please specify a directory where to transfer the scripts"}]))
+        
+    username = project["pipelines"][0]["username"]
+    remote_path = project["pipelines"][0]["remote_path"]
+    project_archive_name = project["id"] + ".zip"
+    project_archive = os.path.dirname(__file__) + "/scripts/" + project_archive_name
+    
+    results = []
+    
+    results.append(execute_remote_command(["ssh", "-i ./pipeline_id_rsa", "-oPasswordAuthentication=no", username + "@" + hostname, "bash -c 'mkdir "+remote_path+"'"], "Directory " + remote_path + " correctly created."))
+    if results[-1]["exit_code"] == 0 or results[-1]["exit_code"] == 1:
+        results.append(execute_remote_command(["scp", "-i ./pipeline_id_rsa", "-oPasswordAuthentication=no", project_archive, username + "@" + hostname + ":" + remote_path], "Project files correctly transferred to " + remote_path))
+    if results[-1]["exit_code"] == 0:
+        results.append(execute_remote_command(["ssh", "-i ./pipeline_id_rsa", "-oPasswordAuthentication=no", username + "@" + hostname, "bash -c 'cd "+ remote_path + "; unzip -o " + project_archive_name + "'"], "Project files correctly unzipped", ignore_output=True))    
+    if results[-1]["exit_code"] == 0:
+        results.append(execute_remote_command(["ssh", "-i ./pipeline_id_rsa", "-oPasswordAuthentication=no", username + "@" + hostname, "bash -c 'cd "+ remote_path + "; cd data; ./"+project["id"]+".sh &> "+project["id"]+".log'"], "Project launched!", ignore_output=True))    
+        results.append(execute_remote_command(["ssh", "-i ./pipeline_id_rsa", "-oPasswordAuthentication=no", username + "@" + hostname, "bash -c 'cd "+ remote_path + "; cd data; ./monitor.sh'"], "Monitor launched!", ignore_output=True))        
+    
+    return HttpResponse(json.dumps(results))
 
 def download_csv(request):
     project = json.loads(request.body.decode('utf-8'))

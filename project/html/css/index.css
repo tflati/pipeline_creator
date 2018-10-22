@@ -160,6 +160,7 @@ my-autocomplete md-content {
 	background-color: black;
 	color: white;
 	font-weight: bold;
+	padding: 10px;
 	margin-top: 10px;
 	margin-bottom: 10px;
 }
@@ -170,6 +171,10 @@ my-autocomplete md-content {
 
 .margin-small {
 	margin: 10px;
+}
+
+.padding-small {
+	padding: 10px;
 }
 
 .padding-medium {
@@ -269,4 +274,12 @@ spacer {
 
 .md-color-picker-input-container .md-color-picker-preview {
 	top: 0px !important;
+}
+
+.circle{
+  height: 25px;
+  width: 25px;
+  background-color: white;
+  border-radius: 20px;
+  border: 3px solid white;
 }

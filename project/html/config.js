@@ -14,7 +14,8 @@ var app = angular.module('pipelineCreator',
 			'angularMoment',
 			'mdColorPicker',
 			'chart.js',
-			'ngDragDrop'
+			'ngDragDrop',
+			'ngclipboard'
 		]);
 
 app.config(function($mdThemingProvider, $httpProvider) {
