@@ -662,6 +662,10 @@ def delete_project(request):
 #     return HttpResponse("Project: '{}' correctly renamed as '{}'.".format(project_id, new_project_id))
 
 def tags_compatibles(g1, g2):
+    """
+        g2 usually are the pipeline's tags and 
+        g1 are the bioentity's tags
+    """
 
     type2tag1 = {}
     type2tag2 = {}
@@ -670,15 +674,19 @@ def tags_compatibles(g1, g2):
             type2tag1[x["type"]] = set()
         type2tag1[x["type"]].add(x["name"])
         
-    for x in g1:
+    for x in g2:
         if x["type"] not in type2tag2:
             type2tag2[x["type"]] = set()
         type2tag2[x["type"]].add(x["name"])
-        
-    for type in type2tag2:
-        if type not in type2tag1 or len(type2tag2[type].intersection(type2tag1[type])) == 0: return False
     
-    return True
+    compatible = True
+    
+    for type in type2tag2:
+        if type not in type2tag1 or len(type2tag2[type].intersection(type2tag1[type])) == 0:
+            compatible = False
+            break
+    
+    return compatible
 
 def get_tags(dataset, bio_entity, level):
     
