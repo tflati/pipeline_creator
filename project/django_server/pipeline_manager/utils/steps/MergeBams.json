@@ -1,0 +1,44 @@
+{
+    "command_chunk_size": 1, 
+    "script_level": "experiment", 
+    "description": "", 
+    "title": "MergeBams", 
+    "description_short": "", 
+    "commandline": "java -Xmx2g -jar $PICARDTOOLS_HOME/bin/picard.jar MergeSamFiles OUTPUT=$EXPERIMENT.bam $(for s in $(cat samples); do echo \"INPUT=$s/$s.bam\"; done)", 
+    "modules": [
+        "profile/global", 
+        "picardtools/2.3.0"
+    ], 
+    "command_level": "experiment", 
+    "hpc_directives": {
+        "account": "elix3_rinaldi", 
+        "error": "merge_err", 
+        "job_name": "mergebams", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [
+            "Sorting"
+        ], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 115
+        }, 
+        "output": "merge_out", 
+        "nodes": 1, 
+        "walltime": "02:00:00", 
+        "cpu": 36, 
+        "mpi_procs": 0
+    }, 
+    "write_stderr_log": true, 
+    "skip": false, 
+    "overwrite": true, 
+    "command_group_level": "all", 
+    "write_stdout_log": true, 
+    "conditions": [
+        {
+            "command": "[ -s $EXPERIMENT.bam ]"
+        }
+    ], 
+    "checks": [], 
+    "command_parallelism_level": "sequential", 
+    "hpc_directives_text": ""
+}

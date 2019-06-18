@@ -1,0 +1,38 @@
+<md-dialog aria-label="Rename dialog">
+	<form ng-cloak>
+	    <md-toolbar class="md-hue-2">
+	      <div class="md-toolbar-tools">
+	        <h2>Rename pipeline</h2>
+	        <span flex></span>
+	        <md-button class="md-icon-button" ng-click="cancel()">
+	          <ng-md-icon icon="close" aria-label="Close dialog"></ng-md-icon>
+	        </md-button>
+	      </div>
+	    </md-toolbar>
+	</form>
+	<md-dialog-content>
+      <div class="md-dialog-content">
+      
+		<p>You want to rename the following pipeline:</p>
+		<h1>ID: {{item.id}}</h1>
+		
+		<p>into the following:</p>
+		<md-input-container>
+			<label>New pipeline name</label>
+			<input md-autofocus type="text" ng-model="new_name">
+		</md-input-container>
+		
+      </div>
+    </md-dialog-content>
+    
+    <md-dialog-actions layout="row">
+      <span flex></span>
+      <md-button ng-click="answer('Cancel')">
+       Cancel
+      </md-button>
+      <md-button ng-click="answer(new_name)">
+        OK
+      </md-button>
+    </md-dialog-actions>
+	
+</md-dialog>

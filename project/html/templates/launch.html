@@ -1,0 +1,291 @@
+<div ng-if="project.launches.length == 0" layout="column" layout-align="start center" layout-padding>
+	<h3>No launches have been defined yet for this project.</h3>
+	<img class="medium-height" width="auto" src="imgs/no_projects.png">
+</div>
+<md-button class="md-button md-warn md-raised" ng-click="add_launch(project)" tooltip="Add a launch to this project" aria-label="Add a new launch">
+	<i class="fas fa-rocket"></i>
+	Create launch
+</md-button>
+
+<div>
+	<v-accordion class="vAccordion--default padding-10" multiple>
+		<v-pane ng-repeat="launch in project.launches track by $index">
+	    	<v-pane-header ng-class="{disabled_pane: launch.disabled}" layout="row" layout-align="start center">
+		    	<span md-truncate flex><b>Launch {{$index+1}}: {{launch.id}}</b></span>
+		    	
+				<span ng-click="chooseColor($event)" class="vertically-centered margin-left-10" style="display:inline-block;" md-color-picker ng-model="launch.color" options="{default: '#{{launch.color}}'}"></span>
+		    	
+		    	<md-button class="md-icon-button" ng-click="showDeleteDialog(project.launches, $index, $event)" tooltip="Delete launch" aria-label="Delete pipeline">
+			      <ng-md-icon icon="delete"></ng-md-icon>
+			    </md-button>
+			    
+			    <md-button ng-if="launch.disabled" tooltip="This launch is disabled. Click to enable this launch" class="md-icon-button" ng-click="$event.stopPropagation(); launch.disabled = !launch.disabled" aria-label="Click to enable this launch">
+		    		<i class="fas fa-toggle-on fa-2x" data-fa-transform="flip-h" style="color: red;"></i>
+		    	</md-button>
+		    	<md-button ng-if="!launch.disabled" tooltip="This launch is enabled. Click to disable this launch" class="md-icon-button" ng-click="$event.stopPropagation(); launch.disabled = !launch.disabled" aria-label="Click to disable this launch">
+		    		<i class="fas fa-toggle-on fa-2x" style="color: green;"></i>
+		    	</md-button>
+			    
+			    <md-button class="md-icon-button" ng-click="add_to_list(clone(project.launches, $index, $event), project.launches)" tooltip="Clone launch" aria-label="Clone launch">
+			      <ng-md-icon icon="content_copy"></ng-md-icon>
+			    </md-button>
+			    
+			    <md-button class="md-icon-button" ng-click="move_item(project.launches, $index, -1, $event)" tooltip="Move up this launch" aria-label="Move up this launch">
+			      <ng-md-icon icon="keyboard_arrow_up"></ng-md-icon>
+			    </md-button>
+			    
+			    <md-button class="md-icon-button" ng-click="move_item(project.launches, $index, 1, $event)" tooltip="Move down this launch" aria-label="Move down this launch">
+			      <ng-md-icon icon="keyboard_arrow_down"></ng-md-icon>
+			    </md-button>
+			    
+			    <span class="lighter margin-left-5">Created: <span title="Exactly: {{launch.creation_date | amParse:'YYYY-MM-DD HH:mm:ss'}}" am-time-ago="launch.creation_date | amParse:'YYYY-MM-DD HH:mm:ss'"></span></span>
+			    
+			    <md-button class="md-icon-button" ng-click="write_note(launch, $event)" tooltip="Add or edit note" aria-label="Add or edit a note">
+					<i class="fas fa-sticky-note fa-2x" style="color: gold;"></i>
+				</md-button>
+				<p class="inline lighter">{{launch.note}}</p>
+		
+	    	</v-pane-header>
+	    	
+	    	<v-pane-content>
+				<v-accordion class="vAccordion--default padding-10" multiple>
+					<v-pane>
+				    	<v-pane-header ng-class="{disabled_pane: launch.disabled}" layout="row" layout-align="start center">
+					    	<span md-truncate flex><b>1. Choose the data</b>
+					    		<span ng-if="!launch.results" md-colors="{color:'accent'}">
+						   			<i class="fas fa-exclamation-triangle"></i>
+						   			No data has been selected!
+						   		</span>
+					    	</span>
+				    	</v-pane-header>
+				    	<v-pane-content>
+							<div>
+								<md-button ng-if="launch.results == undefined" ng-disabled="launch_loading" class="md-button md-warn md-raised" ng-click="dataset_api(launch)" tooltip="Click to start filtering the dataset" aria-label="Start filtering the dataset">
+									<i class="fas fa-sliders-h"></i>
+									Start filtering the dataset
+								</md-button>
+								<md-button ng-if="launch.results != undefined" ng-disabled="launch_loading" class="md-button md-warn md-raised" ng-click="launch.results = undefined; dataset_api(launch)" tooltip="Click to reset the dataset" aria-label="Reset the dataset">
+									<i class="fas fa-sliders-h"></i>
+									Reset the dataset
+								</md-button>
+							</div>
+							<div ng-if="launch.loading" layout="column" layout-align="start start">
+								<i class="fas fa-circle-notch fa-spin fa-4x" style="color: firebrick;"></i>
+							</div>
+								
+							<div ng-if="launch.results" layout="column" layout-align="start start">
+								
+								<div layout="row" layout-align="start start">
+									
+							       	<div ng-if="launch.results.filters.length > 0" layout="column" layout-align="start center" class="side-filters">
+										<p><b>Filters</b>:</p>
+										
+								        <div style="background-color: #bdbdbd;" class="margin-small">
+									        <label layout-padding>Filter:</label>
+									        <input ng-model="filterExpression"/>
+								        </div>
+								        
+								        <md-button ng-click="launch.results = undefined; dataset_api(launch)" class="md-raised md-accent md-hue-3" aria-label="Reset all filters" title="Reset all filters">
+											<i class="fas fa-trash"></i> Clear all settings
+								        </md-button>
+							       
+							       		<!-- FILTERS -->
+							        	<div layout="column" layout-padding>
+											<div ng-repeat="filter in launch.results.filters | filter : filterExpression">
+										        <md-subheader layout="row" layout-align="start center">
+							        				 <div style="display: inline;" ng-click="filter.open = !filter.open">
+								        				 <md-button ng-if="filter.open" class="md-icon-button" aria-label="Opens up this category">
+								        				 	<i class="fas fa-2x fa-angle-up"></i>
+								        				 </md-button>
+								        				 <md-button ng-if="!filter.open" class="md-icon-button" aria-label="Closes this category">
+								        				 	<i class="fas fa-2x fa-angle-down"></i>
+								        				 </md-button>
+							        				 </div>
+										        	<md-checkbox class="small-checkbox md-warn"
+										        				 title="Toggle all sub-filters"
+										        				 aria-label="Toggle all sub-filters"
+										        				 md-indeterminate="filter.indeterminate"
+										        				 ng-checked="filter.selected"
+										        				 ng-model="filter.selected"
+										        				 ng-change="launch.changed = filter; dataset_api(launch);">
+										        				 
+							        				 	<span>{{filter.label | uppercase}}</span>
+							    								<a ng-click="see_chart(filter)" class="fas fa-chart-bar" style="cursor: pointer; color: #ff8700;"></a>
+							        				 </md-checkbox>
+							       				 </md-subheader>
+										        				 
+										        <div ng-show="filter.open" class="small-margin" ng-repeat="f in filter.values | filter : filterExpression">
+										            <md-checkbox class="small-checkbox md-hue-3"
+										            			 title="{{f.value}} filter"
+										            			 aria-label="{{f.value}} filter"
+										            			 md-indeterminate="f.indeterminate"
+										            			 ng-checked="f.selected"
+										            			 ng-model="f.selected"
+										            			 ng-change="launch.changed = f; dataset_api(launch);">
+										            			 
+										            			 {{f.value}} ({{f.partial_count}} / {{f.count}})
+										            </md-checkbox>
+										        </div>
+									        </div>
+								        </div>
+							        </div>
+							        
+<!-- 							        RESULTS -->
+							        <div ng-if="launch.results.matches.length > 0" layout="column" layout-align="start start" class="padding-medium">
+							        
+							        	<div layout="column" layout-align="start start">
+											<div><b>{{launch.results.matches | filter: {selected: true} | filterBy: ['type']: 'bioproject' | count}}</b> bioproject(s)</div>
+											<div><b>{{launch.results.matches | filter: {selected: true} | filterBy: ['type']: 'experiment' | count}}</b> experiment(s)</div>
+											<div><b>{{launch.results.matches | filter: {selected: true} | filterBy: ['type']: 'run' | count}}</b> run(s)</div>								
+										</div>
+							        
+<!-- 							       		<div style="background-color: #bdbdbd;" class="margin-small"> -->
+<!-- 									        <label layout-padding>Filter data:</label> -->
+<!-- 									        <input ng-model="filter_text"/> -->
+<!-- 								        </div> -->
+								        
+<!-- 							       		<pagination ng-if="launch.results.matches.length > 0" list="launch.results.matches" enable-selection="true" filter="filter_text" sort="{{label}}"> -->
+							       		
+<!-- 								       		<div class="full-width margin-small" layout="column" layout-align="start start"> -->
+<!-- 								        		<md-checkbox ng-repeat="m in displayed track by $index" -->
+<!-- 								        							class="small-checkbox md-warn" -->
+<!-- 											        				 title="Single result" -->
+<!-- 											        				 aria-label="Single result" -->
+<!-- 											        				 ng-checked="m.selected" -->
+<!-- 											        				 ng-model="m.selected" -->
+<!-- 											        				 > -->
+											        				 
+<!-- 								      				 	<span>{{m.label}}</span><span class="lighter" ng-if="m.human_size != undefined"> ({{m.human_size}})</span> -->
+								      				 	
+<!-- 								      				 	<md-chips ng-if=m.tags.length > 0" layout="row" layout-align="left center" ng-model="m.tags" readonly="true" class="mdchips-inline"> -->
+<!-- 															<md-chip-template layout="row" layout-align="left center" class="text-small"> -->
+<!-- 														        <div> -->
+<!-- 														          <div><strong>{{$chip.name}}</strong></div> -->
+<!-- 														          <div><em class="category">({{$chip.type}})</em></div> -->
+<!-- 														        </div> -->
+<!-- 															</md-chip-template> -->
+<!-- 												    	</md-chips> -->
+<!-- 								      				 </md-checkbox> -->
+<!-- 								       		</div> -->
+<!-- 							       		</pagination> -->
+							        </div>
+					        	</div>
+					        </div>
+				        </v-pane-content>
+			        </v-pane>
+
+				    <v-pane>
+				    	<v-pane-header layout="row" layout-align="start center">
+					    	<span md-truncate flex>
+					    		<b>2. Choose the pipeline or steps</b>
+					    		<span ng-if="!launch.pipelines" md-colors="{color:'accent'}">
+						   			<i class="fas fa-exclamation-triangle"></i>
+						   			No pipelines have been selected!
+						   		</span>
+					    	</span>
+				    	</v-pane-header>
+				    	<v-pane-content>
+				    		<md-button class="md-button md-warn md-raised" ng-click="set_launch_pipelines(launch, project.pipelines)" tooltip="Beware: this cancels all the modifications done to these pipeline instances" aria-label="Set pipelines">
+								<i class="fas fa-cogs"></i>
+								Set pipelines
+							</md-button>
+				    	
+							<div ng-init="tags = getTags(project); pipelines = launch.pipelines;" ng-include="'templates/pipelines.html'"></div>
+				    	</v-pane-content>
+			    	</v-pane>
+			    	
+			    	<v-pane>
+				    	<v-pane-header layout="row" layout-align="start center">
+					    	<span md-truncate flex>
+					    		<b>3. Choose the partitioning</b>
+					    		<span class="lighter">
+					    			(
+						    			<b>Current strategy</b>:
+						    			<span ng-if="launch.partition == 0">Analyze the whole dataset at once</span>
+						    			<span ng-if="launch.partition == 1">Analyze {{launch.parallelism}} clusters at a time, clustering by:
+						    				<span ng-if="launch.tags.length > 0">{{launch.tags | map: 'type' | join: ', '}}</span>
+						    				<span ng-if="launch.tags.length == 0" md-colors="{color:'accent'}">
+									   			<i class="fas fa-exclamation-triangle"></i>
+									   			No tags selected! Please select at least one tag to partition the dataset.
+									   		</span>
+						    			</span>
+					    			)
+					    		</span>
+				    		</span>
+				    	</v-pane-header>
+				    	<v-pane-content ng-init="simple_tags = getTagsTypes()">
+							<md-radio-group ng-model="launch.partition">
+								<md-radio-button value="0">Analyze the whole dataset at once (might incur in high data volume)</md-radio-button>
+								<md-radio-button value="1">I want to partition the dataset in groups (optimized analysis)</md-radio-button>
+								<div ng-if="launch.partition == 1">
+									<p><b>Current tags by which the dataset will be partitioned</b></p>
+									<md-chips
+										md-autocomplete-snap
+									    ng-model="launch.tags"
+									    readonly="false"
+									    md-removable="true"
+									    md-require-match="false"
+									    md-transform-chip="transformChip($chip)"
+									    placeholder="Enter a tag (e.g., Layout, Organism, experiment)"
+									    delete-button-label="Remove Tag"
+									    delete-hint="Press delete to remove tag"
+									 >
+									     
+									 <p>Add a tag to partition the dataset with</p>
+										<md-autocomplete
+										        md-selected-item="selectedItem"
+										        md-no-cache="true"
+										        md-search-text="searchText"
+										        md-items="item in searchTags(simple_tags, searchText) | orderBy: item.type"
+										        md-item-text="item.type"
+										        md-min-length="0"
+										        md-match-case-insensitive="true"
+										        placeholder="Search for a tag (or create)">
+											<md-item-template>
+										    	<span>
+										        	<span class="category">Divide by: {{item.type}}</span>
+										    	</span>
+										  	</md-item-template>
+										  	<md-not-found>
+										    	No matches found.
+										  	</md-not-found>
+										</md-autocomplete>
+										
+										<md-chip-template>
+										       <span>
+										         <em class="category">{{$chip.type}}</em>
+										       </span>
+										</md-chip-template>
+									</md-chips>
+									
+									<md-input-container class="md-block" ng-if="launch.tags.length > 0">
+											<label>Number of clusters to launch in parallel</label>
+											<input placeholder="Number of clusters to launch in parallel" type="number" step="1" ng-model="launch.parallelism">
+										</md-input-container>
+								</div>
+							</md-radio-group>
+				    	</v-pane-content>
+			    	</v-pane>
+		        </v-accordion>
+				
+				<section>
+					<md-content>
+					
+						<md-button ng-click="launch_scripts(launch)" ng-disabled="launch_disabled || launch.pipelines.length == 0 || launch.results.matches.length == 0 || launch.partition == undefined" class="md-button md-warn md-raised" tooltip="Automatically launches the pipeline" aria-label="Automatically launches the pipeline">
+							<i class="fas fa-cogs"></i>
+							Launch!
+						</md-button>
+<!-- 						<md-button class="md-button md-warn md-raised" ng-click="launch_monitor_scripts(project)" tooltip="Automatically launches the monitor pipeline" aria-label="Automatically launches the monitor pipeline"> -->
+<!-- 							<i class="fas fa-cogs"></i> -->
+<!-- 							3. Launch monitor -->
+<!-- 						</md-button> -->
+						<md-button ng-click="download_scripts(launch)" ng-disabled="launch.launch_disabled || launch.pipelines.length == 0 || launch.results.matches.length == 0  || launch.partition == undefined" class="md-button md-warn md-raised" tooltip="Produces the files on the server" aria-label="Download a ZIP file with the project's scripts">
+							<i class="fas fa-download"></i>
+							Download the scripts of this run
+						</md-button>
+					</md-content>
+				</section>
+			</v-pane-content>
+		</v-pane>
+	</v-accordion>
+</div>

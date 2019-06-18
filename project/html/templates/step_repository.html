@@ -1,0 +1,10 @@
+<div ng-include="'templates/header.html'"></div>
+
+<div ng-if="loggedUser.loggedIn" layout-padding>
+
+	<h1>Step repository</h1>
+	
+	<div ng-controller="stepController" ng-include="'templates/steps.html'"></div>
+</div>
+
+<spacer></spacer>

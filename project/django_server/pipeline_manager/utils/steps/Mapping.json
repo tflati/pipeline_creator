@@ -1,0 +1,49 @@
+{
+    "script_level": "sample", 
+    "type": "per-sample", 
+    "description": "", 
+    "title": "Mapping", 
+    "description_short": "", 
+    "commandline": "$HISAT2_HOME/bin/hisat2 -p $cpu_variable --dta -q -x $HISAT2_INDEXES/rn6/genome -1 ${SAMPLE}_1.trimmed.paired.fastq -2 ${SAMPLE}_2.trimmed.paired.fastq -U ${SAMPLE}_1.trimmed.unpaired.fastq,${SAMPLE}_2.trimmed.unpaired.fastq -S $SAMPLE.sam", 
+    "write_stderr_log": true, 
+    "modules": [
+        "profile/bioinf", 
+        "hisat2/2.1.0"
+    ], 
+    "command_level": "sample", 
+    "hpc_directives": {
+        "account": "cin_staff", 
+        "error": "hisat_err", 
+        "job_name": "hisat-${sample_variable}", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [
+            "Trimming"
+        ], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 115
+        }, 
+        "output": "hisat_out", 
+        "nodes": 1, 
+        "walltime": "05:00:00", 
+        "cpu": 36, 
+        "mpi_procs": 0
+    }, 
+    "sequential": false, 
+    "skip": false, 
+    "command_group_level": "all", 
+    "write_stdout_log": true, 
+    "iterate": false, 
+    "conditions": [
+        {
+            "command": "[ -s $SAMPLE.sam ]"
+        }
+    ], 
+    "checks": [
+        {
+            "file": "$SAMPLE.sam"
+        }
+    ], 
+    "command_parallelism_level": "sequential", 
+    "hpc_directives_text": ""
+}

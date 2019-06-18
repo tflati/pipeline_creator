@@ -1,0 +1,39 @@
+<div>
+
+	<md-checkbox ng-if="enableSelection"
+		 class="small-checkbox md-warn"
+		 title="Show only filtered/selected results"
+		 aria-label="Show only filtered/selected results"
+		 ng-model="options.showOnlySelected"
+		 ng-change="update()">
+	 Show only filtered/selected results
+	 </md-checkbox>
+
+<!-- 	 list | filter:filterText | filter: (options.showOnlySelected ? "{selected: true}" : '') | count -->
+
+	<div ng-if="list.length > 0" layout="row" layout-align="start center">
+		<md-button ng-disabled="begin == 0" class="pagination-button md-button md-warn md-raised" ng-click="paginationFirst()" tooltip="Go to the first page" aria-label="Go to the first page">
+			<i class="fas fa-angle-double-left "></i>
+		</md-button>
+		<md-button ng-disabled="begin == 0" class="pagination-button md-button md-warn md-raised" ng-click="paginationPrevious()" tooltip="Go to the previous page" aria-label="Go to the previous page">
+			<i class="fas fa-arrow-left"></i>
+		</md-button>
+		
+		<div style="display: inline-block;">
+			{{begin+1}} - {{begin+displayed.length}} of {{filtered.length}}
+		</div>
+		
+		<md-button ng-disabled="begin+1+numElementsPerPage > filtered.length" class="pagination-button md-button md-warn md-raised" ng-click="paginationNext()" tooltip="Go to the next page" aria-label="Go to the next page">
+			<i class="fas fa-arrow-right"></i>
+		</md-button>
+		<md-button ng-disabled="begin+1+numElementsPerPage > filtered.length" class="pagination-button md-button md-warn md-raised" ng-click="paginationLast()" tooltip="Go to the last page" aria-label="Go to the last page">
+			<i class="fas fa-angle-double-right "></i>
+		</md-button>
+		
+		<span>Elements per page: </span>
+	    <input style="max-width: 58px; margin-left: 10px;" ng-change="update()" ng-model="$parent.numElementsPerPage" type="number">
+	</div>
+	
+	<div ng-transclude></div>
+	
+</div>

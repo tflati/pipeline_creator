@@ -1,0 +1,41 @@
+{
+    "command_chunk_size": 10, 
+    "script_level": "sample", 
+    "type": "per-sample", 
+    "description": "", 
+    "title": "Import manual data (SE)", 
+    "description_short": "", 
+    "commandline": "ln -s ${PATHS[0]} ${SAMPLE}.fastq", 
+    "write_stderr_log": true, 
+    "modules": [], 
+    "command_level": "sample", 
+    "hpc_directives": {
+        "account": "cin_staff", 
+        "error": "import_err", 
+        "job_name": "import", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 1
+        }, 
+        "output": "import_out", 
+        "nodes": 1, 
+        "walltime": "00:00:30", 
+        "cpu": 1, 
+        "mpi_procs": 0
+    }, 
+    "sequential": false, 
+    "skip": false, 
+    "command_group_level": "all", 
+    "write_stdout_log": true, 
+    "iterate": false, 
+    "conditions": [
+        {
+            "command": "[ -s $SAMPLE.fastq ]"
+        }
+    ], 
+    "checks": [], 
+    "command_parallelism_level": "sequential", 
+    "hpc_directives_text": ""
+}

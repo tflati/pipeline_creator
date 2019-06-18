@@ -1,0 +1,15 @@
+{
+	"type": "experiment",
+	"note": "",
+	"id": "",
+	"tags": [],
+	"dataset": {
+		"cluster": "",
+		"genome": "",
+		"basedir": "",
+		"create_per_sample_directory": true,
+		"pairedend": false,
+		"sample_ids": []
+	}
+}
+

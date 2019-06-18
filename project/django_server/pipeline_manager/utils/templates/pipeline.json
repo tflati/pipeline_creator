@@ -1,0 +1,55 @@
+{
+	"id": "",
+	"disabled": false,
+	"steps": [],
+	"disabled": false,
+	"cluster": "",
+	"username": "",
+	"remote_path": "",
+	"tags": [],
+	"modules": [],
+	"variables": [
+		{
+			"key": "sample_variable",
+			"key_disabled": true,
+			"value": "SAMPLE",
+			"description": "Variable to use across scripts to refer to a sample in this project"
+		},
+		{
+			"key": "all_samples_variable",
+			"key_disabled": true,
+			"value": "ALL_SAMPLES",
+			"description": "Variable to use across scripts to refer to ALL samples in this project"
+		},
+		{
+			"key": "project_variable",
+			"key_disabled": true,
+			"value": "PROJECT",
+			"description": "Variable to use across scripts to refer to this project ID"	            	
+		},
+		{
+			"description": "Variable to use across scripts to refer to the experiment ID",
+			"key": "experiment_variable",
+			"key_disabled": true,
+			"value": "EXPERIMENT"
+		},
+		{
+			"key": "project_index_variable",
+			"key_disabled": true,
+			"value": "PROJECT_INDEX",
+			"description": "Variable to use across scripts to refer to the index of this project"
+		},
+		{
+			"key": "cpu_variable",
+			"key_disabled": true,
+			"value": "CPU",
+			"description": "Variable to use across scripts to refer to the number of CPU defined in a step"
+		},
+		{
+			"key": "step_name_variable",
+			"key_disabled": true,
+			"value": "STEP_NAME",
+			"description": "Variable to use across scripts to refer to the name of the step"
+		}
+	]
+}

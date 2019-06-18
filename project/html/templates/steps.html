@@ -1,0 +1,163 @@
+<div ng-controller="stepController">
+	<div ng-if="steps.length == 0 && !loading" layout="row" layout-align="left center" layout-margin>
+		<i class="fas fa-times-circle fa-2x" style="color: Tomato;"></i>
+		<p>No steps available yet.</p>
+	</div>
+	
+	<div ng-if="loading" layout="column" layout-align="center center">
+		<i class="fas fa-circle-notch fa-spin fa-4x loading"></i>
+		<p class="loading"><b>Loading steps...</b></p>
+	</div>
+	
+	<div ng-if="steps">
+		<div layout-margin>
+			<md-button class="md-button md-warn md-raised" ng-click="add_step(steps)" tooltip="Add a new step" aria-label="Add a new step">
+		       	<span class="fa-layers fa-fw">
+					<i class="fas fa-list-ol"></i>
+					<i class="fas fa-plus" data-fa-transform="shrink-5 down-8 right-10"></i>
+				</span>
+				Configure a new step from scratch
+			</md-button>
+			
+			<md-button ng-disabled="state.current.name == 'step_repository'" class="md-button md-warn md-raised" ng-click="showImportStepDialog(steps, $event)" tooltip="Import a step" aria-label="Import a step">
+					<i class="fas fa-file-import"></i>
+				</span>
+				Import a step
+			</md-button>
+		</div>
+		
+		<div class="background-warn padding-medium default-border" layout="row" layout-align="start center" layout-margin>
+			<i class="fas fa-filter fa-2x default-icon-color"></i>
+			<md-input-container class="full-width">
+		 		<label>Filter steps</label>
+		 		<input ng-model="filter_text" type="text">
+			</md-input-container>
+		</div>
+		
+		<pagination list="steps" filter="filter_text">
+			<v-accordion multiple>
+			  <v-pane ng-repeat="step in displayed track by $index">
+			    <v-pane-header ng-class="{disabled_pane: step.skip}">
+			
+					<div style="display: inline-block; vertical-align: middle;">
+			    		<span class="fa-layers fa-fw fa-2x" ng-if="step.script_level == 'top'">
+							<i class="fas fa-square" style="color:orange"></i>
+						    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">Top</span>
+						</span>
+			    		<span class="fa-layers fa-fw fa-2x" ng-if="step.script_level == 'project'">
+							<i class="fas fa-square" style="color:blue"></i>
+						    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">Prj</span>
+						</span>
+						<span class="fa-layers fa-fw fa-2x" ng-if="step.script_level == 'experiment'">
+							<i class="fas fa-square" style="color:green"></i>
+						    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">Exp</span>
+						</span>
+						<span class="fa-layers fa-fw fa-2x" ng-if="step.script_level == 'sample'">
+							<i class="fas fa-square" style="color:red"></i>
+						    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">Run</span>
+						</span>													
+			    	</div>
+			    	
+			    	<div style="display: inline-block; vertical-align: middle;">
+			    		<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level != step.script_level && step.command_level == 'top'">
+							<i class="fas fa-recycle" style="color:orange"></i>
+						    <span class="fa-layers-text" data-fa-transform="shrink-10" style="font-weight: bold;">Top</span>
+						</span>
+			    		<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level != step.script_level && step.command_level == 'project'">
+							<i class="fas fa-recycle" style="color:blue"></i>
+						    <span class="fa-layers-text" data-fa-transform="shrink-10" style="font-weight: bold;">Prj</span>
+						</span>
+						<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level != step.script_level && step.command_level == 'experiment'">
+							<i class="fas fa-recycle" style="color:green"></i>
+						    <span class="fa-layers-text" data-fa-transform="shrink-10" style="font-weight: bold;">Exp</span>
+						</span>
+						<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level != step.script_level && step.command_level == 'sample'">
+							<i class="fas fa-recycle" style="color:red"></i>
+						    <span class="fa-layers-text" data-fa-transform="shrink-10" style="font-weight: bold;">Run</span>
+						</span>
+						<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level == step.script_level">
+							<i class="fas fa-recycle" style="color:lightgray"></i>
+						    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">No</span>
+						</span>
+			    	</div>
+			    
+			<!-- 										    	<md-button ng-if="step.skip" class="md-icon-button" aria-label="Skip this step"> -->
+			<!-- 											      <ng-md-icon icon="low_priority"></ng-md-icon> -->
+			<!-- 											    </md-button> -->
+			    	
+			    	<span title-direction="right" title="<b>Command line</b>:<br/>{{step.commandline}}<br/><b>Modules</b>:<br/>{{step.modules | join:'<br/> '}}" md-truncate flex>
+				    	<b ng-if="step.skip">(skipped)&nbsp;</b>
+				    	<b>Step {{begin+$index+1}}: {{step.title}}</b>
+		    		</span>
+			    	
+			    	<span title-direction="right" title="This step will be multiplied (1 script for each value of the tag(s) without value)" style="display: inline-block; vertical-align: middle;" ng-if="(step.tags | omit:'name.length > 0' | count) > 0">
+			    		<img src="imgs/expansion.png" height="35px">
+			    	</span>
+			    	
+			    	<md-chips ng-if="step.tags.length > 0" ng-model="step.tags" readonly="true" class="mdchips-inline">
+						<md-chip-template class="text-small" style="height: 20px;">
+					        <div>
+					          <div><strong>{{$chip.name}}</strong></div>
+					          <div><em class="category">({{$chip.type}})</em></div>
+					        </div>
+						</md-chip-template>
+			    	</md-chips>
+			    	
+			    	<span><i class="fas fa-microchip" style="color: red"></i>{{step.hpc_directives.cpu}}CPUS</span>
+			    	<span><i class="fas fa-memory" style="color: darkgreen"></i>{{step.hpc_directives.memory.quantity}}{{step.hpc_directives.memory.size}}</span>
+			    	<span><i class="fas fa-clock" style="color: blue"></i>{{step.hpc_directives.walltime}}</span>
+			    	
+			    	<md-button class="md-icon-button" ng-click="addStepToRepository(step, $event)" tooltip="Save step" aria-label="Save step">
+				      <ng-md-icon icon="gavel"></ng-md-icon>
+				    </md-button>
+			    	
+			    	<md-button ng-disabled="state.current.name == 'step_repository'" style="margin-left: 0px; padding-left: 4px;" class="md-icon-button" ng-click="showReplaceStep(steps, begin+$index, $event)" aria-label="Replace this step with another one">
+			    		<span style="display: inline-block; vertical-align: middle;" class="fa-layers fa-fw fa-2x">
+							<i class="far fa-copy"></i>
+							<i class="fas fa-retweet" style="color: lightskyblue;"></i>
+						</span>
+			    	</md-button>
+			
+			    	<md-button class="md-icon-button" ng-click="remove_step(steps, begin+$index, $event)" tooltip="Delete this step" aria-label="Remove step">
+				      <ng-md-icon icon="delete"></ng-md-icon>
+				    </md-button>
+				    
+				    <md-button ng-if="step.overwrite" tooltip="This step is in overwrite mode. Click to disable the overwrite mode" class="md-icon-button" ng-click="$event.stopPropagation(); step.overwrite = !step.overwrite" aria-label="Click to disable the overwrite mode">
+			    		<i class="fas fa-paint-roller fa-2x" style="color: green;"></i>
+			    	</md-button>
+			    	<md-button ng-if="!step.overwrite" tooltip="This step is not in overwrite mode. Click to enable the overwrite mode" class="md-icon-button" ng-click="$event.stopPropagation(); step.overwrite = !step.overwrite" aria-label="Click to enable the overwrite mode">
+			    		<i class="fas fa-paint-roller fa-2x" style="color: c2c2c2;"></i>
+			    	</md-button>
+			    	   		
+			   		<md-button ng-if="step.skip" tooltip="This step is disabled. Click to enable this step" class="md-icon-button" ng-click="toggleStep(step, steps, begin+$index, $event)" aria-label="Click to enable this step">
+			    		<i class="fas fa-toggle-on fa-2x" data-fa-transform="flip-h" style="color: red;"></i>
+			    	</md-button>
+			    	<md-button ng-if="!step.skip" tooltip="This step is enabled. Click to disable this step" class="md-icon-button" ng-click="toggleStep(step, steps, begin+$index, $event)" aria-label="Click to disable this step">
+			    		<i class="fas fa-toggle-on fa-2x" style="color: green;"></i>
+			    	</md-button>
+			   	
+			<!-- 					    <md-button class="md-icon-button" ng-click="toggleStep(step, $event)" tooltip="Exclude/include this step" aria-label="Exclude/include step"> -->
+			<!-- 					      <ng-md-icon icon="highlight_off"></ng-md-icon> -->
+			<!-- 					    </md-button> -->
+				    
+				    <md-button class="md-icon-button" ng-click="cloneStep(step, steps, $event)" tooltip="Clone step" aria-label="Clone step">
+				      <ng-md-icon icon="content_copy"></ng-md-icon>
+				    </md-button>
+				    
+				    <md-button class="md-icon-button" ng-click="move_item(steps, begin+$index, -1, $event)" tooltip="Move up this step" aria-label="Move up this step">
+				      <ng-md-icon icon="keyboard_arrow_up"></ng-md-icon>
+				    </md-button>
+				    <md-button class="md-icon-button" ng-click="move_item(steps, begin+$index, 1, $event)" tooltip="Move down this step" aria-label="Move down this step">
+				      <ng-md-icon icon="keyboard_arrow_down"></ng-md-icon>
+				    </md-button>
+				    
+			    </v-pane-header>
+			    <v-pane-content>
+			    	<div ng-include="'templates/step.html'"></div>
+			    </v-pane-content>
+			  </v-pane>
+			</v-accordion>
+		</pagination>
+	</div>
+</div>
+

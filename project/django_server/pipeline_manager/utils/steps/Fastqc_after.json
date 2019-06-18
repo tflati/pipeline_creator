@@ -1,0 +1,49 @@
+{
+    "script_level": "sample", 
+    "type": "per-sample", 
+    "description": "", 
+    "title": "Fastqc_after", 
+    "description_short": "", 
+    "commandline": "mkdir fastqc_after; fastqc --nogroup --extract ${SAMPLE}_1.fastq -o fastqc_before && fastqc --nogroup --extract ${SAMPLE}_2.fastq -o fastqc_after", 
+    "write_stderr_log": true, 
+    "modules": [
+        "profile/bioinf", 
+        "fastqc/0.11.5"
+    ], 
+    "command_level": "sample", 
+    "hpc_directives": {
+        "account": "cin_staff", 
+        "error": "fastqc_after_err", 
+        "job_name": "fastqc_after", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [
+            "Trimming"
+        ], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 10
+        }, 
+        "output": "fastqc_after_out", 
+        "nodes": 1, 
+        "walltime": "02:00:00", 
+        "cpu": 1, 
+        "mpi_procs": 0
+    }, 
+    "sequential": false, 
+    "skip": false, 
+    "command_group_level": "all", 
+    "write_stdout_log": true, 
+    "iterate": false, 
+    "conditions": [
+        {
+            "command": "[ -d fastqc_after ]"
+        }
+    ], 
+    "checks": [
+        {
+            "file": "fastqc_after"
+        }
+    ], 
+    "command_parallelism_level": "sequential", 
+    "hpc_directives_text": ""
+}

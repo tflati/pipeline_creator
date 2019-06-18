@@ -1,0 +1,43 @@
+<div ng-include="'templates/header.html'"></div>
+
+<section layout-padding>
+	<md-subheader class="md-primary">Users</md-subheader>
+	
+	<div layout="column" layout-align="start center">
+		<md-input-container>
+	    	<label>Filter users:</label>
+	    	<input ng-model="filterExpression"/>
+	    </md-input-container>
+		
+		<table class="full-width" border="0">
+			<thead>
+				<th></th>
+				<th align="left">Email</th>
+				<th align="left">Username</th>
+				<th align="left">First name</th>
+				<th align="left">Last name</th>
+				<th align="left">Affiliation</th>
+				<th align="left">Admin</th>
+			</thead>
+			<tbody>
+				<tr ng-repeat="user in users | filter:filterExpression">
+			       	<td align="center"><i class="far fa-user-circle fa-3x" style="color: darkgreen;"></i></td>
+			        <td>{{user.email}}</td>
+			      	<td><strong> {{user.username}}</strong></td>
+			      	<td>{{user.first_name}}</td>
+			      	<td><strong> {{user.last_name}}</strong></td>
+			      	<td>{{user.affiliation}}</td>
+			      	<td>
+			      		<md-checkbox ng-click="user.changed = true" ng-model="user.is_admin" title="If checked, this user is admin" aria-label="admin check button">
+						</md-checkbox>
+			      	</td>
+				</tr>
+			</tbody>
+		</table>
+		
+		<md-button layout-margin ng-click="save()" class="md-button md-raised md-warn">
+		Save
+		</md-button>
+	
+	</div>
+</section>

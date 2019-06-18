@@ -1,0 +1,48 @@
+{
+    "command_chunk_size": 10, 
+    "script_level": "sample", 
+    "type": "per-sample", 
+    "description": "", 
+    "title": "Download", 
+    "description_short": "", 
+    "commandline": "fastq-dump --split-files $SAMPLE", 
+    "write_stderr_log": true, 
+    "modules": [
+        "profile/bioinf", 
+        "sra/2.8.2"
+    ], 
+    "command_level": "sample", 
+    "hpc_directives": {
+        "account": "cin_staff", 
+        "error": "download_err", 
+        "job_name": "download-${experiment_variable}", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 10
+        }, 
+        "output": "download_out", 
+        "nodes": 1, 
+        "walltime": "05:00:00", 
+        "cpu": 1, 
+        "mpi_procs": 0
+    }, 
+    "sequential": false, 
+    "skip": false, 
+    "command_group_level": "all", 
+    "write_stdout_log": true, 
+    "iterate": false, 
+    "conditions": [
+        {
+            "command": "[ -s ${SAMPLE}_1.fastq ] && [ -s ${SAMPLE}_2.fastq ]"
+        }
+    ], 
+    "checks": [
+        {
+            "file": "${SAMPLE}_1.fastq"
+        }
+    ], 
+    "command_parallelism_level": "sequential", 
+    "hpc_directives_text": ""
+}

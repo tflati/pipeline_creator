@@ -1,0 +1,429 @@
+<div ng-controller="pipelineController">
+	<div layout="row" layout-align="start center">
+		<md-button class="md-button md-warn md-raised" ng-click="add_pipeline(pipelines, create_new_pipeline('Unnamed pipeline ' + (pipelines.length + 1)))" tooltip="Add a pipeline to this project" aria-label="Add a new pipeline">
+			<i class="fas fa-cogs"></i>
+			Configure a pipeline from scratch
+		</md-button>
+		<md-button ng-disabled="state.current.name == 'pipeline_repository'" class="md-button md-warn md-raised" ng-click="import_pipeline(pipelines)" tooltip="Import a pipeline to this project from pre-defined pipelines" aria-label="Import a new pipeline from pre-defined pipelines">
+			<i class="fas fa-cogs"></i>
+			Import pipeline
+		</md-button>
+	</div>
+	
+	<div ng-if="pipelines.length == 0 && !loading" layout="column" layout-align="start center" layout-padding>
+		<h3>No pipelines have been defined yet for this project.</h3>
+		<img class="medium-height" width="auto" src="imgs/no_projects.png">
+	</div>
+	
+	<div ng-if="loading" layout="column" layout-align="center center">
+		<i class="fas fa-circle-notch fa-spin fa-4x loading"></i>
+		<p class="loading"><b>Loading pipelines...</b></p>
+	</div>
+	
+	<v-accordion class="vAccordion--default padding-10" multiple onexpand="select_pipeline(index, pipelines, id, pane)">
+		  <v-pane ng-repeat="pipeline in pipelines track by $index">
+		    <v-pane-header ng-class="{disabled_pane: pipeline.disabled}" layout="row" layout-align="start center">
+		    	<span md-truncate flex><b>Pipeline {{$index+1}}: {{pipeline.id}}</b></span>
+		    	
+	<!-- 							    	<i class="fas fa-circle" ng-style="{color: {{pipeline.color || 'blue'}}}"></i> -->
+				<span ng-click="chooseColor($event)" class="vertically-centered margin-left-10" style="display:inline-block;" md-color-picker ng-model="pipeline.color" options="{default: '#{{pipeline.color}}'}"></span>
+		    	
+		    	<md-chips ng-if="pipeline.tags.length > 0" ng-style="{'background-color': pipeline.color}" ng-model="pipeline.tags" readonly="true" class="mdchips-inline">
+					<md-chip-template class="text-small" style="height: 20px;">
+				        <div>
+				          <div><strong>{{$chip.name}}</strong></div>
+				          <div><em class="category">({{$chip.type}})</em></div>
+				        </div>
+					</md-chip-template>
+		    	</md-chips>
+		    	
+		    	<md-button class="md-icon-button" ng-click="savePipelineToRepository(pipeline, $event)" tooltip="Save pipeline" aria-label="Save pipeline">
+			      <ng-md-icon icon="gavel"></ng-md-icon>
+			    </md-button>
+		    	
+		    	<md-button class="md-icon-button" ng-click="remove_pipeline(pipelines, $index, $event)" tooltip="Delete pipeline" aria-label="Delete pipeline">
+			      <ng-md-icon icon="delete"></ng-md-icon>
+			    </md-button>
+			    
+			    <md-button ng-if="pipeline.disabled" tooltip="This pipeline is disabled. Click to enable this pipeline" class="md-icon-button" ng-click="$event.stopPropagation(); pipeline.disabled = !pipeline.disabled" aria-label="Click to enable this pipeline">
+		    		<i class="fas fa-toggle-on fa-2x" data-fa-transform="flip-h" style="color: red;"></i>
+		    	</md-button>
+		    	<md-button ng-if="!pipeline.disabled" tooltip="This pipeline is enabled. Click to disable this pipeline" class="md-icon-button" ng-click="$event.stopPropagation(); pipeline.disabled = !pipeline.disabled" aria-label="Click to disabled this pipeline">
+		    		<i class="fas fa-toggle-on fa-2x" style="color: green;"></i>
+		    	</md-button>
+			    
+			    <md-button class="md-icon-button" ng-click="add_pipeline(pipelines, clone(pipelines, $index, $event))" tooltip="Clone pipeline" aria-label="Clone pipeline">
+			      <ng-md-icon icon="content_copy"></ng-md-icon>
+			    </md-button>
+			    
+			    <md-button class="md-icon-button" ng-click="move_item(pipelines, $index, -1, $event)" tooltip="Move up this pipeline" aria-label="Move up this pipeline">
+			      <ng-md-icon icon="keyboard_arrow_up"></ng-md-icon>
+			    </md-button>
+			    
+			    <md-button class="md-icon-button" ng-click="move_item(pipelines, $index, 1, $event)" tooltip="Move down this pipeline" aria-label="Move down this pipeline">
+			      <ng-md-icon icon="keyboard_arrow_down"></ng-md-icon>
+			    </md-button>
+		    </v-pane-header>
+		    <v-pane-content>
+			    	<div layout-padding layout="row" layout-align="start center">
+						<md-subheader class="md-primary">Pipeline ID:</md-subheader>
+						<p>{{pipeline.id}}</p>
+						<md-button tooltip="Rename this pipeline." class="md-icon-button md-raised md-warn" ng-click="showRenamePipelineDialog(pipeline, $index, $event)" tooltip="Change pipeline ID (rename)" aria-label="Change pipeline ID">
+							<i class="fas fa-pencil-alt"></i>
+				   		</md-button>
+				   		<div ng-if="!pipeline.id" md-colors="{color:'accent'}">
+				   			<i class="fas fa-exclamation-triangle"></i>
+				   			It seems your pipeline is unnamed. Click on the yellow button to give it a name.
+				   		</div>
+			   		</div>
+			   		
+			   		
+	
+			   		
+			   		
+		    		<v-accordion class="no-padding">
+		    			<v-pane>
+						    <v-pane-header class="no-margin">
+						    	<md-subheader class="inline md-primary">Genome</md-subheader>
+							   		<div class="inline" ng-if="!pipeline.genome.type" md-colors="{color:'accent'}">
+							   			<i class="fas fa-exclamation-triangle"></i>
+							   			No genome strategy has been defined yet.
+							   		</div>
+						   			<span class="inline" ng-if="pipeline.genome.type == 'path'">
+						   				<b>Chosen genome(s) - </b> Custom path:
+						   				<span ng-if="!pipeline.genome.path" md-colors="{color:'accent'}">
+								   			<i class="fas fa-exclamation-triangle"></i>
+								   			but no genome has been defined yet.
+						   				</span>
+						   				<b ng-if="pipeline.genome.path.length > 0">{{pipeline.genome.path}}</b>
+					   				</span>
+						   			<span class="inline" ng-if="pipeline.genome.type == 'modules'">
+										<b>Chosen genome(s) - </b> Modules:
+										<span ng-if="(pipeline.modules | filter: { extra: 'data' }).length == 0" md-colors="{color:'accent'}">
+								   			<i class="fas fa-exclamation-triangle"></i>
+								   			No genome specified yet!
+								   		</span>
+								   		<b ng-if="(pipeline.modules | filter: { extra: 'data' }).length > 0">
+								   			{{pipeline.modules | filter: { extra: 'data' } | map:'label' | join: ', '}}
+						   				</b>
+					   				</span>
+						    </v-pane-header>
+						    <v-pane-content>
+						    	<md-input-container class="full-width">
+						   			<label>Select your genome</label>
+							   		<md-select ng-change="genome_choice(pipeline)" ng-model="pipeline.genome.type" aria-label="Select your genome">
+							   			<md-option value="modules">Choose genome among modules</md-option>
+							   			<md-option value="path">Provide a custom genome path</md-option>
+							   		</md-select>
+						   		</md-input-container>
+						   		
+						   		<div ng-if="pipeline.genome.path || pipeline.genome.modules">
+						   			<span>Here is your currently loaded genome:</span>
+						   		</div>
+						   		<div ng-if="pipeline.genome.type == 'path'">
+						   			<md-input-container class="full-width">
+						   				<input placeholder="Type here the path of your reference genome" type="text" ng-model="pipeline.genome.path">
+					   				</md-input-container>
+						   		</div>
+								<div ng-if="pipeline.genome.type == 'modules'" layout="column" layout-padding>
+									<div layout="column" layout-align="center start">
+										<div ng-if="(pipeline.modules | filter: { extra: 'data' }).length == 0">
+											<span md-colors="{color:'accent'}">
+									   			<i class="fas fa-exclamation-triangle"></i>
+									   			No genome specified yet! In order to select your genome modules, go to the "Cluster" section below.
+									   		</span>
+										</div>
+										<div ng-repeat="module in pipeline.modules | filter: { extra: 'data' } track by $index" layout="row" layout-align="start center">
+											<b ng-bind="module.label"></b>
+										</div>
+									</div>
+								</div>
+						    </v-pane-content>
+					    </v-pane>
+					  	<v-pane>
+						    <v-pane-header class="no-margin">
+						    	<md-subheader class="md-primary">Graph</md-subheader>
+						    </v-pane-header>
+						    <v-pane-content>
+					    		<div layout="row" layout-align="center center">
+						    		<md-button class="md-button md-raised md-warn" ng-click="build_graph(pipeline, $index, undefined, $event.target.parentElement.parentElement)">Build graph</md-button>
+						    		<md-button class="md-button md-raised md-warn" ng-click="download_as('png', pipeline, $index)">Download PNG</md-button>
+						    		<md-button class="md-button md-raised md-warn" ng-click="download_as('svg', pipeline, $index)">Download SVG</md-button>
+					    		</div>
+					    		
+					    		<div layout="column" layout-align="start start">
+					    			<div ng-if="options.graph_shown" layout="column" layout-align="center start">
+					    				<md-switch ng-click="options.show_colors = !options.show_colors; build_graph(pipeline, $index, options, $event.target.parentElement.parentElement.parentElement.parentElement.parentElement); options.show_colors = !options.show_colors" ng-model="options.show_colors" aria-label="Mostra/nascondi colori">
+				  							Mostra/nascondi colori
+										</md-switch>
+										<md-switch ng-click="options.show_resources = !options.show_resources; build_graph(pipeline, $index, options, $event.target.parentElement.parentElement.parentElement.parentElement.parentElement); options.show_resources = !options.show_resources" ng-model="options.show_resources" aria-label="Mostra/nascondi risorse">
+				  							Mostra/nascondi risorse
+										</md-switch>
+										<md-switch ng-click="options.show_skipped_steps = !options.show_skipped_steps; build_graph(pipeline, $index, options, $event.target.parentElement.parentElement.parentElement.parentElement.parentElement); options.show_skipped_steps = !options.show_skipped_steps" ng-model="options.show_skipped_steps" aria-label="Mostra/nascondi passi skipped">
+				  							Mostra/nascondi passi 'skipped'
+										</md-switch>
+					    			</div>
+					    			<div style="overflow: auto !important; height: 80%; width: 80%;">
+					    				<svg width="0" height="0" class="padding-medium svg-canvas"></svg>
+					    			</div>
+								</div>
+					    	</v-pane-content>
+						</v-pane>
+					</v-accordion>
+					
+		    		<v-accordion class="no-padding">
+					  	<v-pane>
+						    <v-pane-header class="no-margin">
+						    	<md-subheader class="md-primary inline">Tags</md-subheader>
+						    	<span>{{pipeline.tags.length}} tags</span>
+						    </v-pane-header>
+						    <v-pane-content>
+					    		<div ng-init="chosenTags = pipeline.tags;" ng-include="'templates/tagger.html'"></div>
+					    		
+					    		<div>
+					    			<md-button ng-click="pipeline.enhanced_tags = getTagsTypes()" class="md-button md-raised md-warn">Generate tags</md-button>
+					    			<div ng-if="pipeline.enhanced_tags">
+							    		<label>Select a tag type of interest:</label>
+										<md-select class="padding-left-15 full-width" ng-model="selected_type" aria-label="Select the tag type">
+									       	<md-option ng-repeat="tagType in pipeline.enhanced_tags" ng-value="tagType">
+												<span>{{tagType.type}}</span>
+									       	</md-option>
+										</md-select>
+											
+										<b>Selected type:</b>{{selected_type.type}}
+										<pagination ng-if="selected_type" list="selected_type.names">
+											<md-button class="md-button md-raised md-warn" ng-click="add_column(selected_type)">Add column</md-button>
+								    		<table>
+								    			<tr>
+								    				<th>Tag value</th>
+								    				<th ng-repeat="col in selected_type.columns track by $index">
+								    					<div layout="row" layout-align="center center">
+									    					<span>{{col}}</span>
+									    					<span class="fa-layers fa-fw" title="Remove this column" ng-click="delete_column(selected_type, $index)" layout-margin>
+															    <i class="fas fa-circle" style="color:Tomato"></i>
+															    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i>
+															</span>
+														</div>
+								    				</th>
+								    			</tr>
+								    			<tr ng-repeat="d in displayed">
+								    				<td>{{d.name}}</td>
+								    				<td ng-repeat="col in selected_type.columns">
+								    					<input type="text" ng-model="d.columns[col]">
+								    				</td>
+								    			</tr>
+								    		</table>
+							    		</pagination>
+						    		</div>
+					    		</div>
+					    		
+					    	</v-pane-content>
+						</v-pane>
+					</v-accordion>
+					
+					<v-accordion class="no-padding">
+						<v-pane>
+					    	<v-pane-header class="no-margin">
+						    	<md-subheader class="md-primary">Variables and constants</md-subheader>
+						    </v-pane-header>
+						    <v-pane-content>
+						    	<md-subheader class="md-primary">System-reserved variables have their keys disabled, but you can still edit their values</md-subheader>
+								<div ng-repeat="variable in pipeline.variables">
+									<md-input-container layout="row" flex>
+										<input ng-disabled="variable.key_disabled" label="Description" type="text" ng-model="variable.description" aria-label="Variable description">
+									</md-input-container>
+									<div layout="row" layout-align="start center" layout-margin>
+										<md-input-container>
+											<input ng-disabled="variable.key_disabled" label="Key" type="text" ng-model="variable.key" aria-label="Variable key">
+										</md-input-container>
+										<md-input-container>
+											<input label="Value" type="text" ng-model="variable.value" aria-label="Variable value">
+										</md-input-container>
+										<md-switch ng-disabled="variable.key_disabled" md-invert ng-model="variable.constant" aria-label="Constant value?">
+									    	Constant value? {{ variable.constant }}
+									  	</md-switch>
+									  	<md-button ng-if="!variable.key_disabled" class="md-icon-button" ng-click="delete_variable(pipeline, $index, $event)" tooltip="Delete this variable" aria-label="Remove this variable">
+									      <ng-md-icon icon="delete" style="fill: grey;"></ng-md-icon>
+									    </md-button>
+									 </div>
+								</div>
+								<div layout-margin>
+									<md-button class="md-button md-warn md-raised" ng-click="add_variable(pipeline)" tooltip="Add a variable to this pipeline" aria-label="Add a new variable">
+								       	<span class="fa-layers fa-fw">
+											<i class="fas fa-list-ol"></i>
+											<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i>
+										</span>
+										Add a variable
+									</md-button>
+								</div>
+						    </v-pane-content>
+					    </v-pane>
+				    </v-accordion>
+				
+					<v-accordion class="no-padding">
+					  	<v-pane>
+						    <v-pane-header class="no-margin">
+						    	<md-subheader class="md-primary inline">Cluster</md-subheader>
+						    	<span><b>User</b>:
+						    		<span ng-if="pipeline.username">{{pipeline.username}}</span>
+						    		<span ng-if="!pipeline.username" md-colors="{color:'accent'}">
+							   			<i class="fas fa-exclamation-triangle"></i>
+							   			No user defined!
+							   		</span>
+					    		</span>
+						    	<span><b>Cluster</b>:
+						    		<span ng-if="pipeline.cluster">{{pipeline.cluster}}</span>
+						    		<span ng-if="!pipeline.cluster" md-colors="{color:'accent'}">
+							   			<i class="fas fa-exclamation-triangle"></i>
+							   			No cluster selected!
+							   		</span>
+						   		</span>
+						    	<span><b>Remote path</b>:
+						    		<span ng-if="pipeline.remote_path">{{pipeline.remote_path}}</span>
+						    		<span ng-if="!pipeline.remote_path" md-colors="{color:'accent'}">
+							   			<i class="fas fa-exclamation-triangle"></i>
+							   			Missing remote path!
+							   		</span>
+						    	</span>
+						    	<span><b>Qos</b>:
+						    		<span ng-if="(pipeline.steps | map:'hpc_directives.queue' | concat: [pipeline.queue] | unique | notEmpty | count) > 0">{{pipeline.steps | map:'hpc_directives.queue' | concat: [pipeline.queue] | unique | notEmpty | join:', '}}</span>
+						    		<span ng-if="(pipeline.steps | map:'hpc_directives.queue' | concat: [pipeline.queue] | unique | notEmpty | count) == 0" md-colors="{color:'accent'}">
+							   			<i class="fas fa-exclamation-triangle"></i>
+							   			Missing queue!
+							   		</span>
+						    	</span>
+						    	<span><b>Account(s)</b>:
+						    		<span ng-if="(pipeline.steps | map:'hpc_directives.account' | concat: [pipeline.account] | unique | notEmpty | count) > 0">{{pipeline.steps | map:'hpc_directives.account' | concat: [pipeline.account] | unique | notEmpty | join:', '}}</span>
+						    		<span ng-if="(pipeline.steps | map:'hpc_directives.account' | concat: [pipeline.account] | unique | notEmpty | count) == 0" md-colors="{color:'accent'}">
+							   			<i class="fas fa-exclamation-triangle"></i>
+							   			Missing account!
+							   		</span>
+						    	</span>
+						    	<span><b>Modules</b>:
+						    		<span ng-if="pipeline.modules.length > 0">
+						    			<span title="{{pipeline.modules | filter: {extra: 'data'} | map:'label' | join:', '}}">{{pipeline.modules | filter: {extra: 'data'} | count}} genome(s)</span> and
+						    			<span title="{{pipeline.modules | filter: {extra: '!data'} | map:'label' | join:', '}}">{{pipeline.modules | filter: {extra: '!data'} | count}} other module(s)</span>
+						    		</span>
+						    		<span ng-if="pipeline.modules.length == 0">No modules loaded</span>
+						    	</span>
+						    </v-pane-header>
+						    <v-pane-content>
+						    	<md-subheader class="md-primary">Credentials</md-subheader>
+					    		<md-input-container class="full-width">
+									<label>Username</label>
+									<input placeholder="Type here the user with which to launch your pipeline" type="text" ng-model="pipeline.username">
+								</md-input-container>
+								
+								<md-input-container class="full-width">
+									<label>Remote path</label>
+									<input placeholder="Type here the path from which to launch your pipeline" type="text" ng-model="pipeline.remote_path">
+								</md-input-container>
+								
+								<md-subheader class="md-primary">Cluster selection</md-subheader>
+								<md-input-container class="full-width">
+									<label>Cluster selection</label>
+									<md-select class="padding-left-15 full-width" ng-model="pipeline.cluster" aria-label="Specifies the cluster">
+								       	<md-option ng-repeat="cluster in templates.clusters" ng-value="cluster.id">
+								       		<div flex layout="row">
+								       			<div>
+								       				<img width="40px" src="imgs/cluster.png" layout-padding>
+								       			</div>
+									       		<div layout="row" layout-align="left center">
+													<span>{{cluster.name}} &nbsp;</span><span class="lighter">({{cluster.info}})</span>
+									       		</div>
+									       	</div>
+								       	</md-option>
+									</md-select>
+								</md-input-container>
+								
+								<div ng-if="pipeline.cluster && pipeline.username">
+									<md-subheader class="md-primary">Account</md-subheader>
+									<md-input-container class="padding-left-15 full-width">
+										<label>Account</label>
+										<my-autocomplete flex cache="true" on-select="select_account(pipeline, elem)" deselect-on-click="false" label="Search in accounts" url-fx="get_account_url(context)" context="pipeline"></my-autocomplete>
+										<b>Current account(s)</b>:
+										<span>{{pipeline.steps | map:'hpc_directives.account' | concat: [pipeline.account] | notEmpty | unique | join:', '}}</span>
+									</md-input-container>
+									
+									<md-subheader class="md-primary">Queue</md-subheader>
+									<md-input-container class="padding-left-15 full-width">
+										<label>Queue</label>
+										<md-select md-on-open="load_qos(pipeline.username, pipeline.cluster)" class="padding-left-15" ng-model="pipeline.queue" aria-label="Specifies the cluster" ng-change="queue_changed(pipeline, pipeline.queue)">
+									       	<md-option ng-repeat="qos in queues" ng-value="qos.id">
+									       		<div flex layout="row">
+										       		<div layout="row" layout-align="left center">
+														<span>{{qos.name}} &nbsp;</span><span ng-if="qos.info" class="lighter">({{qos.info}})</span>
+										       		</div>
+										       	</div>
+									       	</md-option>
+										</md-select>
+										<b>Current queue(s)</b>:
+										<span>{{pipeline.steps | map:'hpc_directives.queue' | concat: [pipeline.queue] | notEmpty | unique | join:', '}}</span>
+									</md-input-container>
+									
+									<md-subheader class="md-primary">Modules</md-subheader>
+									<p>The modules you define here will be automatically loaded before any other module specified in each step. Take into account that modules loaded in a step will overwrite any existing environmental variable loaded earlier.</p>
+									<div layout="row">
+										<div layout="row" layout-padding>
+											<my-autocomplete flex cache="true" on-select="add_to_list(elem, list)" target="pipeline.modules" label="Search in modules" url-fx="get_module_url(context)" context="pipeline"></my-autocomplete>
+											<div layout="column" layout-align="center start">
+												<div ng-repeat="module in pipeline.modules track by $index" layout="row" layout-align="start center">
+													<b ng-bind="module.label || module"></b>
+													<span class="fa-layers fa-fw" title="Remove this module" ng-click="delete_from_array(pipeline.modules, $index)" layout-margin>
+													    <i class="fas fa-circle" style="color:Tomato"></i>
+													    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i>
+													</span>
+													<md-button class="md-icon-button" ng-click="move_item(pipeline.modules, $index, -1, $event)">
+												      <ng-md-icon icon="keyboard_arrow_up" aria-label="Move up this module"></ng-md-icon>
+												    </md-button>
+												    <md-button class="md-icon-button" ng-click="move_item(pipeline.modules, $index, 1, $event)">
+												      <ng-md-icon icon="keyboard_arrow_down" aria-label="Move down this module"></ng-md-icon>
+												    </md-button>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+					    	</v-pane-content>
+						</v-pane>
+					</v-accordion>
+				
+					<v-accordion class="no-padding">
+					  	<v-pane>
+						    <v-pane-header class="no-margin">
+						    	<md-subheader class="md-primary inline">Scripts</md-subheader>
+						    	<span>{{pipeline.files.length || 0}} script(s) loaded</span>
+						    </v-pane-header>
+						    <v-pane-content>
+					    		<md-subheader class="md-primary">Scripts</md-subheader>
+								<md-button ngf-select="uploadPipelineFiles(pipeline, $files)" multiple="multiple" class="md-button md-warn md-raised" tooltip="Upload scripts you can use in your analyses (e.g., Python scripts, R scripts, executables, etc.)" aria-label="Upload scripts you can use in your analyses">
+									Upload scripts
+								</md-button>
+								
+								<div ng-if="pipeline.files.length > 0" layout="column" layout-align="start start">
+									<div layout="row" layout-align="start center" ng-repeat="file in pipeline.files track by $index">
+										<a title="See the file" style="text-decoration: none;" target="_blank" ng-href="{{file.url}}" layout="row" layout-align="start center">
+											<i class="far fa-2x fa-file-alt" layout-margin></i>
+											{{file.name}}
+										</a>
+										<span class="fa-layers fa-fw" title="Remove this file" ng-click="removePipelineFile(pipeline, $index)" layout-margin>
+										    <i class="fas fa-circle" style="color:Tomato"></i>
+										    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i>
+										</span>
+									</div>
+								</div>
+					    	</v-pane-content>
+						</v-pane>
+					</v-accordion>
+				
+				<section>
+					<md-subheader class="md-primary inline">Steps</md-subheader>
+					<span>{{pipeline.steps.length}} step(s)</span>
+					
+					<div ng-init="steps = pipeline.steps" ng-include="'templates/steps.html'"></div>
+				</section>
+				
+			</v-pane-content>
+		</v-pane>
+	</v-accordion>
+</div>

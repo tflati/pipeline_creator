@@ -1,0 +1,54 @@
+<section layout-padding>
+	<md-subheader class="md-primary">Information</md-subheader>
+	<div layout="column">
+		<div layout="row">
+			<md-input-container>
+				<label>ID</label>
+	   			<input disabled type="text" ng-model="project.id">
+	   		</md-input-container>
+	   		<md-button tooltip="Rename this project." class="md-icon-button md-raised md-warn" ng-click="showRenameProjectDialog($event)" tooltip="Change project ID (rename)" aria-label="Change project ID">
+   				<i class="fas fa-pencil-alt"></i>	
+    		</md-button>
+		</div>
+		<div layout="row">
+			<md-input-container>
+				<label>Project type</label>
+				<md-select ng-model="project.project_type" aria-label="Specifies the project type">
+			       	<md-option ng-repeat="type in project.project_types" ng-value="type">
+						<span>{{type}}</span>
+			       	</md-option>
+				</md-select>
+			</md-input-container>
+			<md-input-container>
+				<label>Title</label>
+	   			<input type="text" ng-model="project.title">
+	   		</md-input-container>
+	   		<md-input-container>
+				<label>Subtitle</label>
+	   			<input type="text" ng-model="project.subtitle">
+	   		</md-input-container>
+	   		<md-input-container>
+				<label>Creator</label>
+	   			<input type="text" ng-model="project.creator">
+	   		</md-input-container>
+	   	</div>
+	   	
+	   	<div layout="column" style="margin-bottom: 2em;">
+   			<div class="lighter">Creation date</div>
+   			<div ng-if="project.creation_date == undefined">No date available</div>
+   			<div ng-if="project.creation_date != undefined" layout="row">
+   				<div>{{project.creation_date | amDateFormat:'DD MMMM YYYY'}}</div>
+   				<div class="lighter" tooltip="Exact date: {{project.creation_date | amDateFormat:'DD MMMM YYYY HH:mm:ss'}}">
+   					&nbsp;(<span am-time-ago="project.creation_date"></span>)
+   				</div>
+   			</div>
+  			</div>
+  			
+	   	<div layout="column">
+	   		<md-input-container>
+				<label>Description</label>
+	   			<textarea placeholder="Write down a description for this project (e.g., ideal place to put notes, etc.)" ng-model="project.description" rows="10"></textarea>
+	   		</md-input-container>
+	   	</div>
+   	</div>
+</section>

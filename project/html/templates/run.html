@@ -1,0 +1,10 @@
+<section>
+	<md-content layout="column" layout-padding>
+		<md-input-container>
+			<label>Run ID</label>
+			<input label="Run ID" type="text" ng-model="run.id">
+		</md-input-container>
+		
+		<div ng-init="chosenTags = run.tags;" ng-include="'templates/tagger.html'"></div>
+	</md-content>
+</section>

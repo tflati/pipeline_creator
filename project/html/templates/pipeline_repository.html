@@ -1,0 +1,10 @@
+<div ng-include="'templates/header.html'"></div>
+
+<div ng-if="loggedUser.loggedIn" layout-padding>
+
+	<h1>Pipeline repository</h1>
+
+	<div ng-controller="pipelineController" ng-include="'templates/pipelines.html'"></div>
+</div>
+
+<spacer></spacer>

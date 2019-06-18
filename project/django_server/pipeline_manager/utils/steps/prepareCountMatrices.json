@@ -1,0 +1,44 @@
+{
+    "skip": false, 
+    "command_level": "project", 
+    "overwrite": false, 
+    "begin_block": "", 
+    "hpc_directives_text": "", 
+    "title": "prepareCountMatrices", 
+    "hpc_directives": {
+        "account": "cin_staff", 
+        "error": "", 
+        "job_name": "", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [
+            "StringTieEB"
+        ], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 10
+        }, 
+        "output": "", 
+        "nodes": 1, 
+        "walltime": "00:30:00", 
+        "cpu": 1, 
+        "mpi_procs": 0
+    }, 
+    "description_short": "", 
+    "checks": [], 
+    "end_block": "", 
+    "command_chunk_size": 1, 
+    "script_level": "project", 
+    "description": "", 
+    "tags": [], 
+    "commandline": "if [ ! -s prepDE.py ]\nthen\n    wget http://ccb.jhu.edu/software/stringtie/dl/prepDE.py\nfi\n\nrm input.list.txt\nfor EXPERIMENT in $(cat experiments); do echo -e \"$EXPERIMENT\\t$EXPERIMENT/$EXPERIMENT.gtf\" >> input.list.txt; done\n\npython prepDE.py -i input.list.txt -g gene_count_matrix.csv -t transcript_count_matrix.csv", 
+    "executable": [], 
+    "write_stdout_log": true, 
+    "conditions": [], 
+    "modules": [
+        "profile/global", 
+        "r/3.4.2"
+    ], 
+    "write_stderr_log": true, 
+    "command_group_level": "all", 
+    "command_parallelism_level": "sequential"
+}

@@ -1,0 +1,17 @@
+{
+	"id": "",
+	"img" : "imgs/project.png",
+	"title": "",
+	"subtitle": "",
+	"description": "",
+	"creator": "",
+	"creation_date": "",
+	"note": "",
+	"type": "project",
+	"pipelines": [],
+	"monitor_pipelines": [],
+	"projects": [],
+	"tags": [],
+	"project_type": "",
+	"project_types": ["Next Generation Sequencing", "Molecular Dynamics", "Docking", "Imaging", "Other"]
+}

@@ -1,0 +1,45 @@
+{
+    "script_level": "experiment", 
+    "type": "per-sample", 
+    "description": "", 
+    "title": "StringTieEB_refGTF", 
+    "description_short": "", 
+    "commandline": "mkdir short/\n$STRINGTIE_HOME/bin/stringtie $EXPERIMENT.bam -B -e -p $cpu_variable -G $ANNOTATION/Genes/genes.gtf -o short/$EXPERIMENT.ballgown.gtf", 
+    "write_stderr_log": true, 
+    "modules": [
+        "profile/global", 
+        "stringtie/1.3.4", 
+        "ig_Mus_musculus/mm10"
+    ], 
+    "command_level": "experiment", 
+    "hpc_directives": {
+        "account": "elix3_rinaldi", 
+        "error": "stringtiemergeEBgtf_err", 
+        "job_name": "stringtieEBgtf-${experiment_variable}", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [
+            "MergeBams"
+        ], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 115
+        }, 
+        "output": "stringtiemergeEBgtf_out", 
+        "nodes": 1, 
+        "walltime": "02:00:00", 
+        "cpu": 36, 
+        "mpi_procs": 0
+    }, 
+    "sequential": true, 
+    "skip": false, 
+    "command_group_level": "all", 
+    "write_stdout_log": true, 
+    "iterate": true, 
+    "conditions": [
+        {
+            "command": "[ -s short/$EXPERIMENT.ballgown.gtf ]"
+        }
+    ], 
+    "command_parallelism_level": "sequential", 
+    "hpc_directives_text": ""
+}

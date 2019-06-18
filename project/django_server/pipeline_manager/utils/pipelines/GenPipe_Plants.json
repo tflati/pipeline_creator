@@ -1,0 +1,1311 @@
+{
+    "cluster": "galileo",
+    "color": "#ffc433",
+    "disabled": false,
+    "id": "GenPipe_Plants",
+    "modules": [],
+    "queue": "gll_usr_prod",
+    "remote_path": "/gpfs/scratch/userexternal/tflati00/poplar/",
+    "steps": [
+        {
+            "checks": [
+                {
+                    "file": "${SAMPLE}_1.fastq"
+                }
+            ],
+            "command_chunk_size": 10,
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "fastq-dump --gzip --split-files $SAMPLE",
+            "conditions": [
+                {
+                    "command": "[ -s ${SAMPLE}_1.fastq.gz ] && [ -s ${SAMPLE}_2.fastq.gz ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 1,
+                "dependencies": [],
+                "error": "download_err",
+                "job_name": "download-${experiment_variable}",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "download_out",
+                "queue": "gll_usr_prod",
+                "walltime": "05:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "sra/2.8.2"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Download",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [
+                {
+                    "file": "fastqc_before"
+                }
+            ],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir fastqc_before; fastqc --nogroup --extract ${SAMPLE}_1.fastq* -o fastqc_before && fastqc --nogroup --extract ${SAMPLE}_2.fastq* -o fastqc_before",
+            "conditions": [
+                {
+                    "command": "[ -d fastqc_before ]"
+                }
+            ],
+            "description": "",
+            "description_short": "Quality control",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 1,
+                "dependencies": [
+                    "Download"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "04:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "fastqc/0.11.5"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Fastqc_before",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [
+                {
+                    "file": "${SAMPLE}_1.trimmed.paired.fastq"
+                },
+                {
+                    "file": "${SAMPLE}_2.trimmed.paired.fastq"
+                }
+            ],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar PE -threads 36 -phred33 ${SAMPLE}_1.fastq.gz ${SAMPLE}_2.fastq.gz ${SAMPLE}_1.trimmed.paired.fastq.gz ${SAMPLE}_1.trimmed.unpaired.fastq.gz ${SAMPLE}_2.trimmed.paired.fastq.gz ${SAMPLE}_2.trimmed.unpaired.fastq.gz ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 LEADING:3 TRAILING:3",
+            "conditions": [
+                {
+                    "command": "[ -s ${SAMPLE}_1.trimmed.paired.fastq.gz ] && [ -s ${SAMPLE}_2.trimmed.paired.fastq.gz ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 36,
+                "dependencies": [
+                    "Download"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "04:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "trimmomatic/0.36"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Trimming",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [
+                {
+                    "file": "fastqc_after"
+                }
+            ],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir fastqc_after; fastqc --nogroup --extract ${SAMPLE}_1.trimmed.paired.fastq.gz -o fastqc_before && fastqc --nogroup --extract ${SAMPLE}_2.trimmed.paired.fastq.gz -o fastqc_after",
+            "conditions": [
+                {
+                    "command": "[ -d fastqc_after ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 1,
+                "dependencies": [
+                    "Trimming"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "04:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "fastqc/0.11.5"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Fastqc_after",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [
+                {
+                    "file": "$SAMPLE.sam"
+                }
+            ],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "bwa mem -t ${cpu_variable} -M $REFERENCE ${SAMPLE}_1.trimmed.paired.fastq.gz ${SAMPLE}_2.trimmed.paired.fastq.gz > ${SAMPLE}.sam",
+            "conditions": [
+                {
+                    "command": "[ -s $SAMPLE.sam ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 36,
+                "dependencies": [
+                    "Trimming"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "12:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "bwa/0.7.17"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Mapping",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "TMP=${SAMPLE}_dir/tmp\njava -Xmx2g -Djava.io.tmpdir=$TMP -jar $PICARDTOOLS_HOME/bin/picard.jar SortSam I=${SAMPLE}.sam O=${SAMPLE}_sorted.bam SO=coordinate",
+            "conditions": [
+                {
+                    "command": "[ -s ${SAMPLE}_sorted.bam ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 36,
+                "dependencies": [
+                    "Mapping",
+                    "Mapping_BWA_SE"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "10:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": true,
+            "modules": [
+                "profile/global",
+                "picardtools/2.3.0"
+            ],
+            "script_level": "sample",
+            "sequential": true,
+            "skip": false,
+            "tags": [],
+            "title": "Sorting",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "experiment",
+            "command_parallelism_level": "sequential",
+            "commandline": "java -Xmx2g -jar $PICARDTOOLS_HOME/bin/picard.jar MergeSamFiles OUTPUT=$EXPERIMENT.bam $(for s in $(cat $RUN_DIR/samples); do echo \"INPUT=$s/${s}_sorted.bam\"; done)",
+            "conditions": [
+                {
+                    "command": "[ -s $EXPERIMENT.bam ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 36,
+                "dependencies": [
+                    "Sorting"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "12:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "picardtools/2.3.0"
+            ],
+            "script_level": "experiment",
+            "skip": false,
+            "tags": [],
+            "title": "MergeBams",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "experiment",
+            "command_parallelism_level": "sequential",
+            "commandline": "TMP=\"tmp/\"\nmkdir $TMP\njava -Xmx2g -Djava.io.tmpdir=$TMP \\\n    -jar $PICARDTOOLS_HOME/bin/picard.jar AddOrReplaceReadGroups \\\n    I=$EXPERIMENT.bam \\\n    O=$EXPERIMENT.dedupAdd.bam \\\n    RGID=$EXPERIMENT \\\n    RGLB=lib1 \\\n    RGPL=illumina \\\n    RGPU=unit1 \\\n    RGSM=$EXPERIMENT",
+            "conditions": [
+                {
+                    "command": "[ -s $EXPERIMENT.dedupAdd.bam ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 1,
+                "dependencies": [
+                    "MergeBams"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "12:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "picardtools/2.3.0"
+            ],
+            "script_level": "experiment",
+            "skip": false,
+            "tags": [],
+            "title": "AddOrReplaceReadGroups",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "experiment",
+            "command_parallelism_level": "sequential",
+            "commandline": "TMP=\"tmp/\"\njava -Xmx2g -Djava.io.tmpdir=$TMP -jar $PICARDTOOLS_HOME/bin/picard.jar BuildBamIndex I=$EXPERIMENT.dedupAdd.bam",
+            "conditions": [
+                {
+                    "command": "[ -s $EXPERIMENT.dedupAdd.bai ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 1,
+                "dependencies": [
+                    "AddOrReplaceReadGroups"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "picardtools/2.3.0"
+            ],
+            "script_level": "experiment",
+            "skip": false,
+            "tags": [],
+            "title": "Indexing",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "experiment",
+            "command_parallelism_level": "sequential",
+            "commandline": "TMP=\"tmp\"\njava -Djava.io.tmpdir=$TMP -Xmx32G -Xms4G \\\n\t-jar $GATK_HOME/GenomeAnalysisTK.jar \\\n\t-T HaplotypeCaller \\\n\t-R $REFERENCE \\\n\t-I $EXPERIMENT.dedupAdd.bam \\\n\t--emitRefConfidence GVCF \\\n\t--variant_index_type LINEAR \\\n\t--variant_index_parameter 128000 \\\n\t-nct ${cpu_variable} \\\n\t-o $EXPERIMENT.g.vcf",
+            "conditions": [
+                {
+                    "command": "[ -s $EXPERIMENT.g.vcf ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 36,
+                "dependencies": [
+                    "Indexing"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": null,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "12:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "gatk/3.6"
+            ],
+            "script_level": "experiment",
+            "skip": false,
+            "tags": [],
+            "title": "HaplotypeCaller",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "command_group_level": "all",
+            "command_level": "top",
+            "command_parallelism_level": "sequential",
+            "commandline": "rm vcf_list_$ORGANISM.list\nfor PROJECT in $(cat $RUN_DIR/projects | grep $ORGANISM | cut -f 1)\ndo\n    for EXPERIMENT in $(cat $RUN_DIR/$PROJECT/experiments | grep $ORGANISM | cut -f 1)\n    do\n        echo $PROJECT/$EXPERIMENT/$EXPERIMENT.g.vcf >> vcf_list_$ORGANISM.list\n    done\ndone",
+            "conditions": [
+                {
+                    "command": "[ -s vcf_list.list ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 1,
+                "dependencies": [
+                    "HaplotypeCaller"
+                ],
+                "error": "prepare_err",
+                "job_name": "prepare-${project_variable}",
+                "memory": {
+                    "quantity": 1,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "prepare_out",
+                "queue": "gll_usr_prod",
+                "walltime": "00:01:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": true,
+            "modules": [],
+            "script_level": "top",
+            "sequential": true,
+            "skip": false,
+            "tags": [
+                {
+                    "type": "Organism"
+                }
+            ],
+            "title": "PrepareGenotypeGVCF",
+            "type": "per-step",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "command_group_level": "all",
+            "command_level": "top",
+            "command_parallelism_level": "sequential",
+            "commandline": "TMP=\"tmp\"\njava -Djava.io.tmpdir=$TMP -Xmx32G \\\n    -jar $GATK_HOME/GenomeAnalysisTK.jar \\\n    -T GenotypeGVCFs \\\n    -R $REFERENCE \\\n    -V vcf_list_$ORGANISM.list \\\n    -stand_call_conf 30 \\\n    -stand_emit_conf 10 \\\n    -nt 10 \\\n    -o Combined_$ORGANISM.vcf",
+            "conditions": [
+                {
+                    "command": "[ -s Combined_$ORGANISM.vcf ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 10,
+                "dependencies": [
+                    "PrepareGenotypeGVCF"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "24:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": true,
+            "modules": [
+                "profile/global",
+                "gatk/3.6"
+            ],
+            "script_level": "top",
+            "sequential": true,
+            "skip": false,
+            "tags": [
+                {
+                    "type": "Organism"
+                }
+            ],
+            "title": "GenotypeGVCF",
+            "type": "per-step",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "top",
+            "command_parallelism_level": "sequential",
+            "commandline": "java -jar $GATK_HOME/GenomeAnalysisTK.jar \\\n    -T SelectVariants \\\n    -R $REFERENCE \\\n    -V Combined_$ORGANISM.vcf \\\n    -selectType SNP \\\n    -o raw_snps_$ORGANISM.vcf",
+            "conditions": [
+                {
+                    "command": "[ -s raw_snps_$ORGANISM.vcf ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 1,
+                "dependencies": [
+                    "GenotypeGVCF"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "24:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "gatk/3.6"
+            ],
+            "script_level": "top",
+            "skip": false,
+            "tags": [
+                {
+                    "type": "Organism"
+                }
+            ],
+            "title": "SNPextraction",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "top",
+            "command_parallelism_level": "sequential",
+            "commandline": "java -jar $GATK_HOME/GenomeAnalysisTK.jar \\\n    -T SelectVariants \\\n    -R $REFERENCE\\\n    -V Combined_$ORGANISM.vcf \\\n    -selectType INDEL \\\n    -o raw_indels_$ORGANISM.vcf",
+            "conditions": [
+                {
+                    "command": "[ -s raw_indels_$ORGANISM.vcf ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 1,
+                "dependencies": [
+                    "GenotypeGVCF"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "24:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "gatk/3.6"
+            ],
+            "script_level": "top",
+            "skip": false,
+            "tags": [
+                {
+                    "type": "Organism"
+                }
+            ],
+            "title": "INDELSextraction",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "top",
+            "command_parallelism_level": "sequential",
+            "commandline": "TMP=\"tmp_snps\"\njava -Djava.io.tmpdir=$TMP -Xmx32G \\\n    -jar $GATK_HOME/GenomeAnalysisTK.jar \\\n    -T VariantFiltration \\\n    -R $REFERENCE \\\n    -V raw_snps_$ORGANISM.vcf \\\n    --filterExpression \"QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0\" \\\n    --filterName \"my_snp_filter\" \\\n    -o Combined_snps_filt_$ORGANISM.vcf",
+            "conditions": [
+                {
+                    "command": "[ -s Combined_snps_filt_$ORGANISM.vcf ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 1,
+                "dependencies": [
+                    "SNPextraction"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "24:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "gatk/3.6"
+            ],
+            "script_level": "top",
+            "skip": false,
+            "tags": [
+                {
+                    "type": "Organism"
+                }
+            ],
+            "title": "SNPfiltering",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "top",
+            "command_parallelism_level": "sequential",
+            "commandline": "TMP=\"tmp_indels\"\njava -Djava.io.tmpdir=$TMP -Xmx32G \\\n    -jar $GATK_HOME/GenomeAnalysisTK.jar \\\n    -T VariantFiltration \\\n    -R $REFERENCE \\\n    -V raw_indels_$ORGANISM.vcf \\\n    --filterExpression \"QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0 || InbreedingCoeff < -0.8 || SOR > 10\" \\\n    --filterName \"my_snp_filter\" \\\n    -o Combined_indels_filt_$ORGANISM.vcf",
+            "conditions": [
+                {
+                    "command": "[ -s Combined_indels_filt_$ORGANISM.vcf ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 1,
+                "dependencies": [
+                    "INDELSextraction"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "24:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "gatk/3.6"
+            ],
+            "script_level": "top",
+            "skip": false,
+            "tags": [
+                {
+                    "type": "Organism"
+                }
+            ],
+            "title": "INDELSfiltering",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "top",
+            "command_parallelism_level": "sequential",
+            "commandline": ">dedupAdd_$ORGANISM.txt\n\nfor PROJECT in $(cat $RUN_DIR/projects | grep $ORGANISM | cut -f 1)\ndo\n    for EXPERIMENT in $(cat $RUN_DIR/$PROJECT/experiments | grep $ORGANISM | cut -f 1)\n    do\n        realpath $PROJECT/$EXPERIMENT/$EXPERIMENT.dedupAdd.bam >> dedupAdd_$ORGANISM.txt\n    done\ndone",
+            "conditions": [],
+            "description": "",
+            "description_short": "",
+            "executable": [],
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 1,
+                "dependencies": [
+                    "AddOrReplaceReadGroups"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 1,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "00:05:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [],
+            "script_level": "top",
+            "skip": false,
+            "tags": [],
+            "title": "PrepareBcftoools",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "top",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir $ORGANISM\n\ncut -f1 $REFERENCE.fai | xargs -I {} -P 36 sh -c \"samtools mpileup -g -B -C50 -m 4 -f $REFERENCE -r \\\"{}\\\" -b dedupAdd_$ORGANISM.txt | bcftools call -mv -O v -o $ORGANISM/bcf_\\\"{}\\\"_part.vcf\"\n\n>list_$ORGANISM.txt\nfor file in $ORGANISM/bcf_*_part.vcf; do \n    echo $file >> list_$ORGANISM.txt;\ndone\n\nbcftools concat -f list_$ORGANISM.txt --output bcftools_concat_$ORGANISM.g.vcf\ngzip bcftools_concat_$ORGANISM.g.vcf\n\nbcftools view bcftools_concat_$ORGANISM.g.vcf.gz -v snps > bcftools_concat_snps_$ORGANISM.g.vcf\nbcftools view bcftools_concat_$ORGANISM.g.vcf.gz -v indels > bcftools_concat_indels_$ORGANISM.g.vcf",
+            "conditions": [],
+            "description": "",
+            "description_short": "",
+            "executable": [],
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 36,
+                "dependencies": [
+                    "PrepareBcftoools"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "24:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "samtools/1.7",
+                "bcftools/1.9"
+            ],
+            "script_level": "top",
+            "skip": false,
+            "tags": [],
+            "title": "BcfTools",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "top",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir $ORGANISM\ncut -f1 $REFERENCE.fai | xargs -P 36 -I {} sh -c \"freebayes -f $REFERENCE -r {} -C 5 -L dedupAdd_$ORGANISM.txt > $ORGANISM/part.fb.\\\"{}\\\".vcf\"\n\n>list_$ORGANISM.txt\nfor file in $ORGANISM/part.fb*.vcf; do \n    echo file >> list_$ORGANISM.txt;\ndone\n\nbcftools concat -f list_$ORGANISM.txt --output freebayes_concat_$ORGANISM.g.vcf\ngzip freebayes_concat_$ORGANISM.g.vcf\nbcftools view freebayes_concat_$ORGANISM.g.vcf.gz -v snps > freebayes_concat_snps_$ORGANISM.g.vcf\nbcftools view freebayes_concat_$ORGANISM.g.vcf.gz -v indels > freebayes_concat_indels_$ORGANISM.g.vcf",
+            "conditions": [],
+            "description": "",
+            "description_short": "",
+            "executable": [],
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 36,
+                "dependencies": [
+                    "PrepareBcftoools"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "24:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "freebayes/1.1.0",
+                "bcftools/1.9"
+            ],
+            "script_level": "top",
+            "skip": false,
+            "tags": [],
+            "title": "Freebayes",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "top",
+            "command_parallelism_level": "sequential",
+            "commandline": "14_june_18_intersect.snps.with.infos.pl bcftools_concat_snps_$ORGANISM.g.vcf freebayes_concat_snps_$ORGANISM.g.vcf Combined_snps_filt_$ORGANISM.vcf consensus_snps_$ORGANISM.vcf",
+            "conditions": [],
+            "description": "",
+            "description_short": "",
+            "executable": [],
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 1,
+                "dependencies": [
+                    "Freebayes",
+                    "BcfTools",
+                    "SNPfiltering"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "24:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "filter_vcf/1.0"
+            ],
+            "script_level": "top",
+            "skip": false,
+            "tags": [],
+            "title": "ConsensusSNPS",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "top",
+            "command_parallelism_level": "sequential",
+            "commandline": "14_june_18_intersect.indels.with.infos.pl bcftools_concat_indels_$ORGANISM.g.vcf freebayes_concat_indels_$ORGANISM.g.vcf Combined_indels_filt_$ORGANISM.vcf > consensus_indels_$ORGANISM.vcf",
+            "conditions": [],
+            "description": "",
+            "description_short": "",
+            "executable": [],
+            "hpc_directives": {
+                "account": "try18_firrin",
+                "cpu": 1,
+                "dependencies": [
+                    "Freebayes",
+                    "BcfTools",
+                    "INDELSfiltering"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "24:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "filter_vcf/1.0"
+            ],
+            "script_level": "top",
+            "skip": false,
+            "tags": [],
+            "title": "ConsensusINDELs",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "bwa mem -t ${cpu_variable} -M $REFERENCE ${SAMPLE}.trim.fastq.gz > $SAMPLE.sam",
+            "conditions": [
+                {
+                    "command": "[ -s $SAMPLE.sam ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 36,
+                "dependencies": [
+                    "Trimming_SE"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "05:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "bwa/0.7.17"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "SE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Mapping_BWA_SE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar SE -threads 36 -phred33 $SAMPLE.fastq.gz $SAMPLE.trim.fastq.gz ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-SE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 LEADING:3 TRAILING:3",
+            "conditions": [
+                {
+                    "command": "[ -s $SAMPLE.trim.fastq.gz ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 36,
+                "dependencies": [
+                    "Download_SE"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "04:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "trimmomatic/0.36"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "SE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Trimming_SE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 10,
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "fastq-dump --gzip $SAMPLE.gz",
+            "conditions": [
+                {
+                    "command": "[ -s $SAMPLE.fastq.gz ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "05:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "sra/2.8.2"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "SE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Download_SE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir fastqc_after; fastqc --nogroup --extract $SAMPLE.trim.fastq* -o fastqc_after",
+            "conditions": [
+                {
+                    "command": "[ -d fastqc_after ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [
+                    "Trimming_SE"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "04:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "fastqc/0.11.5"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "SE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Fastqc_after_SE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir fastqc_before; fastqc --nogroup --extract $SAMPLE.fastq* -o fastqc_before",
+            "conditions": [
+                {
+                    "command": "[ -d fastqc_before ]"
+                }
+            ],
+            "description": "",
+            "description_short": "Quality control",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [
+                    "Download_SE"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "04:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "fastqc/0.11.5"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "SE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Fastqc_before_SE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        }
+    ],
+    "tags": [],
+    "username": "tflati00",
+    "variables": [
+        {
+            "description": "Variable to use across scripts to refer to a sample in this project",
+            "key": "sample_variable",
+            "key_disabled": true,
+            "value": "SAMPLE"
+        },
+        {
+            "description": "Variable to use across scripts to refer to ALL samples in this project",
+            "key": "all_samples_variable",
+            "key_disabled": true,
+            "value": "ALL_SAMPLES"
+        },
+        {
+            "description": "Variable to use across scripts to refer to this project ID",
+            "key": "project_variable",
+            "key_disabled": true,
+            "value": "PROJECT"
+        },
+        {
+            "description": "Variable to use across scripts to refer to the experiment ID",
+            "key": "experiment_variable",
+            "key_disabled": true,
+            "value": "EXPERIMENT"
+        },
+        {
+            "description": "Variable to use across scripts to refer to the index of this project",
+            "key": "project_index_variable",
+            "key_disabled": true,
+            "value": "PROJECT_INDEX"
+        },
+        {
+            "description": "Variable to use across scripts to refer to the number of CPU defined in a step",
+            "key": "cpu_variable",
+            "key_disabled": true,
+            "value": "CPU"
+        },
+        {
+            "description": "Variable to use across scripts to refer to the name of the step",
+            "key": "step_name_variable",
+            "key_disabled": true,
+            "value": "STEP_NAME"
+        },
+        {
+            "constant": true,
+            "description": "Variable to use across scripts to refer to the REFERENCE genome",
+            "key": "REFERENCE",
+            "value": "/gpfs/work/cin_staff/tcastign/pioppo/Populus_trichocarpa/genome/GCF_000002775.4_Pop_tri_v3_genomic.fna"
+        }
+    ]
+}

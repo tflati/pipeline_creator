@@ -1,0 +1,111 @@
+	<div ng-if="registration_successful" layout="column" layout-align="center center" style="background-color: #a6dde2; color: white; font-size: 2em;">
+		
+		<md-button href="projects" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Go to your projects">
+	    	<i class="fas fa-arrow-left" md-colors="{color:'warn'}"></i> <b>Go to your projects</b>
+	  	</md-button>
+	
+		<h1>The registration was successful <i class="fas fa-smile-wink"></i></h1>
+		<h2>You will have to login.</h2>
+		<h2 style="font-size:1em;">You will be redirected to the main page in 3 seconds...</h2>		
+		<img src="images/registration-successful.jpg">
+	</div>
+
+	<div ng-if="!registration_successful">
+		<div class="split left">
+			<md-button ui-sref="home" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Go to the main page">
+		    	<i class="fas fa-arrow-left" md-colors="{color:'warn'}"></i> <b>Go to the main page</b>
+		  	</md-button>
+		
+			<form layout="column" layout-align="center start" name="form" layout-padding style="background: white;">
+				<h2>Registration form</h2>
+				<h3>Please fill in the following information</h3>
+				
+				<div layout-padding>
+					<ng-md-icon icon="person" class="name"></ng-md-icon>
+					<md-input-container>
+						<label>Username</label>
+						<input name="username" ng-model="user.username" type="text" required>
+						<div ng-messages="form.username.$error">
+				          <div ng-message="required">This is required.</div>
+				        </div>
+					</md-input-container>
+				</div>
+				
+				<div layout-padding>
+					<ng-md-icon icon="person" class="name"></ng-md-icon>
+					<md-input-container>
+						<label>First name</label>
+						<input name="first_name" ng-model="user.first_name" type="text" required>
+						<div ng-messages="form.first_name.$error">
+				          <div ng-message="required">This is required.</div>
+				        </div>
+					</md-input-container>
+				</div>
+				
+				<div layout-padding>
+					<ng-md-icon icon="person" class="name"></ng-md-icon>
+					<md-input-container>
+						<label>Last name</label>
+						<input name="last_name" ng-model="user.last_name" type="text" required>
+						<div ng-messages="form.last_name.$error">
+				          <div ng-message="required">This is required.</div>
+				        </div>
+					</md-input-container>
+				</div>
+				
+				<div layout-padding>
+					<ng-md-icon icon="home" class="home"></ng-md-icon>
+					<md-input-container>
+						<label>Affiliation</label>
+						<input name="affiliation" ng-model="user.affiliation" type="text" required>
+						<div ng-messages="form.affiliation.$error">
+				          <div ng-message="required">This is required.</div>
+				        </div>
+					</md-input-container>
+				</div>
+			
+				<div layout-padding>
+				    <ng-md-icon icon="email" class="email"></ng-md-icon>
+					<md-input-container>
+					    <input name="email" ng-model="user.email" type="email" placeholder="Email (required)" required minlength="10" maxlength="100" ng-pattern="/^.+@.+\..+$/">
+					    <div ng-messages="form.email.$error" role="alert">
+				          <div ng-message-exp="['required', 'minlength', 'maxlength', 'pattern']">
+				            Your email must be between 10 and 100 characters long and look like an e-mail address.
+				          </div>
+				        </div>
+					  </md-input-container>
+				</div>
+			
+				<div layout-padding>
+			    <ng-md-icon icon="security" class="password"></ng-md-icon>
+				  <md-input-container>
+				    <label>Password</label>
+				    <input name="password" ng-model="user.password" type="password" required minlength="8" ng-pattern="/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]+$/">
+				    <div ng-messages="form.password.$error" role="alert">
+			          <div style="max-width: 200px" ng-message-exp="['required', 'minlength', 'maxlength', 'pattern']">
+			            Your password must be at least 8 character long and contain one letter, one number (in [0-9]) and at least 1 special character (among the following @$!%*#?&).
+			          </div>
+			        </div>
+				  </md-input-container>
+			  </div>
+			
+			  <div layout-padding>  
+			    <ng-md-icon icon="security" class="password"></ng-md-icon>
+				  <md-input-container>
+				    <label>Retype your password</label>
+				    <input name="repassword" ng-model="user.repassword" type="password" required compare-to="user.password">
+				    <div ng-messages="form.repassword.$error">
+			          <div ng-message="compareTo">The password you re-typed does not coincide with the previous password.</div>
+			        </div>
+				  </md-input-container>
+			  </div>
+			
+				<md-button ng-click="send()" style="float: right;" type="submit" class="md-raised md-accent md-hue-3" aria-label="Submit">
+			       <i class="fas fa-sign-in-alt icon" md-colors="{color:'warn'}"></i> <b>register</b>
+			     </md-button>
+			</form>
+		</div>
+		<div class="split right">
+			<img style="height: 100%; width: auto;" src="imgs/register.jpg">
+		</div>
+	</div>

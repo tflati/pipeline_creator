@@ -1,0 +1,41 @@
+{
+    "begin_block": "",
+    "checks": [],
+    "command_chunk_size": 1,
+    "command_group_level": "all",
+    "command_level": "sample",
+    "command_parallelism_level": "sequential",
+    "commandline": "rm *fastq\nrm *fq\nrm *bam\nrm *sam\nrm *fastq.gz\nrm *fq.gz",
+    "conditions": [],
+    "description": "",
+    "description_short": "",
+    "end_block": "",
+    "executable": [],
+    "hpc_directives": {
+        "account": "elix3_negri",
+        "cpu": 1,
+        "dependencies": [
+            "MergeBams"
+        ],
+        "error": "",
+        "job_name": "",
+        "memory": {
+            "quantity": 1,
+            "size": "GB"
+        },
+        "mpi_procs": 0,
+        "nodes": 1,
+        "output": "",
+        "queue": "gll_usr_prod",
+        "walltime": "00:05:00"
+    },
+    "hpc_directives_text": "",
+    "modules": [],
+    "overwrite": false,
+    "script_level": "sample",
+    "skip": false,
+    "tags": [],
+    "title": "DeleteRunData",
+    "write_stderr_log": true,
+    "write_stdout_log": true
+}

@@ -1,0 +1,37 @@
+{
+    "script_level": "project", 
+    "type": "per-step", 
+    "description": "", 
+    "title": "PrepareStringTieMerge", 
+    "description_short": "", 
+    "commandline": "echo $EXPERIMENT/$EXPERIMENT.gtf >> ../merge_list_hum.txt", 
+    "write_stderr_log": true, 
+    "modules": [], 
+    "command_level": "project", 
+    "hpc_directives": {
+        "account": "cin_staff", 
+        "error": "prepare_err", 
+        "job_name": "prepare-${project_variable}", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [
+            "StringTie"
+        ], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 1
+        }, 
+        "output": "prepare_out", 
+        "nodes": 1, 
+        "walltime": "00:01:00", 
+        "cpu": 1, 
+        "mpi_procs": 0
+    }, 
+    "sequential": true, 
+    "skip": false, 
+    "command_group_level": "all", 
+    "write_stdout_log": true, 
+    "iterate": true, 
+    "conditions": [], 
+    "command_parallelism_level": "sequential", 
+    "hpc_directives_text": ""
+}

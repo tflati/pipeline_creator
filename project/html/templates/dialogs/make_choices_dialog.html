@@ -1,0 +1,54 @@
+<md-dialog aria-label="Make a choice dialog" style="min-width: 70%;">
+
+	<form ng-cloak>
+	    <md-toolbar class="md-hue-2">
+	      <div class="md-toolbar-tools">
+	        <h2>Make a choice</h2>
+	        <span flex></span>
+	        <md-button class="md-icon-button" ng-click="cancel()">
+	          <ng-md-icon icon="close" aria-label="Close dialog"></ng-md-icon>
+	        </md-button>
+	      </div>
+	    </md-toolbar>
+	</form>
+	
+	<md-dialog-content>
+      <div class="md-dialog-content" layout="row" layout-align="start center">
+      
+<!--       { -->
+<!-- 			  title: "You want to", -->
+<!-- 			  key: "choice", -->
+<!-- 			  type: "select", -->
+<!-- 			  multiple: true, -->
+<!-- 			  options: [ -->
+<!-- 				  {"selected": false, "label": "A sheet for each bioproject (useful in case you have few bioprojects)"},  -->
+<!-- 				  {"selected": true, "label": "A single sheet with all the bioprojects (useful in case you have many bioprojects)"} -->
+<!-- 			  ] -->
+<!-- 		  }]; -->
+		<md-input-container class="full-width" ng-repeat="choice in item">
+			<p>{{choice.title}}</p>
+			<input type="text" ng-model="choice.choice" ng-if="choice.type == 'free'">
+			<md-select ng-if="choice.type == 'select'" multiple="{{choice.multiple}}" ng-model="choice.choice" aria-label="Specifies the options">
+			  	<md-option ng-repeat="o in choice.options" value="{{o.key}}">
+					<span>{{o.label}}</span>
+			  	</md-option>
+			</md-select>
+			<md-radio-group ng-if="choice.type == 'radio'" ng-model="choice.choice">
+		      <md-radio-button ng-repeat="o in choice.options" value="{{o.key}}" class="md-primary">{{o.label}}</md-radio-button>
+		    </md-radio-group>
+   		</md-input-container>
+		
+      </div>
+    </md-dialog-content>
+    
+    <md-dialog-actions layout="row">
+      <span flex></span>
+      <md-button ng-click="answer(undefined)">
+       Cancel
+      </md-button>
+      <md-button ng-click="answer(item)">
+        OK
+      </md-button>
+    </md-dialog-actions>
+	
+</md-dialog>

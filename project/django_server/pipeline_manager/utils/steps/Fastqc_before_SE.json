@@ -1,0 +1,51 @@
+{
+    "script_level": "sample", 
+    "type": "per-sample", 
+    "description": "", 
+    "tags": [
+        {
+            "type": "Layout", 
+            "name": "SE"
+        }
+    ], 
+    "description_short": "Quality control", 
+    "commandline": "mkdir fastqc_before; fastqc --nogroup --extract $SAMPLE.fastq -o fastqc_before", 
+    "title": "Fastqc_before_SE", 
+    "modules": [
+        "profile/bioinf", 
+        "fastqc/0.11.5"
+    ], 
+    "command_level": "sample", 
+    "hpc_directives": {
+        "account": "cin_staff", 
+        "error": "fastqc_err", 
+        "job_name": "fastqc_before-${project_variable}", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [
+            "Download_SE"
+        ], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 10
+        }, 
+        "output": "fastqc_out", 
+        "nodes": 1, 
+        "walltime": "02:00:00", 
+        "cpu": 1, 
+        "mpi_procs": 0
+    }, 
+    "sequential": false, 
+    "skip": false, 
+    "write_stderr_log": true, 
+    "command_group_level": "all", 
+    "write_stdout_log": true, 
+    "iterate": false, 
+    "conditions": [
+        {
+            "command": "[ -d fastqc_before ]"
+        }
+    ], 
+    "checks": [], 
+    "command_parallelism_level": "sequential", 
+    "hpc_directives_text": ""
+}

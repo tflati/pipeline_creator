@@ -1,4 +1,8 @@
 project/django_server/pipeline_manager/scripts/*
+project/django_server/pipeline_manager/data/*
+project/django_server/pipeline_manager/utils/old
+project/django_server/pipeline_manager/launches
 bower_components/
+node_modules/
 *pyc
 *temp

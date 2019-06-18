@@ -1,0 +1,87 @@
+<div ng-include="'templates/header.html'"></div>
+
+<div ng-if="loading" layout="column" layout-align="center center">
+	<i class="fas fa-circle-notch fa-spin fa-4x loading"></i>
+	<p class="loading"><b>Loading project template...</b></p>
+</div>
+
+<div ng-if="!loading" layout-padding>
+
+	<div layout="row" layout-align="start start">
+	
+		<div layout="column" layout-align="start center">
+			
+<!-- 			<div ngf-drop="uploadTemp($files)" class="drop-box" -->
+<!-- 			  ngf-drag-over-class="'dragover'" ngf-multiple="true"  -->
+<!-- 			  ngf-pattern="'image/*'">Drop images files here</div> -->
+			
+			<div class="image-cropper">
+				<img ngf-thumbnail="item.img" alt="{{item.title}}" />
+			</div>
+			
+			<div class="button margin-30" ngf-select="uploadTemp($file)">
+				<button>Change project image</button>
+			</div>
+			
+		</div>
+	
+		<form class="padding-30" layout="column" layout-align="start start" name="form" style="background: white; width: 100%;">
+			<md-input-container>
+				<label>Project ID</label>
+			    <input autofocus-on name="project_id" ng-model="item.id" type="text" placeholder="Project ID (required)" required minlength="3" maxlength="100" ng-pattern="/^[a-zA-Z]+[0-9]*[a-zA-Z_]*$/">
+			    <div ng-messages="form.project_id.$error" role="alert">
+		          <div style="max-width: 200px" ng-message-exp="['required', 'minlength', 'maxlength', 'pattern']">
+		            The project ID must be between 3 and 100 characters long, contain no spaces, start by a letter and contain no special characters.
+		          </div>
+		        </div>
+			</md-input-container>
+			
+			<md-input-container>
+				<label>Title</label>
+			    <input name="project_title" ng-model="item.title" type="text" placeholder="Project title (required)" required>
+			    <div ng-messages="form.project_title.$error" role="alert">
+		          <div style="max-width: 200px" ng-message-exp="['required', 'minlength', 'maxlength', 'pattern']">
+		            This field is required
+		          </div>
+		        </div>
+			</md-input-container>
+			
+			<md-input-container>
+				<label>Subtitle</label>
+			    <input name="project_subtitle" ng-model="item.subtitle" type="text" placeholder="Project subtitle">
+			</md-input-container>
+			
+			<md-input-container>
+				<label>Description</label>
+			    <input name="project_description" ng-model="item.description" type="text" placeholder="Project description">
+			</md-input-container>
+			
+			<md-input-container>
+				<label>Project type</label>
+				<md-select ng-model="item.project_type" aria-label="Specifies the project type">
+				  	<md-option ng-repeat="type in item.project_types" ng-value="type">
+						<span>{{type}}</span>
+				  	</md-option>
+				</md-select>
+			</md-input-container>
+			      
+			<md-input-container>
+				<label>Creator</label>
+				<input title="This represents the creator of the project. Cannot be changed." disabled name="project_creator" ng-model="item.creator" type="text" placeholder="Project creator">
+			</md-input-container>
+			
+			<md-checkbox ng-model="options.openProjectAutomatically" aria-label="Open project automatically">
+				Open automatically this project after creation
+			</md-checkbox>
+			
+			<div layout="row">
+				<md-button class="md-raised md-warn md-button" href="projects">
+					<i class="fas fa-times"></i> <b>Cancel</b>
+				</md-button>
+				<md-button class="md-raised md-warn md-button" ng-click="createProject()">
+					<i class="fas fa-plus"></i> <b>Create project</b>
+				</md-button>
+			</div>
+		</form>
+	</div>
+</div>

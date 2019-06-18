@@ -1,0 +1,273 @@
+<div layout="row" layout-align="start center">
+	<md-button ng-if="!disabled" ng-disabled="disabled" class="margin-left-30 md-raised md-warn" ng-click="update_monitor_data(run)">
+		<i class="fas fa-sync-alt"></i>
+		Obtain/refresh job infos
+	</md-button>
+	<md-button ng-if="disabled" ng-disabled="disabled" class="margin-left-30 md-raised md-warn">
+		<i class="fas fa-sync-alt fa-spin"></i>
+		Obtain/refresh job infos
+	</md-button>
+	
+	<img src="imgs/stop.png" width="50px"
+		ng-if="run.jobsRunningOrPending"
+    	tooltip="Stop jobs"
+    	aria-label="Stop jobs"
+    	ng-click="showConfirmDialog(
+    	'Stop jobs',
+    	'Would you like to stop the jobs of this run?',
+    	'It might take a while for the jobs to stop, but this will effectively stop all the jobs associated with this run.',
+    	run,
+    	-1,
+    	$event,
+    	stop_jobs)">
+    </img>
+</div>
+
+<div style="max-width: 500px;" layout="column" layout-align="start start">
+	<md-subheader class="md-primary">All jobs</md-subheader>
+	<canvas class="chart chart-pie"
+	  chart-data="monitor.data"
+	  chart-labels="monitor.labels"
+	  chart-options="monitor.options"
+	  chart-colors="monitor.colors"
+	  >
+	</canvas>
+</div>
+
+<md-tabs md-dynamic-height>
+	<md-tab>
+		<md-tab-label layout="row" layout-align="center center"><i class="fas fa-shoe-prints fa-2x vertically-centered"></i><span class="margin-left-10">Step by step</span></md-tab-label>
+		<md-tab-body>
+			<md-content class="md-padding">
+				<section>
+					<div ng-repeat="pipeline in run.pipelines">
+						<p><b>Pipeline</b>: {{pipeline.id}}</p>
+						<table>
+							<thead>
+								<th>Step level</th>
+								<th>Total entities</th>
+								<th>Step</th>
+								<th>Tags</th>
+								<th>Progress</th>
+							</thead>
+							<tbody>
+								<tr ng-if="!step.skip" ng-repeat="step in pipeline.steps">
+									<td>
+										<div style="display: inline-block; vertical-align: middle;">
+								    		<span class="fa-layers fa-fw fa-2x" ng-if="step.script_level == 'top'">
+												<i class="fas fa-square" style="color:orange"></i>
+											    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">Top</span>
+											</span>
+								    		<span class="fa-layers fa-fw fa-2x" ng-if="step.script_level == 'project'">
+												<i class="fas fa-square" style="color:blue"></i>
+											    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">Prj</span>
+											</span>
+											<span class="fa-layers fa-fw fa-2x" ng-if="step.script_level == 'experiment'">
+												<i class="fas fa-square" style="color:green"></i>
+											    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">Exp</span>
+											</span>
+											<span class="fa-layers fa-fw fa-2x" ng-if="step.script_level == 'sample'">
+												<i class="fas fa-square" style="color:red"></i>
+											    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">Run</span>
+											</span>													
+								    	</div>
+								    	
+								    	<div style="display: inline-block; vertical-align: middle;">
+								    		<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level != step.script_level && step.command_level == 'top'">
+												<i class="fas fa-recycle" style="color:orange"></i>
+											    <span class="fa-layers-text" data-fa-transform="shrink-10" style="font-weight: bold;">Top</span>
+											</span>
+								    		<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level != step.script_level && step.command_level == 'project'">
+												<i class="fas fa-recycle" style="color:blue"></i>
+											    <span class="fa-layers-text" data-fa-transform="shrink-10" style="font-weight: bold;">Prj</span>
+											</span>
+											<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level != step.script_level && step.command_level == 'experiment'">
+												<i class="fas fa-recycle" style="color:green"></i>
+											    <span class="fa-layers-text" data-fa-transform="shrink-10" style="font-weight: bold;">Exp</span>
+											</span>
+											<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level != step.script_level && step.command_level == 'sample'">
+												<i class="fas fa-recycle" style="color:red"></i>
+											    <span class="fa-layers-text" data-fa-transform="shrink-10" style="font-weight: bold;">Run</span>
+											</span>
+											<span class="fa-layers fa-fw fa-2x" ng-if="step.command_level == step.script_level">
+												<i class="fas fa-recycle" style="color:lightgray"></i>
+											    <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-10" style="font-weight: bold;">No</span>
+											</span>
+								    	</div>
+								    	
+								    	<span title-direction="right" title="This step will be multiplied (1 script for each value of the tag(s) without value)" style="display: inline-block; vertical-align: middle;" ng-if="(step.tags | omit:'name.length > 0' | count) > 0">
+								    		<img src="imgs/expansion.png" height="35px">
+								    	</span>
+									</td>
+									<td>
+										{{steps_progress[pipeline.id][step.title].status.total}}
+									</td>
+									<td style="max-width: 200px; word-wrap: break-word;">
+										<a ui-sref="^.selection({pipeline_id: pipeline.id, step_id: step.title})" title-direction="right" title="<b>Command line</b>:<br/>{{step.commandline}}<br/><b>Modules</b>:<br/>{{step.modules | join:'<br/> '}}">{{step.title}}</a>
+									</td>
+									<td style="max-width: 200px; word-wrap: break-word;">
+										<md-chips ng-if="step.tags.length > 0" ng-model="step.tags" readonly="true" class="mdchips-inline">
+											<md-chip-template class="text-small" style="height: 20px;">
+										        <div>
+										          <div><strong>{{$chip.name}}</strong></div>
+										          <div><em class="category">({{$chip.type}})</em></div>
+										        </div>
+											</md-chip-template>
+								    	</md-chips>
+									</td>
+									<td layout="column" layout-align="center center">
+										<div ng-if="disabled"><i class="fas fa-sync-alt fa-2x fa-spin" md-colors="{color:'accent'}"></i></div>
+										<div ng-if="!disabled" ng-controller="chartController">
+											<canvas class="chart chart-horizontal-bar"
+											  chart-data="steps_progress[pipeline.id][step.title].status.data"
+											  chart-series="steps_progress[pipeline.id][step.title].status.series"
+											  chart-labels="steps_progress[pipeline.id][step.title].status.labels"
+											  chart-options="steps_progress[pipeline.id][step.title].status.options"
+											  chart-colors="steps_progress[pipeline.id][step.title].status.colors"
+											  chart-click="onChartClick"
+											  >
+											</canvas>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</section>
+			</md-content>
+		</md-tab-body>
+	</md-tab>
+	
+	<md-tab>
+		<md-tab-label layout="row" layout-align="center center"><i class="fas fa-chart-pie fa-2x vertically-centered"></i><span class="margin-left-10">All jobs</span></md-tab-label>
+		<md-tab-body>
+			<md-content class="md-padding">
+				<div layout="column" layout-align="center center">
+					<md-button ng-if="job_search.results == undefined" ng-disabled="job_search_loading" class="md-button md-warn md-raised" ng-click="job_search_api(job_search)" tooltip="Click to start filtering the jobs" aria-label="Start filtering the jobs">
+						<i class="fas fa-sliders-h"></i>
+						Start filtering the jobs
+					</md-button>
+					
+					<md-button
+						ng-if="job_search.results != undefined"
+						ng-disabled="(job_search.results.matches | filter: {selected: true}).length == 0"
+						class="md-button md-warn md-raised"
+						style="font-size: 1.2em; padding: 10px;"
+						ng-click="create_new_launch(job_search)"
+						tooltip="By clicking here you can create a new launch with only the steps and the entities selected" aria-label="Create a new launch">
+						<i class="fas fa-rocket"></i>
+						Create a new launch from selected jobs
+					</md-button>
+				</div>
+				
+				<div ng-if="job_search.results" layout="row" layout="start start">
+					<div ng-if="job_search.results.filters.length > 0" layout="column" layout-align="start center" class="side-filters">
+						<p><b>Filters</b>:</p>
+						
+				        <div style="background-color: #bdbdbd;" class="margin-small">
+					        <label layout-padding>Filter:</label>
+					        <input ng-model="filterExpression"/>
+				        </div>
+				        
+				        <md-button ng-click="job_search.results = undefined; job_search_api(job_search)" class="md-raised md-accent md-hue-3" aria-label="Reset all filters" title="Reset all filters">
+							<i class="fas fa-trash"></i> Clear all settings
+				        </md-button>
+			       
+			       		<!-- FILTERS -->
+			        	<div class="full-width" layout="column" layout-padding>
+							<div ng-repeat="filter in job_search.results.filters | filter : filterExpression">
+						        <md-subheader layout="row" layout-align="start center">
+			        				 <div style="display: inline;" ng-click="filter.open = !filter.open">
+				        				 <md-button ng-if="filter.open" class="md-icon-button" aria-label="Opens up this category">
+				        				 	<i class="fas fa-2x fa-angle-up"></i>
+				        				 </md-button>
+				        				 <md-button ng-if="!filter.open" class="md-icon-button" aria-label="Closes this category">
+				        				 	<i class="fas fa-2x fa-angle-down"></i>
+				        				 </md-button>
+			        				 </div>
+						        	<md-checkbox class="small-checkbox md-warn"
+						        				 title="Toggle all sub-filters"
+						        				 aria-label="Toggle all sub-filters"
+						        				 md-indeterminate="filter.indeterminate"
+						        				 ng-checked="filter.selected"
+						        				 ng-model="filter.selected"
+						        				 ng-change="job_search.changed = filter; job_search_api(job_search);">
+						        				 
+			        				 	<span>{{filter.label | uppercase}}</span>
+<!-- 			    								<a ng-click="see_chart(filter)" class="fas fa-chart-bar" style="cursor: pointer; color: #ff8700;"></a> -->
+			        				 </md-checkbox>
+			       				 </md-subheader>
+						        				 
+						        <div ng-show="filter.open" class="small-margin" ng-repeat="f in filter.values | filter : filterExpression">
+						            <md-checkbox class="small-checkbox md-hue-3"
+						            			 title="{{f.value}} filter"
+						            			 aria-label="{{f.value}} filter"
+						            			 md-indeterminate="f.indeterminate"
+						            			 ng-checked="f.selected"
+						            			 ng-model="f.selected"
+						            			 ng-change="job_search.changed = f; job_search_api(job_search);">
+						            			 
+						            			 {{f.value}} ({{f.partial_count}} / {{f.count}})
+						            </md-checkbox>
+						        </div>
+					        </div>
+				        </div>
+			        </div>
+			        <div layout="column" layout-margin="start start">
+			        
+			        	<div layout="column" layout-align="start start">
+							<div><b>{{job_search.results.matches | filter: {selected: true} | count }}</b> job(s) selected</div>
+						</div>
+			        
+						<div layout="row" layout-margin>
+							<md-input-container>
+						        <label>Filter jobs:</label>
+						        <input ng-model="expression"/>
+					        </md-input-container>
+					        
+					        <md-input-container>
+						        <label>Sort projects by:</label>
+						        <md-select style="min-width: 300px" ng-model="sortByField" aria-label="Specifies the field to sort jobs by">
+							       	<md-option ng-selected="key == 'JobID' ? true : false" ng-repeat="(key, value) in jobs[0]" ng-value="key">
+										<span>{{key}}</span>
+							       	</md-option>
+								</md-select>
+					        </md-input-container>
+					        
+					        <md-input-container>
+						        <md-checkbox ng-model="reverseOrder" aria-label="Sets the sort in descending order">
+						        	Ascending
+								</md-checkbox>
+					        </md-input-container>
+				        </div>
+				        
+						<pagination ng-if="job_search.results.matches.length > 0" list="job_search.results.matches" enable-selection="true" filter="expression" sort="sortByField" sort-prefix="data." reverse="reverseOrder">
+							
+							<table class="full-width" style="overflow:scroll;">
+								<th></th>
+								<th ng-repeat="(key, value) in job_search.results.matches[0].data | skipKey:'tags'">{{key}}</th>
+								<tr ng-repeat="job in displayed">
+									<td>
+										<md-checkbox 
+		        							class="small-checkbox md-warn"
+					        				 title="Single job"
+					        				 aria-label="Single job"
+					        				 ng-checked="job.selected"
+					        				 ng-model="job.selected"
+					        				 >
+									</td>
+									<td style="max-width: 100px; word-wrap: break-word; " ng-repeat="(key, value) in job.data | skipKey:'tags'">
+										<span ng-if="key != 'State'">{{value}}</span>
+										<span ng-if="key == 'State'" title="{{value.description}}">{{value.id}}</span>
+									</td>
+								</tr>
+							</table>
+						</pagination>
+					</div>
+				</div>
+			</md-content>
+		</md-tab-body>
+	</md-tab>
+</md-tabs>
+
+

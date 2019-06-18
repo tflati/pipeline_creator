@@ -1,0 +1,50 @@
+{
+    "script_level": "sample", 
+    "type": "per-sample", 
+    "description": "", 
+    "title": "FastQC_beforePE", 
+    "description_short": "Quality control", 
+    "commandline": "mkdir fastqc_before; fastqc --nogroup --extract ${SAMPLE}_1.fastq -o fastqc_before && fastqc --nogroup --extract ${SAMPLE}_2.fastq -o fastqc_before", 
+    "write_stderr_log": true, 
+    "modules": [
+        "profile/bioinf", 
+        "fastqc/0.11.5"
+    ], 
+    "command_level": "sample", 
+    "hpc_directives": {
+        "account": "cin_staff", 
+        "error": "fastqc_err", 
+        "job_name": "fastqc_before", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [
+            "DownloadPE"
+        ], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 10
+        }, 
+        "output": "fastqc_out", 
+        "nodes": 1, 
+        "walltime": "02:00:00", 
+        "cpu": 1, 
+        "mpi_procs": 0
+    }, 
+    "sequential": false, 
+    "skip": false, 
+    "overwrite": false, 
+    "command_group_level": "all", 
+    "write_stdout_log": true, 
+    "iterate": false, 
+    "conditions": [
+        {
+            "command": "[ -d fastqc_before ]"
+        }
+    ], 
+    "checks": [
+        {
+            "file": "fastqc_before"
+        }
+    ], 
+    "command_parallelism_level": "sequential", 
+    "hpc_directives_text": ""
+}

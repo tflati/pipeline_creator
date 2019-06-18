@@ -1,0 +1,51 @@
+{
+    "checks": [],
+    "command_group_level": "all",
+    "command_level": "sample",
+    "command_parallelism_level": "sequential",
+    "commandline": "mkdir fastqc_after; fastqc --nogroup --extract ${SAMPLE}_1.fastq -o fastqc_after && fastqc --nogroup --extract ${SAMPLE}_2.fastq -o fastqc_after",
+    "conditions": [
+        {
+            "command": "[ -d fastqc_after ]"
+        }
+    ],
+    "description": "",
+    "description_short": "",
+    "hpc_directives": {
+        "account": "elix3_rinaldi",
+        "cpu": 1,
+        "dependencies": [
+            "Trimming_PE"
+        ],
+        "error": "",
+        "job_name": "",
+        "memory": {
+            "quantity": 10,
+            "size": "GB"
+        },
+        "mpi_procs": 0,
+        "nodes": 1,
+        "output": "",
+        "queue": "gll_usr_prod",
+        "walltime": "00:15:00"
+    },
+    "hpc_directives_text": "",
+    "iterate": false,
+    "modules": [
+        "profile/bioinf",
+        "fastqc/0.11.5"
+    ],
+    "script_level": "sample",
+    "sequential": false,
+    "skip": true,
+    "tags": [
+        {
+            "name": "PE",
+            "type": "Layout"
+        }
+    ],
+    "title": "Fastqc_after_PE",
+    "type": "per-sample",
+    "write_stderr_log": true,
+    "write_stdout_log": true
+}

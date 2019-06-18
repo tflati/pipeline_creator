@@ -1,0 +1,49 @@
+{
+    "executables": [
+        {
+            "command": "library(ballgown)\npData <- read.csv(\"phenodata.csv\", header=T)\nbg <- ballgown(dataDir=\".\", samplePattern=\"Muscolo\", pData=pData)\nsave(bg, file='bg.RData')", 
+            "filename": "bgCreator.R"
+        }
+    ], 
+    "command_chunk_size": 1, 
+    "script_level": "project", 
+    "description": "", 
+    "title": "BallgownObjectCreator", 
+    "description_short": "", 
+    "commandline": "Rscript bgCreator.R", 
+    "modules": [
+        "profile/global", 
+        "r/3.4.2"
+    ], 
+    "command_level": "project", 
+    "hpc_directives": {
+        "account": "cin_staff", 
+        "error": "bgCreator.err", 
+        "job_name": "bgCreator-${project_variable}", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [
+            "StringTieEB"
+        ], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 10
+        }, 
+        "output": "bgCreator.out", 
+        "nodes": 1, 
+        "walltime": "00:05:00", 
+        "cpu": 1, 
+        "mpi_procs": 0
+    }, 
+    "write_stderr_log": true, 
+    "skip": false, 
+    "command_group_level": "all", 
+    "write_stdout_log": true, 
+    "conditions": [
+        {
+            "command": "[ -s bg.RData ]"
+        }
+    ], 
+    "checks": [], 
+    "command_parallelism_level": "sequential", 
+    "hpc_directives_text": ""
+}

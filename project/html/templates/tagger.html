@@ -1,0 +1,49 @@
+<p>
+	You can select from the drop-down or create your own tags.
+	If you type a string without '#', then a new tag will be created with cutom type "custom".
+	If you type a string containing '#' (e.g., "Poplar#Organism"), then a new tag will be created with name and type equal to the string split by '#' (e.g., name="Poplar" and type="Organism").
+</p>
+
+<p><b>Current tags</b></p>
+<md-chips
+	md-autocomplete-snap
+	ng-model="chosenTags"
+	readonly="false"
+	md-removable="true"
+	md-require-match="false"
+	md-transform-chip="transformChip($chip)"
+	placeholder="Enter a tag (e.g., SE, SingleEnd, Transcriptomic)"
+	delete-button-label="Remove Tag"
+	delete-hint="Press delete to remove tag"
+ >
+	
+	<md-autocomplete
+	  md-selected-item="selectedItem"
+	  md-no-cache="true"
+	  md-search-text="searchText"
+	  md-items="item in searchTags(tags, searchText) | orderBy: item.type"
+	  md-item-text="item.name || item.type"
+	  md-min-length="0"
+	  md-match-case-insensitive="true"
+	  placeholder="Search for a tag (or create)">
+		<md-item-template>
+			<span ng-if="item.name != undefined">
+				<span>{{item.name}}</span>
+				<span class="category">({{item.type}})</span>
+			</span>
+			<span ng-if="item.name == undefined">
+				<span class="category">{{item.type}}</span>
+			</span>
+		</md-item-template>
+		<md-not-found>
+			No matches found.
+		</md-not-found>
+	</md-autocomplete>
+	
+	<md-chip-template>
+		<span>
+		  <strong>{{$chip.name}}</strong>
+		  <em class="category">({{$chip.type}})</em>
+		</span>
+	</md-chip-template>
+</md-chips>

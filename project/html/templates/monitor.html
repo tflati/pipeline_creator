@@ -1,0 +1,286 @@
+<div ng-if="project.monitor_pipelines.length == 0" layout="column" layout-align="start center" layout-padding>
+	<h3>No monitor definitions have been defined yet for this project.</h3>
+	<img class="medium-height" width="auto" src="imgs/no_projects.png">
+</div>
+
+<v-accordion class="vAccordion--default padding-10" multiple onexpand="select_pipeline(index, project.monitor_pipelines, id, pane)">
+	  <v-pane ng-repeat="pipeline in project.monitor_pipelines track by $index">
+	    <v-pane-header layout="row" layout-align="start center">
+	    	<span md-truncate flex><b>Monitor Pipeline {{$index+1}}: {{pipeline.id}}</b></span>
+<!-- 			<span ng-click="chooseColor($event)" class="vertically-centered margin-left-10" style="display:inline-block;" md-color-picker ng-model="pipeline.color" options="{default: '#{{pipeline.color}}'}"></span> -->
+	    	
+	    	<md-chips ng-if="pipeline.tags.length > 0" ng-style="{'background-color': pipeline.color}" ng-model="pipeline.tags" readonly="true" class="mdchips-inline">
+				<md-chip-template class="text-small" style="height: 20px;">
+			        <div>
+			          <div><strong>{{$chip.name}}</strong></div>
+			          <div><em class="category">({{$chip.type}})</em></div>
+			        </div>
+				</md-chip-template>
+	    	</md-chips>
+	    	
+	    </v-pane-header>
+	    <v-pane-content>
+			<section>
+				<md-tabs md-swipe-content md-selected="tabs.selectedIndex" md-dynamic-height>
+				
+<!-- 				GLOBAL VIEW -->
+					<md-tab>
+						<md-tab-label layout="row" layout-align="center center">
+							<i class="fas fa-chart-bar fa-2x vertically-centered"></i><span class="margin-left-10">Global</span>
+						</md-tab-label>
+						<md-tab-body>
+							<md-content class="md-padding">
+								
+								<table class="table table-striped table-hover">
+									<thead>
+								        <tr>
+								            <th ng-click="sort('id')">Id
+								                <span class="glyphicon sort-icon" ng-show="sortKey=='id'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span>
+								            </th>
+								            <th>Summary information</th>
+								            <th>Details</th>
+								        </tr>
+								    </thead>
+									<tbody>
+								        <tr pagination-id="global" dir-paginate="step in pipeline.steps | itemsPerPage:20">
+								            <td>{{step.title}}</td>
+								            <td layout="column" layout-align="start start">
+								            	<div layout="row" layout-align="start center" ng-repeat="(key, graph) in step.info[project.id].graphs">
+								            		<b>{{key}}</b><span>:&nbsp;</span>
+								            		<span ng-if="!graph.labels">{{graph}}</span>
+								            		<canvas ng-if="graph.labels" style="max-width: 300px;" class="chart chart-pie"
+								            		  chart-click="onMonitorClick"
+													  chart-data="graph.data"
+													  chart-labels="graph.labels"
+													  chart-options="graph.options"
+													  chart-colors="graph.colors"
+													></canvas>
+								            	</div>
+								            </td>
+								            <td>
+								            	<md-button class="md-button md-warn md-raised" ng-click="refresh_monitor_step(pipeline, step)" tooltip="Get the monitoring data for this step" aria-label="Gets the monitoring data for this step">
+													<i class="fas fa-sync-alt"></i>
+													Refresh
+												</md-button>
+								            	<md-button ng-if="step.info" class="md-button md-raised md-accent" ng-click="select_monitor_tab(1)">See details</md-button>
+											</td>
+								        </tr>
+								    </tbody>
+							    </table>
+							    
+							    <dir-pagination-controls pagination-id="global" boundary-links="true"></dir-pagination-controls>
+								
+							</md-content>
+						</md-tab-body>
+					</md-tab>
+					
+<!-- 				BIOPROJECTS VIEW -->
+					<md-tab>
+						<md-tab-label layout="row" layout-align="center center">
+							<i class="fas fa-chart-bar fa-2x vertically-centered"></i><span class="margin-left-10">Bioprojects</span>
+						</md-tab-label>
+						<md-tab-body>
+							<md-content class="md-padding">
+								<p><b>Selected step</b>: {{selected_data.step.title}}</p>
+								<table class="table table-striped table-hover">
+									<thead>
+								        <tr>
+								            <th ng-click="sort('id')">Id
+								                <span class="glyphicon sort-icon" ng-show="sortKey=='id'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span>
+								            </th>
+								            <th>Summary information</th>
+								            <th>Details</th>
+								        </tr>
+								    </thead>
+									<tbody>
+								        <tr pagination-id="projects" dir-paginate="(key,element) in selected_data['step'].info[project.id].data | itemsPerPage:20">
+								            <td>{{key}}</td>
+								            <td layout="column" layout-align="start start">
+								            	<div layout="row" layout-align="start center" ng-repeat="(key, graph) in element.graphs">
+								            		<b>{{key}}</b><span>:&nbsp;</span>
+								            		<span ng-if="!graph.labels">{{graph}}</span>
+								            		<canvas ng-if="graph.labels" style="max-width: 300px;" class="chart chart-pie"
+								            		  chart-click="onMonitorClick"
+													  chart-data="graph.data"
+													  chart-labels="graph.labels"
+													  chart-options="graph.options"
+													  chart-colors="graph.colors"
+													></canvas>
+								            	</div>
+								            </td>
+								            <td>
+								            	<md-button ng-click="select_data('bioproject', key); select_monitor_tab(2);" class="md-button md-raised md-accent">See details</md-button>
+							            	</td>
+								        </tr>
+								    </tbody>
+							    </table>
+							    
+							    <dir-pagination-controls pagination-id="projects" boundary-links="true"></dir-pagination-controls>
+							</md-content>
+						</md-tab-body>
+					</md-tab>
+					
+<!-- 				EXPERIMENTS VIEW -->					
+					<md-tab>
+						<md-tab-label layout="row" layout-align="center center">
+							<i class="fas fa-chart-bar fa-2x vertically-centered"></i><span class="margin-left-10">Experiments</span>
+						</md-tab-label>
+						<md-tab-body>
+							<md-content class="md-padding">
+								<p><b>Selected step</b>: {{selected_data.step.title}}</p>
+								<p><b>Selected bioproject</b>: {{selected_data.bioproject}}</p>
+								<table class="table table-striped table-hover">
+									<thead>
+								        <tr>
+								            <th ng-click="sort('id')">Id
+								                <span class="glyphicon sort-icon" ng-show="sortKey=='id'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span>
+								            </th>
+								            <th>Summary information</th>
+								            <th>Details</th>
+								        </tr>
+								    </thead>
+									<tbody>
+								        <tr pagination-id="experiments" dir-paginate="(key,element) in selected_data['step'].info[project.id].data[selected_data['bioproject']].data | itemsPerPage:20">
+								            <td>{{key}}</td>
+								            <td layout="column" layout-align="start start">
+								            	<div layout="row" layout-align="start center" ng-repeat="(key, graph) in element.graphs">
+								            		<b>{{key}}</b><span>:&nbsp;</span>
+								            		<span ng-if="!graph.labels">{{graph}}</span>
+								            		<canvas ng-if="graph.labels" style="max-width: 300px;" class="chart chart-pie"
+													  chart-click="onMonitorClick"
+													  chart-data="graph.data"
+													  chart-labels="graph.labels"
+													  chart-options="graph.options"
+													  chart-colors="graph.colors"
+													></canvas>
+								            	</div>
+								            </td>
+								            <td>
+								            	<md-button ng-click="select_data('experiment', key); select_monitor_tab(3);" class="md-button md-raised md-accent">See details</md-button>
+							            	</td>
+								        </tr>
+								    </tbody>
+							    </table>
+							    
+							    <dir-pagination-controls pagination-id="experiments" boundary-links="true"></dir-pagination-controls>
+							    
+							</md-content>
+						</md-tab-body>
+					</md-tab>
+					
+<!-- 				RUNS VIEW -->
+					<md-tab>
+						<md-tab-label layout="row" layout-align="center center">
+							<i class="fas fa-chart-bar fa-2x vertically-centered"></i><span class="margin-left-10">Runs</span>
+						</md-tab-label>
+						<md-tab-body>
+							<md-content class="md-padding">
+								<p><b>Selected step</b>: {{selected_data.step.title}}</p>
+								<p><b>Selected bioproject</b>: {{selected_data.bioproject}}</p>
+								<p><b>Selected experiment</b>: {{selected_data.experiment}}</p>
+								<table class="table table-striped table-hover">
+									<thead>
+								        <tr>
+								            <th ng-click="sort('id')">Id
+								                <span class="glyphicon sort-icon" ng-show="sortKey=='id'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span>
+								            </th>
+								            <th>Summary information</th>
+								            <th>Details</th>
+								        </tr>
+								    </thead>
+									<tbody>
+								        <tr pagination-id="runs" dir-paginate="(key,element) in selected_data['step'].info[project.id].data[selected_data['bioproject']].data[selected_data['experiment']].data | itemsPerPage:20">
+								            <td>{{key}}</td>
+								            <td layout="column" layout-align="start start">
+								            	<div layout="row" layout-align="start center" ng-repeat="(key, graph) in element.graphs">
+								            		<b>{{key}}</b><span>:&nbsp;</span>
+								            		<span ng-if="!graph.labels">{{graph}}</span>
+								            		<canvas ng-if="graph.labels" style="max-width: 300px;" class="chart chart-pie"
+								            		  chart-click="onMonitorClick"
+													  chart-data="graph.data"
+													  chart-labels="graph.labels"
+													  chart-options="graph.options"
+													  chart-colors="graph.colors"
+													></canvas>
+								            	</div>
+								            </td>
+								            <td>
+								            	<md-button ng-click="select_data('run', key); select_monitor_tab(4);" class="md-button md-raised md-accent">See details</md-button>
+							            	</td>
+								        </tr>
+								    </tbody>
+							    </table>
+							    
+							    <dir-pagination-controls pagination-id="runs" boundary-links="true"></dir-pagination-controls>
+							</md-content>
+						</md-tab-body>
+					</md-tab>
+
+<!-- 				RUN VIEW -->
+					<md-tab>
+						<md-tab-label layout="row" layout-align="center center">
+							<i class="fas fa-chart-bar fa-2x vertically-centered"></i><span class="margin-left-10">Run</span>
+						</md-tab-label>
+						<md-tab-body>
+							<md-content class="md-padding">
+								<p><b>Selected step</b>: {{selected_data.step.title}}</p>
+								<p><b>Selected bioproject</b>: {{selected_data.bioproject}}</p>
+								<p><b>Selected experiment</b>: {{selected_data.experiment}}</p>
+								<p><b>Selected run</b>: {{selected_data.run}}</p>
+								<table class="table table-striped table-hover">
+									<thead>
+								        <tr>
+								            <th ng-click="sort('id')">Id
+								                <span class="glyphicon sort-icon" ng-show="sortKey=='id'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span>
+								            </th>
+								            <th>Summary information</th>
+								        </tr>
+								    </thead>
+									<tbody>
+								        <tr pagination-id="run" dir-paginate="(key,element) in selected_data['step'].info[project.id].data[selected_data['bioproject']].data[selected_data['experiment']].data[selected_data['run']].data[selected_data['run']] | itemsPerPage:20">
+								            <td>{{key}}</td>
+								            <td ng-bind="element | json"></td>
+								        </tr>
+								    </tbody>
+							    </table>
+							    
+							    <dir-pagination-controls pagination-id="run" boundary-links="true"></dir-pagination-controls>
+							</md-content>
+						</md-tab-body>
+					</md-tab>
+					
+<!-- 					DETAILED VIEW -->
+					<md-tab>
+						<md-tab-label layout="row" layout-align="center center">
+							<i class="fas fa-chart-bar fa-2x vertically-centered"></i><span class="margin-left-10">Detailed view</span>
+						</md-tab-label>
+						<md-tab-body>
+							<md-content class="md-padding">
+								<p><b>Selected step</b>: {{selected_data.step.title}}</p>
+								<table class="table table-striped table-hover">
+									<thead>
+								        <tr>
+								            <th ng-click="sort('id')">Id
+								                <span class="glyphicon sort-icon" ng-show="sortKey=='id'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span>
+								            </th>
+								            <th>Summary information</th>
+								        </tr>
+								    </thead>
+									<tbody>
+								        <tr pagination-id="details" dir-paginate="(key, element) in selected_data['details'] | itemsPerPage:20">
+								            <td>{{key}}</td>
+								            <td ng-bind="element | json"></td>
+								        </tr>
+								    </tbody>
+							    </table>
+							    
+							    <dir-pagination-controls pagination-id="run" boundary-links="true"></dir-pagination-controls>
+							</md-content>
+						</md-tab-body>
+					</md-tab>
+				</md-tabs>
+			</section>
+			
+		</v-pane-content>
+	</v-pane>
+</v-accordion>

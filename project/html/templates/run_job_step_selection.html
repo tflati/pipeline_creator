@@ -1,0 +1,82 @@
+<section layout-padding>
+	<div layout="row" layout-align="start center">
+		<md-button ui-sref="^.all" title-direction="right" class="md-icon-button md-raised md-warn" title="Go back to all jobs of this run" aria-label="Go to all jobs of this run">
+	      <i class="fas fa-angle-left"></i>
+	    </md-button>
+	    <span class="margin-left-30 text-1-5x"><b>Step</b>: {{step.title}}</span>
+	</div>
+	
+	<div style="height: 200px;">
+		<canvas class="chart chart-horizontal-bar"
+		  chart-data="steps_progress[pipeline.id][step.title].status.data"
+		  chart-series="steps_progress[pipeline.id][step.title].status.series"
+		  chart-labels="steps_progress[pipeline.id][step.title].status.labels"
+		  chart-options="steps_progress[pipeline.id][step.title].status.options"
+		  chart-colors="steps_progress[pipeline.id][step.title].status.colors"
+		  chart-click="onChartClick"
+		  >
+		</canvas>
+	</div>
+	
+	<div layout="column" layout-margin>
+		<md-input-container>
+	        <label>See distribution of a tag</label>
+	        <md-select ng-change="select_graph_dimension()" style="min-width: 300px" ng-model="graphField" aria-label="Specifies the field to see distribution of">
+		       	<md-option ng-repeat="(key, count) in jobs[0].tags | groupBy: 'type'" ng-value="key">
+					<span>{{key}}</span>
+		       	</md-option>
+			</md-select>
+        </md-input-container>
+        
+        <canvas style="max-width: 600px;" class="chart chart-bar"
+		  chart-data="selection_graph.status.data"
+		  chart-series="selection_graph.status.series"
+		  chart-labels="selection_graph.status.labels"
+		  chart-options="selection_graph.status.options"
+		  chart-colors="selection_graph.status.colors"
+		  chart-click="onChartClick"
+		  >
+		</canvas>
+	</div>
+	
+	<div layout="row" layout-margin>
+		<md-input-container>
+	        <label>Filter jobs:</label>
+	        <input ng-model="filterExpression"/>
+        </md-input-container>
+        
+        <md-input-container>
+	        <label>Sort jobs by:</label>
+	        <md-select style="max-height: 500px" ng-model="sortByField" aria-label="Specifies the field to sort jobs by">
+		       	<md-option ng-selected="key == 'JobID' ? true : false" ng-repeat="(key, value) in jobs[0]" ng-value="key">
+					<span>{{key}}</span>
+		       	</md-option>
+			</md-select>
+        </md-input-container>
+        
+        <md-input-container>
+	        <md-checkbox ng-model="reverseOrder" aria-label="Sets the sort in descending order">
+	        	Ascending
+			</md-checkbox>
+        </md-input-container>
+    </div>
+       
+    <p>{{clicked.length}} job(s) selected</p>
+	<pagination ng-if="clicked.length > 0" list="clicked" filter="filterExpression" sort="sortByField" reverse="reverseOrder">
+		<table class="full-width" style="overflow:scroll;">
+			<tr>
+				<th></th>
+				<th ng-repeat="(key, value) in clicked[0] | skipKey:'tags'">{{key}}</th>
+			</tr>
+			<tr ng-repeat="job in displayed">
+				<td>
+					<a ui-sref="^.job({pipeline_id: pipeline.id, job_id: job.JobID})"><i title="See details of this job" class="fas fa-search fa-2x" md-colors="{color: 'accent'}"></i></a>
+				</td>
+				<td style="max-width: 100px; word-wrap: break-word; " ng-repeat="(key, value) in job | skipKey:'tags'">
+					<span ng-if="key != 'State'">{{value}}</span>
+					<span ng-if="key == 'State'" title="{{value.description}}">{{value.id}}</span>
+				</td>
+			</tr>
+		</table>
+	</pagination>
+</section>

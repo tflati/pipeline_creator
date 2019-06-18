@@ -1,0 +1,39 @@
+{
+	"title": "",
+	"description": "",
+	"description_short": "",
+	"tags": [],
+	"begin_block": "",
+	"commandline": "",
+	"end_block": "",
+	"executable": [],
+	"checks": [],
+	"hpc_directives_text": "",
+	"hpc_directives": {
+		"job_name": "",
+		"walltime": "",
+		"account": "",
+		"nodes": 1,
+		"cpu": 1,
+		"queue": "",
+		"mpi_procs": 0,
+		"memory": {
+			"quantity": 1,
+			"size": "GB"
+		},
+		"error": "",
+		"output": "",
+		"dependencies": []
+	},
+	"modules": [],
+	"skip": false,
+	"overwrite": false,
+	"script_level": "sample",
+	"command_level": "sample",
+	"command_parallelism_level": "sequential",
+	"command_group_level": "all",
+	"command_chunk_size": 1,
+	"write_stdout_log": true,
+	"write_stderr_log": true,
+	"conditions": []
+}

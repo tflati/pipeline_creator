@@ -1,0 +1,104 @@
+<div ng-include="'views/toolbar.html'"></div>
+
+<div>
+	
+	<md-button href="profile" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Go back to your profile">
+	  <i class="fas fa-arrow-left" md-colors="{color:'warn'}"></i> <b>Back to projects</b>
+	</md-button>
+
+	<form ng-if="project" name="form" layout="column" layout-align="start start" style="background: white; padding: 50px;">
+		<h2 layout="row" layout-align="start center" layout-margin>
+<!-- 			<i class="fas fa-share-alt-square fa-3x" style="color: green;"></i> -->
+			<div>Share project {{project.title}} <span class="lighter">({{project.project_id}})</span></div>
+		</h2>
+		
+		<strong>Owner:</strong>
+		<div layout="row" layout-align="start center" layout-margin>
+           	<i class="far fa-user-circle fa-3x" style="color: darkgreen;"></i>
+            <span style="margin-left: 5px;"> {{project.creator.email}} </span>
+          	<span style="margin-left: 5px;"> - </span>
+          	<span style="margin-left: 5px;">
+              <strong> {{project.creator.username}}</strong>
+              <span style="margin-left: 5px;"> - </span>
+              <strong> {{project.creator.first_name}} {{project.creator.last_name}} ({{project.creator.affiliation}})</strong>
+          	</span>
+         </div>
+		
+		<div ng-if="users.length == 0" layout="row" layout-align="start center" layout-margin>
+			<i class="far fa-user-circle fa-5x" md-colors="{color:'warn'}"></i>
+			<p>This project has not been shared with other users yet.</p>
+		</div>
+		
+<!-- 		<md-button ng-click="share()" layout="row" layout-align="start center" layout-margin class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Share project"> -->
+<!-- 		  <i class="fas fa-share-alt-square fa-3x" style="color: green;"></i> <b>Share project with another user</b> -->
+<!-- 		</md-button> -->
+		
+		<p><strong>Add a collaborator:</strong></p>
+		<div ng-if="logged_user.username != project.creator.username && !logged_user.is_admin">
+	    	You cannot share this project directly. Please, ask the owner or an admin to do so.
+	    </div>
+	    
+		<md-autocomplete ng-if="logged_user.username == project.creator.username || logged_user.is_admin" style="width: 100%;"
+          id="custom-template"
+          md-no-cache="true"
+          md-selected-item="selectedItem"
+          md-search-text-change="searchTextChange(searchText)"
+          md-search-text="shareProject.searchText"
+          md-selected-item-change="selectedItemChange(item)"
+          md-items="item in querySearch(searchText)"
+          md-min-length="0"
+          input-aria-label="Users to share"
+          placeholder="Pick a user to share this project with"
+          md-menu-class="autocomplete-custom-template"
+          md-menu-container-class="custom-container">
+        <md-item-template>
+			<div layout="row" layout-align="start center">
+            	<i class="far fa-user-circle fa-3x" style="color: darkgreen;"></i>
+	            <span style="margin-left: 5px;"> {{item.fields.email}} </span>
+	          	<span style="margin-left: 5px;"> - </span>
+	          	<span style="margin-left: 5px;">
+	              <strong> {{item.fields.username}}</strong>
+	              <span style="margin-left: 5px;"> - </span>
+	              <strong> {{item.fields.first_name}} {{item.fields.last_name}} ({{item.fields.affiliation}})</strong>
+	          	</span>
+          </div>
+        </md-item-template>
+        <md-not-found>
+			No more users can be added (apparently you just added all the possible collaborators)
+        </md-not-found>
+      </md-autocomplete>
+		
+		<div ng-if="users.length > 0">
+			<h4>Users which can already see this project:</h4>
+			<table cellpadding="5" style="border: 2px solid">
+				<thead>
+					<tr>
+						<th></th>
+						<th>Username</th>
+						<th>E-mail address</th>
+						<th>First name</th>
+						<th>Last name</th>
+						<th>Institution</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="user in users | filter: filterExpression | orderBy: user.fields.username track by $index">
+						<td>
+							<a ng-if="logged_user.username == project.creator.username || logged_user.is_admin" ng-click="unshare(user)" title="Click here to un-share this project with {{user.fields.username}}" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Un-share">
+							  <i class="fas fa-times-circle" md-colors="{color:'warn'}"></i>
+							</a>
+						</td>
+						<td>{{user.fields.username}}</td>
+						<td>{{user.fields.email}}</td>
+						<td>{{user.fields.first_name}}</td>
+						<td>{{user.fields.last_name}}</td>
+						<td>{{user.fields.affiliation}}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+<!-- 		<md-button ng-click="send()" title="Click here to delete this project" class="md-raised md-warn md-hue-3 toolbar-button" aria-label="Delete"> -->
+<!-- 		  <i class="fas fa-trash" md-colors="{color:'warn'}"></i> <b>Yes, I confirm I want to delete this project</b> -->
+<!-- 		</md-button> -->
+	</form>
+</div>

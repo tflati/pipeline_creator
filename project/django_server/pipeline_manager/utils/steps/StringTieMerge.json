@@ -1,0 +1,48 @@
+{
+    "script_level": "project", 
+    "begin_block": "", 
+    "type": "per-step", 
+    "description": "", 
+    "tags": [], 
+    "description_short": "", 
+    "commandline": "rm merge_list.txt\nfor EXPERIMENT in $(cat experiments)\ndo\n    echo $EXPERIMENT/$EXPERIMENT.gtf >> merge_list.txt\ndone\n\n$STRINGTIE_HOME/bin/stringtie --merge -p $cpu_variable -G $ANNOTATION/Genes/genes.gtf  -o merged.gtf merge_list.txt", 
+    "title": "StringTieMerge", 
+    "modules": [
+        "profile/bioinf", 
+        "profile/global", 
+        "stringtie/1.3.4", 
+        "ig_Mus_musculus/mm10"
+    ], 
+    "command_level": "project", 
+    "hpc_directives": {
+        "account": "cin_staff", 
+        "error": "", 
+        "job_name": "", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [
+            "MergeBams"
+        ], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 115
+        }, 
+        "output": "", 
+        "nodes": 1, 
+        "walltime": "10:00:00", 
+        "cpu": 36, 
+        "mpi_procs": 0
+    }, 
+    "sequential": true, 
+    "skip": false, 
+    "write_stderr_log": true, 
+    "command_group_level": "all", 
+    "write_stdout_log": true, 
+    "iterate": true, 
+    "conditions": [
+        {
+            "command": "[ -s merged_list_hum.gtf ]"
+        }
+    ], 
+    "command_parallelism_level": "sequential", 
+    "hpc_directives_text": ""
+}

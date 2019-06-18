@@ -1,0 +1,85 @@
+<span layout="row" layout-align="start center" class="margin-left-30 text-1-5x">
+	<b>Pipeline</b>: {{pipeline.id}}
+</span>
+<span layout="row" layout-align="start center" class="margin-left-30 text-1-5x">
+	<b>Step title</b>: {{job.StepTitle}}
+</span>
+<span layout="row" layout-align="start center" class="margin-left-30 text-1-5x">
+	<b>Status</b>: {{job.State.id}}<i title="{{job.State.description}}" class="fas fa-stop fa-2x margin-left-10" style="color: {{job.State.color}}"></i>
+</span>
+
+<v-accordion class="no-padding">
+  	<v-pane>
+	    <v-pane-header class="no-margin">
+	    	<md-subheader class="md-primary">
+	    		<i class="fas fa-info-circle" md-colors="{color:'accent'}"></i>
+	    		Click to see detailed information about this job
+    		</md-subheader>
+	    </v-pane-header>
+	    <v-pane-content>
+			<div ng-repeat="(key, value) in job">
+				<b>{{key}}:</b>
+				<span ng-if="key != 'State'">{{value}}</span>
+				<span ng-if="key == 'State'" title="{{value.description}}">{{value.id}}</span>
+			</div>
+		</v-pane-content>
+	</v-pane>
+</v-accordion>
+<table>
+	<tr>
+		<td>
+			<p><b>Script path:</b> {{job.ScriptPath}}</p>
+		</td>
+		<td>
+			<md-button ng-click="seeTopLines(job.ScriptPath)" class="md-button md-raised md-warn">
+				<i title="See first lines of the script" class="fas fa-search" md-colors="{color: 'accent'}"></i>
+				See first lines
+			</md-button>
+		</td>
+		<td>
+			<md-button ng-click="download(job.ScriptPath)" class="md-button md-raised md-warn">
+				<i title="Download this script" class="fas fa-file-download" md-colors="{color: 'accent'}"></i>
+				Download
+			</md-button>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<p><b>Standard output:</b> {{job.StandardOutput}}</p>
+		</td>
+		<td>
+			<md-button ng-click="seeTopLines(job.StandardOutput)" class="md-button md-raised md-warn">
+				<i title="See first lines of the standard output" class="fas fa-search" md-colors="{color: 'accent'}"></i>
+				See first lines
+			</md-button>
+		</td>
+		<td>
+			<md-button ng-click="download(job.StandardOutput)" class="md-button md-raised md-warn">
+				<i title="Download the standard output" class="fas fa-file-download" md-colors="{color: 'accent'}"></i>
+				Download
+			</md-button>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<p><b>Standard error:</b> {{job.StandardError}}</p>
+		</td>
+		<td>
+			<md-button ng-click="seeTopLines(job.StandardError)" class="md-button md-raised md-warn">
+				<i title="See first lines of the standard error" class="fas fa-search" md-colors="{color: 'accent'}"></i>
+				See first lines
+			</md-button>
+		</td>
+		<td>
+			<md-button ng-click="download(job.StandardError)" class="md-button md-raised md-warn">
+				<i title="Download the standard error" class="fas fa-file-download" md-colors="{color: 'accent'}"></i>
+				Download
+			</md-button>
+		</td>
+	</tr>
+</table>
+
+<div ng-if="text != undefined" class="code">
+	<div ng-if="text != ''">{{text}}</div>
+	<p ng-if="text == ''">The file exists, but it seems to be empty!</p>
+</div>

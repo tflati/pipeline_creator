@@ -1,0 +1,53 @@
+{
+    "script_level": "sample", 
+    "type": "per-sample", 
+    "description": "", 
+    "title": "TrimmingPE", 
+    "description_short": "", 
+    "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar PE -threads $cpu_variable -phred33 ${SAMPLE}_1.fastq.gz ${SAMPLE}_2.fastq.gz ${SAMPLE}_1.trimmed.paired.fastq ${SAMPLE}_1.trimmed.unpaired.fastq ${SAMPLE}_2.trimmed.paired.fastq ${SAMPLE}_2.trimmed.unpaired.fastq ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 HEADCROP:13", 
+    "write_stderr_log": true, 
+    "modules": [
+        "profile/bioinf", 
+        "trimmomatic/0.36"
+    ], 
+    "command_level": "sample", 
+    "hpc_directives": {
+        "account": "elix3_rinaldi", 
+        "error": "trimmomatic_err", 
+        "job_name": "trimming", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [
+            "Import manual data (PE)"
+        ], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 115
+        }, 
+        "output": "trimmomatic_out", 
+        "nodes": 1, 
+        "walltime": "04:00:00", 
+        "cpu": 36, 
+        "mpi_procs": 0
+    }, 
+    "sequential": false, 
+    "skip": false, 
+    "overwrite": false, 
+    "command_group_level": "all", 
+    "write_stdout_log": true, 
+    "iterate": false, 
+    "conditions": [
+        {
+            "command": "[ -s ${SAMPLE}_1.trimmed.paired.fastq ] && [ -s ${SAMPLE}_2.trimmed.paired.fastq ]"
+        }
+    ], 
+    "checks": [
+        {
+            "file": "${SAMPLE}_1.trimmed.paired.fastq"
+        }, 
+        {
+            "file": "${SAMPLE}_2.trimmed.paired.fastq"
+        }
+    ], 
+    "command_parallelism_level": "sequential", 
+    "hpc_directives_text": ""
+}

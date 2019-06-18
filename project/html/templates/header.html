@@ -1,0 +1,66 @@
+<md-toolbar class="md-hue-2" ng-controller="headerController">
+  <div class="md-toolbar-tools">
+  
+<!--   	<md-button class="md-icon-button" ng-click="toggleMenu()" aria-label="Open the sidenav menu"> -->
+<!--   		<md-tooltip>Open the sidenav menu</md-tooltip> -->
+<!-- 		<i class="fas fa-bars"></i> -->
+<!-- 	</md-button> -->
+  
+    <h2 flex md-truncate><a ui-sref="home">Pipeliner</a></h2>
+	
+	
+<!-- 	    <md-button class="md-button md-warn md-raised" ng-click="refresh()" aria-label="Refresh"> -->
+<!-- 	    	<md-tooltip>Reload the projects</md-tooltip> -->
+<!-- 			<i class="fas fa-sync"></i> -->
+<!-- 			Refresh -->
+<!-- 		</md-button> -->
+	
+	<div ng-if="logged_user.loggedIn" layout="row" layout-align="start center">
+	
+		<md-button ui-sref="step_repository" class="md-button md-raised md-warn" aria-label="Open the step repository">
+			<i class="fas fa-database"></i>
+			Step repo
+		</md-button>
+		
+		<md-button ui-sref="pipeline_repository" class="md-button md-raised md-warn" aria-label="Open the pipeline repository">
+			<i class="fas fa-database"></i>
+			Pipeline repo
+		</md-button>
+		
+		<md-button ng-if="state.current.name != 'projects'" ui-sref="projects" class="md-button md-raised md-warn" aria-label="Go to your projects">
+			<i class="fas fa-list"></i>
+			Project list
+		</md-button>
+	
+		<md-button ng-if="logged_user.is_admin" ui-sref="user-admin-page" class="md-button md-raised md-warn" aria-label="Go to user administration page">
+			<i class="fas fa-list"></i>
+			User list
+		</md-button>
+		
+		<a title="Hi, {{logged_user.username}}" title-direction="bottom" layout="row" layout-align="center center" href="projects" style="background-color: green; height: 40px; width: 40px; margin: 10px; border: 5px solid white; border-radius: 25px; color: white; text-decoration: none; display: inline-grid;">
+      		<b style="font-weight: 900%;">{{logged_user.username | capitalise}}</b>
+		</a>
+		
+   		<md-button href="logout" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Logout">
+      		<i class="fas fa-power-off" md-colors="{color:'warn'}"></i> <b>logout</b>
+   		</md-button>
+   		
+   	</div>
+      
+   	<div ng-if="!logged_user.loggedIn">
+    	<md-button href="login" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Login">
+        	<i class="fas fa-key" md-colors="{color:'warn'}"></i> <b>login</b>
+       	</md-button>
+       	<md-button href="register" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Register">
+        	<i class="fas fa-sign-in-alt icon" md-colors="{color:'warn'}"></i> <b>register</b>
+       	</md-button>
+    </div>
+		
+	<md-button class="md-button md-warn md-raised" ng-click="show_how_to()">
+		<md-tooltip>Shows instructions on how to use this portal</md-tooltip>
+		<i class="fas fa-question" md-colors="{color:'accent'}"></i>
+		How to
+	</md-button>
+	
+  </div>
+</md-toolbar>

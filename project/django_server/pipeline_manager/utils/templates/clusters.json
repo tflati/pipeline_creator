@@ -1,0 +1,17 @@
+[
+	{
+		"name": "Galileo",
+		"id": "galileo",
+		"info": "360 nodes (36 cores, 128GB) + 40 nodes (16 cores, 128GB)"
+	},
+	{
+		"name": "Marconi",
+		"id": "marconi",
+		"info": "A1/BDW: 720 nodes (36 cores, 128GB) + A2/KNL: 3600 nodes (68 cores, 93GB)"
+	},
+	{
+		"name": "Pico",
+		"id": "pico",
+		"info": "51 nodes (20 cores, 128GB) + 1 BigMem (32 cores, 520GB) + 2 BigMem (20 cores, 510GB)"
+	}
+]

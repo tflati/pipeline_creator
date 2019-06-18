@@ -1,0 +1,51 @@
+{
+    "script_level": "sample", 
+    "type": "per-sample", 
+    "description": "", 
+    "tags": [
+        {
+            "type": "Layout", 
+            "name": "SE"
+        }
+    ], 
+    "description_short": "", 
+    "commandline": "mkdir fastqc_after; fastqc --nogroup --extract $SAMPLE.trim.fastq -o fastqc_after", 
+    "title": "Fastqc_after_SE", 
+    "modules": [
+        "profile/bioinf", 
+        "fastqc/0.11.5"
+    ], 
+    "command_level": "sample", 
+    "hpc_directives": {
+        "account": "cin_staff", 
+        "error": "fastqc_after_err", 
+        "job_name": "fastqc_after-${project_variable}", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [
+            "Trimming_SE"
+        ], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 10
+        }, 
+        "output": "fastqc_after_out", 
+        "nodes": 1, 
+        "walltime": "02:00:00", 
+        "cpu": 1, 
+        "mpi_procs": 0
+    }, 
+    "sequential": false, 
+    "skip": false, 
+    "write_stderr_log": true, 
+    "command_group_level": "all", 
+    "write_stdout_log": true, 
+    "iterate": false, 
+    "conditions": [
+        {
+            "command": "[ -d fastqc_after ]"
+        }
+    ], 
+    "checks": [], 
+    "command_parallelism_level": "sequential", 
+    "hpc_directives_text": ""
+}

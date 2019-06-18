@@ -1,0 +1,212 @@
+<section style="width: 100%;" ng-init="init_filesystem_info()">
+	<md-content>
+		
+		<div layout="row" layout-align="space-around center">
+			<div ng-if="connection_infos.length == 0">
+				<p>Unfortunately there are not available connection details to explore a remote filesystem.</p>
+				<p>Please check your connection credentials in your pipelines (username and remote path).</p>
+			</div>
+			<div ng-if="connection_infos.length > 0" layout="column" layout-align="center start">
+				<div class="full-width" layout="row" layout-align="start center">
+					<label>Specify the connection</label>
+					<md-select class="padding-left-15 md-block" ng-model="fs.ci" aria-label="Specifies the connection infos">
+				       	<md-option ng-repeat="ci in connection_infos track by $index" ng-value="ci" ng-selected="$first" style="height: 100%;">
+				       		<div flex layout="column" layout-align="start start">
+					       		<div flex layout="row" layout-align="start center">
+				       				<img height="40px" src="imgs/cluster.png" layout-padding>
+									<span><b>Cluster</b>: {{ci.cluster}} &nbsp;</span>
+						       	</div>
+				       			<span><b>User</b>: {{ci.username}}</span>
+				       			<span><b>Remote path</b>: {{ci.remote_path}}</span>
+					       	</div>
+				       	</md-option>
+					</md-select>
+				</div>
+				<div class="full-width" layout="row" layout-align="start center">
+					<label>Select a project directory</label>
+					<my-autocomplete class="full-width" on-select="fs.basedir = elem.label" data="paths" label="Pick up a directory"></my-autocomplete>
+				</div>
+				<div class="full-width" layout="row" layout-align="start center">
+					<label>Or provide a custom path</label>
+					<input layout-margin class="full-width" placeholder="The path to retrieve the content of" type="text" ng-model="fs.basedir">
+				</div>
+			</div>
+			
+			<md-button ng-disabled="connection_infos.length == 0" class="md-button md-warn md-raised" layout-margin ng-click="fs.results = undefined; filesystem_api(fs)" tooltip="Obtain FS info" aria-label="FS info">
+				<div layout="row" layout-align="center center">
+					<i class="fas fa-compact-disc fa-2x" layout-margin style="color: royalblue;"></i>
+					<span>Get filesystem info</span>
+				</div>
+			</md-button>
+		</div>
+		
+		
+		<div class="full-width" ng-if="fs.loading" layout="column" layout-align="start center">
+			<i class="margin-30 fas fa-compact-disc fa-spin fa-5x" style="color: royalblue;"></i>
+		</div>
+		
+        <div ng-if="fs.results" layout="row" layout-align="start start">
+        	
+        	<div ng-if="fs.results.filters.length > 0" layout="column" layout-align="start center" class="side-filters">
+				<p><b>Filters</b>:</p>
+				
+		        <div style="background-color: #bdbdbd;" class="margin-small">
+			        <label layout-padding>Filter:</label>
+			        <input ng-model="filterExpression"/>
+		        </div>
+		        
+		        <md-button ng-click="clear_filters()" class="md-raised md-accent md-hue-3" aria-label="Reset all filters" title="Reset all filters">
+					<i class="fas fa-trash"></i> Clear all settings
+		        </md-button>
+        
+        		<!-- FILTERS -->
+	        	<div layout="column" layout-padding>
+					<div ng-repeat="filter in fs.results.filters | filter : filterExpression">
+				        <md-subheader layout="row" layout-align="start center">
+	        				 <div style="display: inline;" ng-click="filter.open = !filter.open">
+		        				 <md-button ng-if="filter.open" class="md-icon-button" aria-label="Opens up this category">
+		        				 	<i class="fas fa-2x fa-angle-up"></i>
+		        				 </md-button>
+		        				 <md-button ng-if="!filter.open" class="md-icon-button" aria-label="Closes this category">
+		        				 	<i class="fas fa-2x fa-angle-down"></i>
+		        				 </md-button>
+	        				 </div>
+				        	<md-checkbox class="small-checkbox md-warn"
+				        				 title="Toggle all sub-filters"
+				        				 aria-label="Toggle all sub-filters"
+				        				 md-indeterminate="filter.indeterminate"
+				        				 ng-checked="filter.selected"
+				        				 ng-model="filter.selected"
+				        				 ng-change="fs.changed = filter; filesystem_api(fs);">
+				        				 
+	        				 	<span>{{filter.label | uppercase}}</span>
+     								<a ng-click="see_chart(filter)" class="fas fa-chart-bar" style="cursor: pointer; color: #ff8700;"></a>
+	        				 </md-checkbox>
+        				 </md-subheader>
+				        				 
+				        <div ng-show="filter.open" class="small-margin" ng-repeat="f in filter.values | filter : filterExpression">
+				            <md-checkbox class="small-checkbox md-hue-3"
+				            			 title="{{f.value}} filter"
+				            			 aria-label="{{f.value}} filter"
+				            			 md-indeterminate="f.indeterminate"
+				            			 ng-checked="f.selected"
+				            			 ng-model="f.selected"
+				            			 ng-change="fs.changed = f; filesystem_api(fs);">
+				            			 
+				            			 {{f.value}} ({{f.partial_count}} / {{f.count}})
+				            </md-checkbox>
+				        </div>
+			        </div>
+		        </div>
+	        </div>
+	        
+	        <!-- RESULTS -->
+	        <div ng-if="fs.results.matches.length > 0" layout="column" layout-align="start start" class="padding-medium">
+	        
+	        		<!-- FILTER RESULTS BY REGEX -->
+	        		<div style="background-color: #bdbdbd;" class="margin-small">
+				        <label layout-padding>Filter files:</label>
+				        <input ng-change="begin = 0" ng-model="filter_text"/>
+			        </div>
+			        
+			        <div layout="row" layout-align="start center">
+			        	<md-input-container>
+					        <label>Sort by:</label>
+					        <md-select style="min-width: 300px" ng-model="fs.results.options.sort_by" aria-label="Specifies the field to sort results by">
+						       	<md-option ng-repeat="(key, value) in fs.results.matches[0]" ng-value="key">
+									<span>{{key}}</span>
+						       	</md-option>
+							</md-select>
+				        </md-input-container>
+<!-- 				        <md-checkbox class="small-checkbox md-warn" -->
+<!-- 		       				 title="Reverse the sort" -->
+<!-- 		       				 aria-label="Reverse the sort" -->
+<!-- 		       				 ng-click="fs.results.options.reverse_sort = !fs.results.options.reverse_sort" -->
+<!-- 		       				 ng-model="fs.results.options.reverse_sort"> -->
+		       				 
+		       				 <div title="Click to reverse the sort" ng-click="fs.results.options.reverse_sort = !fs.results.options.reverse_sort">
+			       				 <div ng-if="fs.results.options.reverse_sort"><i class="fas fa-caret-up"></i> Ascending</div>
+		       				 	 <div ng-if="!fs.results.options.reverse_sort"><i class="fas fa-caret-down"></i> Descending</div>
+	       				 	 </div>
+<!-- 	       				 </md-checkbox> -->
+			        </div>
+			        
+			        <!-- SORT RESULTS BY SIZE (ASCENDING/DESCENDING) -->
+<!-- 			        <div layout="row" layout-align="start center"> -->
+<!-- 				        <md-checkbox class="small-checkbox md-warn" -->
+<!-- 		       				 title="Sort results by size" -->
+<!-- 		       				 aria-label="Sort results by size" -->
+<!-- 		       				 ng-model="fs.results.options.sort_by_size"> -->
+<!-- 	       				 Sort by size -->
+<!-- 	       				 </md-checkbox> -->
+<!-- 	       				 <div layout="row" layout-align="start center"> -->
+<!-- 	       				 	<div title="Click to sort in descending order" ng-if="fs.results.options.sort_order == '+' || !fs.results.options.sort_order" ng-click="fs.results.options.sort_order = '-'"><i class="fas fa-caret-up"></i> Ascending</div> -->
+<!-- 	       				 	<div title="Click to sort in ascending order" ng-if="fs.results.options.sort_order == '-'" ng-click="fs.results.options.sort_order = '+'"><i class="fas fa-caret-down"></i> Descending</div> -->
+<!-- 	       				 </div> -->
+<!-- 			        </div> -->
+			        
+<!-- 			        <div layout="row" layout-align="start center" ng-init="fs.results.options.show_only_selected = true"> -->
+<!-- 				        <md-checkbox class="small-checkbox md-warn" -->
+<!-- 		       				 title="Show only filtered/selected results" -->
+<!-- 		       				 aria-label="Show only filtered/selected results" -->
+<!-- 		       				 ng-model="fs.results.options.show_only_selected"> -->
+<!-- 	       				 Show only filtered/selected results -->
+<!-- 	       				 </md-checkbox> -->
+<!-- 			        </div> -->
+			        
+			        <!-- NUMBER OF ELEMENTS PER PAGE -->
+<!-- 			        <md-input-container class="md-block"> -->
+<!-- 						<label>Number of elements per page</label> -->
+<!-- 						<input ng-init="fs.elements_per_page = 10" placeholder="Number of elements to show per page" type="number" step="1" ng-model="fs.elements_per_page"> -->
+<!-- 					</md-input-container> -->
+	        		
+	        		<!-- PAGINATION CONTROLS -->
+<!-- 	        		<div layout="row" layout-align="start center"> -->
+<!-- 						<md-button ng-disabled="begin == 0" class="md-button md-warn md-raised" ng-click="paginationFirst(fs.elements_per_page)" tooltip="Go to the first page" aria-label="Go to the first page"> -->
+<!-- 							<i class="fas fa-angle-double-left "></i> -->
+<!-- 						</md-button> -->
+<!-- 						<md-button ng-disabled="begin == 0" class="md-button md-warn md-raised" ng-click="paginationPrevious(fs.elements_per_page)" tooltip="Go to the previous page" aria-label="Go to the previous page"> -->
+<!-- 							<i class="fas fa-arrow-left"></i> -->
+<!-- 						</md-button> -->
+<!-- 						<div style="display: inline-block;"> -->
+<!-- 							{{begin+1}} - {{filtered_list.length | min: begin+fs.elements_per_page}} of {{filtered_list.length}}/{{fs.results.matches.length}} -->
+<!-- 						</div> -->
+<!-- 						<md-button ng-disabled="begin+1+fs.elements_per_page > filtered_list.length" class="md-button md-warn md-raised" ng-click="paginationNext(filtered_list, fs.elements_per_page)" tooltip="Go to the next page" aria-label="Go to the next page"> -->
+<!-- 							<i class="fas fa-arrow-right"></i> -->
+<!-- 						</md-button> -->
+<!-- 						<md-button ng-disabled="begin+1+fs.elements_per_page > filtered_list.length" class="md-button md-warn md-raised" ng-click="paginationLast(filtered_list, fs.elements_per_page)" tooltip="Go to the last page" aria-label="Go to the last page"> -->
+<!-- 							<i class="fas fa-angle-double-right "></i> -->
+<!-- 						</md-button> -->
+<!-- 					</div> -->
+	        		
+	        		
+	        		
+	        		<!-- RESULTS -->
+	        		<md-button ng-disabled="connection_infos.length == 0" class="md-button md-warn md-raised" layout-margin ng-click="fs.results = undefined; filesystem_api(fs)" tooltip="Obtain FS info" aria-label="FS info">
+						<div layout="row" layout-align="center center">
+							<i class="fas fa-compact-disc fa-2x" layout-margin style="color: royalblue;"></i>
+							<span>Get filesystem info</span>
+						</div>
+					</md-button>
+					
+<!-- 					filtered_list = (fs.results.matches | regex:'path':filter_text | filter: (fs.results.options.show_only_selected ? {selected: true} : '')) | orderBy:(fs.results.options.sort_order + (fs.results.options.sort_by_size ? 'size' : 'path')) -->
+					
+	        		<pagination ng-if="fs.results.matches" sort="fs.results.options.sort_by" reverse="fs.results.options.reverse_sort" enable-selection="true" list="fs.results.matches" filter="filter_text">
+		        		<div ng-repeat="m in displayed">
+			        		<md-checkbox 
+       							class="small-checkbox md-warn"
+		        				 title="Single result"
+		        				 aria-label="Single result"
+		        				 ng-checked="m.selected"
+		        				 ng-model="m.selected"
+		        				 >
+	<!-- 						<div ng-repeat="m in displayed"> -->
+		       				 	<span>{{m.path}}</span><span class="lighter"> ({{m.human_size}})</span>
+	<!--        				 	</div> -->
+		       				 </md-checkbox>
+	       				 </div>
+       				 </pagination>
+        		</div>
+	        </div>
+	</md-content>
+</section>

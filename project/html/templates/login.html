@@ -1,0 +1,57 @@
+<div ng-if="userService.loggedIn" layout="column" layout-align="center center" style="background-color: #a6dde2; color: white; font-size: 2em;">
+	<md-button href="projects" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Go to your projects">
+    	<i class="fas fa-arrow-left" md-colors="{color:'warn'}"></i> <b>Go to the main page</b>
+  	</md-button>
+	  	
+	<h1>You logged in successfully <i class="fas fa-smile-wink"></i></h1>
+	<h2 style="font-size:1em;">You will be redirected to your profile in 3 seconds...</h2>		
+	<img src="imgs/login.jpeg">
+</div>
+
+<div ng-if="!userService.loggedIn">
+	<div class="split left" layout-padding>
+		<md-button ui-sref="home" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Go to the main page">
+	    	<i class="fas fa-arrow-left" md-colors="{color:'warn'}"></i> <b>Go to the main page</b>
+	  	</md-button>
+	
+		<div ng-if="!userService.loggedIn">
+		  	
+				<form layout="column" layout-align="center start" name="form" layout-padding style="background: white;">
+					<h2>Login form</h2>
+					<h3>Please fill in the following information</h3>
+					
+					<div layout-padding>
+					    <ng-md-icon icon="email" class="email"></ng-md-icon>
+						<md-input-container>
+						    <input name="email" ng-model="user.email" type="email" placeholder="Email (required)" required minlength="10" maxlength="100" ng-pattern="/^.+@.+\..+$/">
+						    <div ng-messages="form.email.$error" role="alert">
+					          <div style="max-width: 200px" ng-message-exp="['required', 'minlength', 'maxlength', 'pattern']">
+					            Your email must be between 10 and 100 characters long and look like an e-mail address.
+					          </div>
+					        </div>
+						</md-input-container>
+					</div>
+				
+					<div layout-padding>
+				    	<ng-md-icon icon="security" class="password"></ng-md-icon>
+					    <md-input-container>
+						    <label>Password</label>
+						    <input name="password" ng-model="user.password" type="password" required minlength="8" ng-pattern="/[A-Z@!+0-9-,.<>^?£$%&()]$/">
+						    <div ng-messages="form.password.$error" role="alert">
+					          <div style="max-width: 200px" ng-message-exp="['required', 'minlength', 'maxlength', 'pattern']">
+					            Your password must be at least 8 character long and contain one letter, one number (in [0-9]) and at least 1 special character (among the following @$!%*#?&).
+					          </div>
+					        </div>
+					  </md-input-container>
+				  </div>
+				
+					<md-button ng-click="send()" type="submit" class="md-raised md-accent md-hue-3" aria-label="Submit">
+				       <i class="fas fa-sign-in-alt icon" md-colors="{color:'warn'}"></i> <b>login</b>
+				     </md-button>
+				</form>
+		</div>
+	</div>
+	<div class="split right">
+		<img style="height: 100%; width: auto;" src="imgs/register.jpg">
+	</div>
+</div>

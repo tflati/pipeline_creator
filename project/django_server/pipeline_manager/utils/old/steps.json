@@ -1,0 +1,1761 @@
+{
+    "steps": [
+        {
+            "command_group_level": "all",
+            "command_level": "project",
+            "command_parallelism_level": "sequential",
+            "commandline": "echo $EXPERIMENT/$EXPERIMENT.gtf >> ../merge_list_hum.txt",
+            "conditions": [],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [
+                    "StringTie"
+                ],
+                "error": "prepare_err",
+                "job_name": "prepare-${project_variable}",
+                "memory": {
+                    "quantity": 1,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "prepare_out",
+                "queue": "gll_usr_prod",
+                "walltime": "00:01:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": true,
+            "modules": [],
+            "script_level": "project",
+            "sequential": true,
+            "skip": false,
+            "title": "PrepareStringTieMerge",
+            "type": "per-step",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "project",
+            "command_parallelism_level": "sequential",
+            "commandline": "Rscript bgCreator.R",
+            "conditions": [
+                {
+                    "command": "[ -s bg.RData ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "executables": [
+                {
+                    "command": "library(ballgown)\npData <- read.csv(\"phenodata.csv\", header=T)\nbg <- ballgown(dataDir=\".\", samplePattern=\"Muscolo\", pData=pData)\nsave(bg, file='bg.RData')",
+                    "filename": "bgCreator.R"
+                }
+            ],
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [
+                    "StringTieEB"
+                ],
+                "error": "bgCreator.err",
+                "job_name": "bgCreator-${project_variable}",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "bgCreator.out",
+                "queue": "gll_usr_prod",
+                "walltime": "00:05:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "r/3.4.2"
+            ],
+            "script_level": "project",
+            "skip": false,
+            "title": "BallgownObjectCreator",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "command_group_level": "all",
+            "command_level": "experiment",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir short/\n$STRINGTIE_HOME/bin/stringtie $EXPERIMENT.bam -B -e -p $cpu_variable -G $ANNOTATION/Genes/genes.gtf -o short/$EXPERIMENT.ballgown.gtf",
+            "conditions": [
+                {
+                    "command": "[ -s short/$EXPERIMENT.ballgown.gtf ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "elix3_rinaldi",
+                "cpu": 36,
+                "dependencies": [
+                    "MergeBams"
+                ],
+                "error": "stringtiemergeEBgtf_err",
+                "job_name": "stringtieEBgtf-${experiment_variable}",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "stringtiemergeEBgtf_out",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": true,
+            "modules": [
+                "profile/global",
+                "stringtie/1.3.4",
+                "ig_Mus_musculus/mm10"
+            ],
+            "script_level": "experiment",
+            "sequential": true,
+            "skip": false,
+            "title": "StringTieEB_refGTF",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "begin_block": "",
+            "checks": [],
+            "command_chunk_size": 10,
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "ln -s ${PATHS[0]} ${SAMPLE}_1.fastq\nln -s ${PATHS[1]} ${SAMPLE}_2.fastq",
+            "conditions": [
+                {
+                    "command": "[ -s ${SAMPLE}_1.fastq ] && [ -s ${SAMPLE}_2.fastq ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [],
+                "error": "import_err",
+                "job_name": "import",
+                "memory": {
+                    "quantity": 1,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "import_out",
+                "queue": "gll_usr_prod",
+                "walltime": "00:00:30"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "title": "Import manual data (PE)",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 10,
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "ln -s ${PATHS[0]} ${SAMPLE}.fastq",
+            "conditions": [
+                {
+                    "command": "[ -s $SAMPLE.fastq ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [],
+                "error": "import_err",
+                "job_name": "import",
+                "memory": {
+                    "quantity": 1,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "import_out",
+                "queue": "gll_usr_prod",
+                "walltime": "00:00:30"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "title": "Import manual data (SE)",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [
+                {
+                    "file": "${SAMPLE}_1.fastq"
+                }
+            ],
+            "command_chunk_size": 10,
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "fastq-dump --split-files $SAMPLE",
+            "conditions": [
+                {
+                    "command": "[ -s ${SAMPLE}_1.fastq ] && [ -s ${SAMPLE}_2.fastq ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [],
+                "error": "download_err",
+                "job_name": "download-${experiment_variable}",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "download_out",
+                "queue": "gll_usr_prod",
+                "walltime": "05:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "sra/2.8.2"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "title": "Download",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [
+                {
+                    "file": "fastqc_before"
+                }
+            ],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir fastqc_before; fastqc --nogroup --extract ${SAMPLE}_1.fastq -o fastqc_before && fastqc --nogroup --extract ${SAMPLE}_2.fastq -o fastqc_before",
+            "conditions": [
+                {
+                    "command": "[ -d fastqc_before ]"
+                }
+            ],
+            "description": "",
+            "description_short": "Quality control",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [
+                    "Download"
+                ],
+                "error": "fastqc_err",
+                "job_name": "fastqc_before",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "fastqc_out",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "fastqc/0.11.5"
+            ],
+            "overwrite": false,
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "title": "Fastqc_before",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [
+                {
+                    "file": "${SAMPLE}_1.trimmed.paired.fastq"
+                },
+                {
+                    "file": "${SAMPLE}_2.trimmed.paired.fastq"
+                }
+            ],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar PE -threads 36 -phred33 ${SAMPLE}_1.fastq ${SAMPLE}_2.fastq ${SAMPLE}_1.trimmed.paired.fastq ${SAMPLE}_1.trimmed.unpaired.fastq ${SAMPLE}_2.trimmed.paired.fastq ${SAMPLE}_2.trimmed.unpaired.fastq ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 HEADCROP:13",
+            "conditions": [
+                {
+                    "command": "[ -s $SAMPLE/${SAMPLE}_1.trimmed.paired.fastq ] && [ -s $SAMPLE/${SAMPLE}_2.trimmed.paired.fastq ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 36,
+                "dependencies": [
+                    "Download"
+                ],
+                "error": "trimmomatic_err",
+                "job_name": "trimming",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "trimmomatic_out",
+                "queue": "gll_usr_prod",
+                "walltime": "00:15:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "trimmomatic/0.36"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "title": "Trimming",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [
+                {
+                    "file": "fastqc_after"
+                }
+            ],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir fastqc_after; fastqc --nogroup --extract ${SAMPLE}_1.fastq -o fastqc_before && fastqc --nogroup --extract ${SAMPLE}_2.fastq -o fastqc_after",
+            "conditions": [
+                {
+                    "command": "[ -d fastqc_after ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [
+                    "Trimming"
+                ],
+                "error": "fastqc_after_err",
+                "job_name": "fastqc_after",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "fastqc_after_out",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "fastqc/0.11.5"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "title": "Fastqc_after",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [
+                {
+                    "file": "$SAMPLE.sam"
+                }
+            ],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "$HISAT2_HOME/bin/hisat2 -p $cpu_variable --dta -q -x $HISAT2_INDEXES/rn6/genome -1 ${SAMPLE}_1.trimmed.paired.fastq -2 ${SAMPLE}_2.trimmed.paired.fastq -U ${SAMPLE}_1.trimmed.unpaired.fastq,${SAMPLE}_2.trimmed.unpaired.fastq -S $SAMPLE.sam",
+            "conditions": [
+                {
+                    "command": "[ -s $SAMPLE.sam ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 36,
+                "dependencies": [
+                    "Trimming"
+                ],
+                "error": "hisat_err",
+                "job_name": "hisat-${sample_variable}",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "hisat_out",
+                "queue": "gll_usr_prod",
+                "walltime": "05:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "hisat2/2.1.0"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "title": "Mapping",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [
+                {
+                    "file": "${SAMPLE}_1.fastq"
+                }
+            ],
+            "command_chunk_size": 10,
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "fastq-dump --split-files $SAMPLE",
+            "conditions": [
+                {
+                    "command": "[ -s ${SAMPLE}_1.fastq ] && [ -s ${SAMPLE}_2.fastq ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [],
+                "error": "download_err",
+                "job_name": "download-${experiment_variable}",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "download_out",
+                "queue": "gll_usr_prod",
+                "walltime": "05:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "sra/2.8.2"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "title": "DownloadPE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [
+                {
+                    "file": "fastqc_before"
+                }
+            ],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir fastqc_before; fastqc --nogroup --extract ${SAMPLE}_1.fastq -o fastqc_before && fastqc --nogroup --extract ${SAMPLE}_2.fastq -o fastqc_before",
+            "conditions": [
+                {
+                    "command": "[ -d fastqc_before ]"
+                }
+            ],
+            "description": "",
+            "description_short": "Quality control",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [
+                    "DownloadPE"
+                ],
+                "error": "fastqc_err",
+                "job_name": "fastqc_before",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "fastqc_out",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "fastqc/0.11.5"
+            ],
+            "overwrite": false,
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "title": "FastQC_beforePE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "$SAMTOOLS_HOME/bin/samtools sort -@ $cpu_variable -o $SAMPLE.bam $SAMPLE.sam",
+            "conditions": [
+                {
+                    "command": "[ -s $SAMPLE.bam ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 36,
+                "dependencies": [
+                    "MappingPE-Hisat"
+                ],
+                "error": "sort_err",
+                "job_name": "sort",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "sort_out",
+                "queue": "gll_usr_prod",
+                "walltime": "03:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": true,
+            "modules": [
+                "profile/bioinf",
+                "samtools/1.7"
+            ],
+            "script_level": "sample",
+            "sequential": true,
+            "skip": false,
+            "title": "Sorting",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [
+                {
+                    "file": "$SAMPLE.sam"
+                }
+            ],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "$HISAT2_HOME/bin/hisat2 -p $cpu_variable --dta -q -x $HISAT2_INDEXES/susScr11/genome -1 ${SAMPLE}_1.trimmed.paired.fastq -2 ${SAMPLE}_2.trimmed.paired.fastq -U ${SAMPLE}_1.trimmed.unpaired.fastq,${SAMPLE}_2.trimmed.unpaired.fastq -S $SAMPLE.sam",
+            "conditions": [
+                {
+                    "command": "[ -s $SAMPLE.sam ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 36,
+                "dependencies": [
+                    "TrimmingPE"
+                ],
+                "error": "hisat_err",
+                "job_name": "hisat",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "hisat_out",
+                "queue": "gll_usr_prod",
+                "walltime": "05:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "hisat2/2.1.0"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "title": "MappingPE-Hisat",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [
+                {
+                    "file": "fastqc_after"
+                }
+            ],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir fastqc_after; fastqc --nogroup --extract ${SAMPLE}_1.trimmed.paired.fastq -o fastqc_before && fastqc --nogroup --extract ${SAMPLE}_2.trimmed.paired.fastq -o fastqc_after",
+            "conditions": [
+                {
+                    "command": "[ -d fastqc_after ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "elix3_rinaldi",
+                "cpu": 1,
+                "dependencies": [
+                    "TrimmingPE"
+                ],
+                "error": "fastqc_after_err",
+                "job_name": "fastqc_after",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "fastqc_after_out",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "fastqc/0.11.5"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "title": "FastQC_afterPE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "experiment",
+            "command_parallelism_level": "sequential",
+            "commandline": "java -Xmx2g -jar $PICARDTOOLS_HOME/bin/picard.jar MergeSamFiles OUTPUT=$EXPERIMENT.bam $(for s in $(cat samples); do echo \"INPUT=$s/$s.bam\"; done)",
+            "conditions": [
+                {
+                    "command": "[ -s $EXPERIMENT.bam ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "elix3_rinaldi",
+                "cpu": 36,
+                "dependencies": [
+                    "Sorting"
+                ],
+                "error": "merge_err",
+                "job_name": "mergebams",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "merge_out",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "picardtools/2.3.0"
+            ],
+            "overwrite": true,
+            "script_level": "experiment",
+            "skip": false,
+            "title": "MergeBams",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [
+                {
+                    "file": "${SAMPLE}_1.trimmed.paired.fastq"
+                },
+                {
+                    "file": "${SAMPLE}_2.trimmed.paired.fastq"
+                }
+            ],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar PE -threads $cpu_variable -phred33 ${SAMPLE}_1.fastq.gz ${SAMPLE}_2.fastq.gz ${SAMPLE}_1.trimmed.paired.fastq ${SAMPLE}_1.trimmed.unpaired.fastq ${SAMPLE}_2.trimmed.paired.fastq ${SAMPLE}_2.trimmed.unpaired.fastq ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 HEADCROP:13",
+            "conditions": [
+                {
+                    "command": "[ -s ${SAMPLE}_1.trimmed.paired.fastq ] && [ -s ${SAMPLE}_2.trimmed.paired.fastq ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "elix3_rinaldi",
+                "cpu": 36,
+                "dependencies": [
+                    "Import manual data (PE)"
+                ],
+                "error": "trimmomatic_err",
+                "job_name": "trimming",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "trimmomatic_out",
+                "queue": "gll_usr_prod",
+                "walltime": "04:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "trimmomatic/0.36"
+            ],
+            "overwrite": false,
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "title": "TrimmingPE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 10,
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "fastq-dump --split-files $SAMPLE",
+            "conditions": [
+                {
+                    "command": "[ -s ${SAMPLE}_1.fastq ] && [ -s ${SAMPLE}_2.fastq ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [],
+                "error": "download_err",
+                "job_name": "download-${experiment_variable}",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "download_out",
+                "queue": "gll_usr_prod",
+                "walltime": "05:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "sra/2.8.2"
+            ],
+            "script_level": "experiment",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Download_PE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_chunk_size": 10,
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "fastq-dump $SAMPLE",
+            "conditions": [
+                {
+                    "command": "[ -s $SAMPLE.fastq ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [],
+                "error": "download_err",
+                "job_name": "download",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "download_out",
+                "queue": "gll_usr_prod",
+                "walltime": "05:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "sra/2.8.2"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "SE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Download_SE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir fastqc_before; fastqc --nogroup --extract $SAMPLE.fastq -o fastqc_before",
+            "conditions": [
+                {
+                    "command": "[ -d fastqc_before ]"
+                }
+            ],
+            "description": "",
+            "description_short": "Quality control",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [
+                    "Download_SE"
+                ],
+                "error": "fastqc_err",
+                "job_name": "fastqc_before-${project_variable}",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "fastqc_out",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "fastqc/0.11.5"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "SE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Fastqc_before_SE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar SE -threads 36 -phred33 $SAMPLE.fastq $SAMPLE.trim.fastq ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-SE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 HEADCROP:13",
+            "conditions": [
+                {
+                    "command": "[ -s $SAMPLE.trim.fastq ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 36,
+                "dependencies": [
+                    "Download_SE"
+                ],
+                "error": "trimmomatic_err",
+                "job_name": "trimming-${sample_variable}",
+                "memory": {
+                    "quantity": 30,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "trimmomatic_out",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "trimmomatic/0.36"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "SE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Trimming_SE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir fastqc_after; fastqc --nogroup --extract $SAMPLE.trim.fastq -o fastqc_after",
+            "conditions": [
+                {
+                    "command": "[ -d fastqc_after ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [
+                    "Trimming_SE"
+                ],
+                "error": "fastqc_after_err",
+                "job_name": "fastqc_after-${project_variable}",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "fastqc_after_out",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "fastqc/0.11.5"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "SE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Fastqc_after_SE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "$HISAT2_HOME/bin/hisat2 -p $cpu_variable --dta -q -x $HISAT2_INDEXES/mm10/genome -U $SAMPLE.trim.fastq -S $SAMPLE.sam",
+            "conditions": [
+                {
+                    "command": "[ -s $SAMPLE.sam ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 36,
+                "dependencies": [
+                    "Trimming_SE"
+                ],
+                "error": "hisat_err",
+                "job_name": "hisat-${sample_variable}",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "hisat_out",
+                "queue": "gll_usr_prod",
+                "walltime": "05:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "hisat2/2.1.0"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "SE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Mapping_Hisat_SE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "command_group_level": "all",
+            "command_level": "experiment",
+            "command_parallelism_level": "sequential",
+            "commandline": "$STRINGTIE_HOME/bin/stringtie $EXPERIMENT.bam -B -e -p $cpu_variable -G ../merged.gtf -o $EXPERIMENT.merged.gtf",
+            "conditions": [],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 36,
+                "dependencies": [
+                    "StringTieMerge"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": true,
+            "modules": [
+                "profile/bioinf",
+                "stringtie/1.3.4"
+            ],
+            "script_level": "experiment",
+            "sequential": true,
+            "skip": false,
+            "tags": [],
+            "title": "StringTieEB-Merged",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "command_group_level": "all",
+            "command_level": "experiment",
+            "command_parallelism_level": "sequential",
+            "commandline": "$STRINGTIE_HOME/bin/stringtie  -v -p $cpu_variable -G $ANNOTATION/Genes/genes.gtf -o $EXPERIMENT.gtf -l $EXPERIMENT $EXPERIMENT.bam",
+            "conditions": [
+                {
+                    "command": "[ -s $EXPERIMENT.gtf ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 36,
+                "dependencies": [
+                    "MergeBams"
+                ],
+                "error": "stringtie_err",
+                "job_name": "stringtie-${sample_variable}",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "stringtie_out",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": true,
+            "modules": [
+                "profile/bioinf",
+                "profile/global",
+                "stringtie/1.3.4",
+                "ig_Mus_musculus/mm10"
+            ],
+            "script_level": "experiment",
+            "sequential": true,
+            "skip": false,
+            "tags": [],
+            "title": "StringTie",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "command_group_level": "all",
+            "command_level": "experiment",
+            "command_parallelism_level": "sequential",
+            "commandline": "$STRINGTIE_HOME/bin/stringtie $EXPERIMENT.bam -B -e -p $cpu_variable -G $ANNOTATION/Genes/genes.gtf -o $EXPERIMENT.gtf",
+            "conditions": [],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 36,
+                "dependencies": [
+                    "MergeBams"
+                ],
+                "error": "stringtiemergeEB_err",
+                "job_name": "stringtieEB-${experiment_variable}",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "stringtiemergeEB_out",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": true,
+            "modules": [
+                "profile/bioinf",
+                "stringtie/1.3.4",
+                "ig_Mus_musculus/mm10"
+            ],
+            "script_level": "experiment",
+            "sequential": true,
+            "skip": false,
+            "tags": [],
+            "title": "StringTieEB",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "begin_block": "",
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "experiment",
+            "command_parallelism_level": "sequential",
+            "commandline": "rm *sam\nrm *bam",
+            "conditions": [],
+            "description": "",
+            "description_short": "",
+            "end_block": "",
+            "executable": [],
+            "hpc_directives": {
+                "account": "elix3_negri",
+                "cpu": 1,
+                "dependencies": [
+                    "StringTieMerge"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 1,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "00:05:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [],
+            "overwrite": false,
+            "script_level": "experiment",
+            "skip": false,
+            "tags": [],
+            "title": "DeleteExperimentData",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "begin_block": "",
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "rm *fastq\n    rm *fq\n    rm *bam\n    rm *sam",
+            "conditions": [],
+            "description": "",
+            "description_short": "",
+            "end_block": "",
+            "executable": [],
+            "hpc_directives": {
+                "account": "elix3_negri",
+                "cpu": 1,
+                "dependencies": [
+                    "MergeBams"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 1,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "00:05:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [],
+            "overwrite": false,
+            "script_level": "sample",
+            "skip": false,
+            "tags": [],
+            "title": "DeleteRunData",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "begin_block": "",
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "project",
+            "command_parallelism_level": "sequential",
+            "commandline": "if [ ! -s prepDE.py ]\nthen\n    wget http://ccb.jhu.edu/software/stringtie/dl/prepDE.py\nfi\n\nrm \"input.list.$ORGANISM.txt\"\nfor EXPERIMENT in $(cat $RUN_DIR/$BIOPROJECT/experiments | grep \"Organism:$ORGANISM\" | cut -f 1); do echo -e \"$EXPERIMENT\\t$EXPERIMENT/$EXPERIMENT.gtf\" >> \"input.list.$ORGANISM.txt\"; done\n\npython prepDE.py -i \"input.list.$ORGANISM.txt\" -g \"gene_count_matrix.$ORGANISM.csv\" -t \"transcript_count_matrix.$ORGANISM.csv\"",
+            "conditions": [],
+            "description": "",
+            "description_short": "",
+            "end_block": "",
+            "executable": [],
+            "hpc_directives": {
+                "account": "elix3_negri",
+                "cpu": 1,
+                "dependencies": [
+                    "StringTieEB"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "00:30:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "r/3.4.2"
+            ],
+            "overwrite": false,
+            "script_level": "project",
+            "skip": false,
+            "tags": [
+                {
+                    "type": "Organism"
+                }
+            ],
+            "title": "prepareCountMatrices",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "begin_block": "",
+            "checks": [],
+            "command_chunk_size": 10,
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "rsync -v ${PATHS[0]} ${SAMPLE}_1.fastq &\nrsync -v ${PATHS[1]} ${SAMPLE}_2.fastq &\n\nwait",
+            "conditions": [
+                {
+                    "command": "[ -s ${SAMPLE}_1.fastq ] && [ -s ${SAMPLE}_2.fastq ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [],
+                "error": "import_err",
+                "job_name": "import",
+                "memory": {
+                    "quantity": 5,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "import_out",
+                "queue": "gll_usr_prod",
+                "walltime": "10:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [],
+            "title": "Rsync manual data (PE)",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar PE -threads 36 -phred33 ${SAMPLE}_1.fastq ${SAMPLE}_2.fastq ${SAMPLE}_1.trimmed.paired.fastq ${SAMPLE}_1.trimmed.unpaired.fastq ${SAMPLE}_2.trimmed.paired.fastq ${SAMPLE}_2.trimmed.unpaired.fastq ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 HEADCROP:13",
+            "conditions": [
+                {
+                    "command": "[ -s $SAMPLE/${SAMPLE}_1.trimmed.paired.fastq ] && [ -s $SAMPLE/${SAMPLE}_2.trimmed.paired.fastq ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "elix3_negri",
+                "cpu": 36,
+                "dependencies": [
+                    "Rsync manual data (PE)"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 30,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "trimmomatic/0.36"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": false,
+            "tags": [
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Trimming_PE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "begin_block": "",
+            "command_group_level": "all",
+            "command_level": "project",
+            "command_parallelism_level": "sequential",
+            "commandline": "rm \"merge_list.$ORGANISM.txt\"\nfor EXPERIMENT in $(cat $RUN_DIR/$BIOPROJECT/experiments | cut -f 1)\ndo\n    echo $EXPERIMENT/$EXPERIMENT.gtf >> \"merge_list.$ORGANISM.txt\"\ndone\n\n$STRINGTIE_HOME/bin/stringtie --merge -p $cpu_variable -G $ANNOTATION/Genes/genes.gtf  -o \"merged.$ORGANISM.gtf\" \"merge_list.$ORGANISM.txt\"",
+            "conditions": [
+                {
+                    "command": ""
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "elix3_negri",
+                "cpu": 36,
+                "dependencies": [
+                    "MergeBams"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "10:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": true,
+            "modules": [
+                "profile/bioinf",
+                "stringtie/1.3.4"
+            ],
+            "script_level": "project",
+            "sequential": true,
+            "skip": false,
+            "tags": [
+                {
+                    "type": "Organism"
+                }
+            ],
+            "title": "StringTieMerge",
+            "type": "per-step",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "begin_block": "",
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "top",
+            "command_parallelism_level": "sequential",
+            "commandline": "INPUT_FILE=$(realpath \"$FILE_DIR/phenodata.xlsx\")\nCONVERTED_INPUT_FILE=$(realpath \"$FILE_DIR/phenodata.converted.xlsx\")\nDATASET_FILE=$(realpath \"$FILE_DIR/dataset.xlsx\")\nOUTPUT_DIR=$(realpath \"degs/\")\nCOMBINATION_FILE=$OUTPUT_DIR\"subsets.txt\"\n\nCOVARIATE=\"Stress.protocol\"\nCOLUMNS_TO_SKIP=\"ids,Estrus,Age.w,Replicate,ids,Note,Stress_added_T\"\nSHEETS_TO_SKIP=\"PRJNA392171,PRJNA341670,Codici\"\nTO_SKIP=\"Estrus,Age.w,Replicate,ids,Note,Stress_added_T\"\nCOLUMNS_2_VALUES=\"Time.from.stress.h,Phenotype,Treatment.2\"\nCOLUMNS_NOT_TO_MERGE=\"Time.from.stress.h,Region,Phenotype,Treatment.2,Sex\"\n\nORGANISM_NAME=\"Mus musculus\"\nORGANISM_DB=\"org.Mm.eg.db\"\n\ncd $SCRIPT_DIR\n\nvirtualenv ENV\nsource ENV/bin/activate\npip install openpyxl\n\n# Convert the configuration file\npython3 configuration_converter.py $INPUT_FILE $CONVERTED_INPUT_FILE $DATASET_FILE $SHEETS_TO_SKIP\n\n# Generate the configurations\npython3 configurator.py $CONVERTED_INPUT_FILE $COVARIATE $COLUMNS_TO_SKIP $TO_SKIP $COLUMNS_2_VALUES $COLUMNS_NOT_TO_MERGE > $COMBINATION_FILE\n\n# Split the phenodata into directories\npython3.5 configuration_splitter.py $CONVERTED_INPUT_FILE $BASE_DIR $SHEETS_TO_SKIP\n\n# Produce the configurations for all the bioprojects\npython produce_lists_deseq2.py -n \"control\" -f $COMBINATION_FILE -i $BASE_DIR -o $OUTPUT_DIR -m $ORGANISM_NAME -d $ORGANISM_DB\n\ndeactivate",
+            "conditions": [],
+            "description": "",
+            "description_short": "",
+            "end_block": "",
+            "executable": [],
+            "executables": [],
+            "hpc_directives": {
+                "account": "elix3_negri",
+                "cpu": 1,
+                "dependencies": [
+                    "prepareCountMatrices"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "24:00:00"
+            },
+            "hpc_directives_text": "",
+            "modules": [
+                "profile/global",
+                "r/3.4.2",
+                "python/3.5.2"
+            ],
+            "overwrite": false,
+            "script_level": "top",
+            "skip": false,
+            "tags": [],
+            "title": "produceDEGs",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir fastqc_after; fastqc --nogroup --extract ${SAMPLE}_1.trimmed.paired.fastq* -o fastqc_before && fastqc --nogroup --extract ${SAMPLE}_2.trimmed.paired.fastq* -o fastqc_after",
+            "conditions": [
+                {
+                    "command": "[ -d fastqc_after ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "elix3_negri",
+                "cpu": 1,
+                "dependencies": [
+                    "Trimming_PE"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "04:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "fastqc/0.11.5"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": true,
+            "tags": [
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Fastqc_after_PE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "mkdir fastqc_before; fastqc --nogroup --extract ${SAMPLE}_1.fastq* -o fastqc_before && fastqc --nogroup --extract ${SAMPLE}_2.fastq* -o fastqc_before",
+            "conditions": [
+                {
+                    "command": "[ -d fastqc_before ]"
+                }
+            ],
+            "description": "",
+            "description_short": "Quality control",
+            "hpc_directives": {
+                "account": "elix3_negri",
+                "cpu": 1,
+                "dependencies": [
+                    "Rsync manual data (PE)"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 10,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "04:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "fastqc/0.11.5"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": true,
+            "tags": [
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Fastqc_before_PE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "java -jar $TRIMMOMATIC_HOME/trimmomatic-0.36.jar PE -threads 36 -phred33 ${SAMPLE}_1.fastq.gz ${SAMPLE}_2.fastq.gz ${SAMPLE}_1.trimmed.paired.fastq.gz ${SAMPLE}_1.trimmed.unpaired.fastq.gz ${SAMPLE}_2.trimmed.paired.fastq.gz ${SAMPLE}_2.trimmed.unpaired.fastq.gz ILLUMINACLIP:$TRIMMOMATIC_HOME/adapters/TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:4:15 MINLEN:36 HEADCROP:13",
+            "conditions": [
+                {
+                    "command": "[ -s ${SAMPLE}_1.trimmed.paired.fastq.gz ] && [ -s ${SAMPLE}_2.trimmed.paired.fastq.gz ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "elix3_negri",
+                "cpu": 36,
+                "dependencies": [
+                    "Rsync manual data (PE)"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 30,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "02:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "trimmomatic/0.36"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": true,
+            "tags": [
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Trimming_gz_PE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        },
+        {
+            "checks": [],
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "$HISAT2_HOME/bin/hisat2 -p $cpu_variable --dta -q -x $HISAT2_INDEX/genome -1 ${SAMPLE}_1.trimmed.paired.fastq* -2 ${SAMPLE}_2.trimmed.paired.fastq* -U ${SAMPLE}_1.trimmed.unpaired.fastq*,${SAMPLE}_2.trimmed.unpaired.fastq* -S $SAMPLE.sam",
+            "conditions": [
+                {
+                    "command": "[ -s $SAMPLE.sam ]"
+                }
+            ],
+            "description": "",
+            "description_short": "",
+            "hpc_directives": {
+                "account": "elix3_negri",
+                "cpu": 36,
+                "dependencies": [
+                    "Trimming_gz_PE"
+                ],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 115,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "gll_usr_prod",
+                "walltime": "05:00:00"
+            },
+            "hpc_directives_text": "",
+            "iterate": false,
+            "modules": [
+                "profile/bioinf",
+                "hisat2/2.1.0"
+            ],
+            "script_level": "sample",
+            "sequential": false,
+            "skip": true,
+            "tags": [
+                {
+                    "name": "PE",
+                    "type": "Layout"
+                }
+            ],
+            "title": "Mapping_Hisat_PE",
+            "type": "per-sample",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        }
+    ]
+}

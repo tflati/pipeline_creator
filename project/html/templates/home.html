@@ -1,0 +1,31 @@
+<div class="main-container">
+	
+	<div class="landing">
+		<div class="login-tools">
+			<div ng-if="logged_user.loggedIn">
+			      <a title="Hi, {{logged_user.username}}" layout="row" layout-align="center center" href="projects" style="background-color: green; height: 40px; width: 40px; margin: 10px; border: 5px solid white; border-radius: 25px; color: white; text-decoration: none; display: inline-grid;">
+			      	<b style="font-weight: 900%;">{{logged_user.username | capitalise}}</b>
+			      </a>
+		      	<md-button href="logout" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Logout">
+		         <i class="fas fa-power-off" md-colors="{color:'warn'}"></i> <b>logout</b>
+		       </md-button>
+		      </div>
+		      
+		      <div ng-if="!logged_user.loggedIn">
+		       <md-button href="login" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Login">
+		         <i class="fas fa-key" md-colors="{color:'warn'}"></i> <b>login</b>
+		       </md-button>
+		       <md-button href="register" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Register">
+		         <i class="fas fa-sign-in-alt icon" md-colors="{color:'warn'}"></i> <b>register</b>
+		       </md-button>
+		      </div>
+		</div>
+		
+		<img width="100%" src="imgs/landing.jpg">
+		<div class="landing-title">
+			<h1>Pipeliner</h1>
+			<h2>Automate your workflows.</h2>
+		</div>
+	</div>
+	
+</div>

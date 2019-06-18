@@ -1,0 +1,370 @@
+#!/usr/bin/perl
+#
+#
+#*************************************************#
+#                   modmap                        #
+#          scritto da Silvia Giuliani             #
+#                 15 maggio 2016                  #
+#          modificato da Tiziano Flati            #
+#                 27 maggio 2018                  #
+#                                                 #
+# mappa dei moduli disponibili sulla macchina     #
+# tramite  i modulefiles in prod/opt/modulefiles  #
+#*************************************************#
+#
+#
+$MAN_PAGE = "
+# modmap is a command that returns, on the standard output, the map of the modules available on this machine. 
+# The modules are collected in different profiles and organized by functional category (compilers, libraries, applications,..).
+# The profiles are of domain type for the production activity (chem, phys, lifesc,..) or of programming type for compilation, debugging and profiling activity (base, advanced).
+# An archive profile is available for all older modules versions. 
+#
+# modmap options:
+#             -all  
+#                 Print the full modules map: all profiles, all categories defined for each profile, all modules available for each category
+#             -profiles 
+#                 Print all available profiles 
+#             -categories
+#                 Print all available categories     
+#             -p <profile name> 
+#                 Print all modules available for the selected profile 
+#             -c <category name> 
+#                 Print all modules available for the selected category 
+#             -m <module name> 
+#                 Print all versions of the selected module
+#
+#              Use examples:
+#
+#              modmap -p bioinf		# print all modules available for bioinf domain 
+#              modmap -c compilers	# print all compilers available on the cluster and the profiles where they are located
+#              modmap -m namd 		# print all NAMD versions available on the cluster and the profiles where they are located  
+#
+#
+# Base profile is the default. It is automatically loaded after login and it contains basic modules for the programming activities (intel, gnu compilers,..). 
+# In order to use modules placed under others profiles, you have to load preventively the corresponding profile:
+#
+#              module load profile/<profile name>
+#
+# For listing all loaded profiles use the following command:
+#
+#              module list
+#
+# NAMD use example:
+#
+#              modmap -m namd			# find the corresponding profile to load 
+#              module load profile/chem		# load the found profile
+#              module load namd			# load NAMD module 
+#              module load namd/<version>	# load a specific version if more NAMD versions are available
+#
+#
+#
+";
+
+#use Getopt::Long qw(:config  bundling);
+use 5.010;
+use Getopt::Long qw(GetOptions);
+
+
+%options = ();
+    GetOptions (\%options, 'h|help|?', 'p=s','c=s','m=s','all', 'profiles', 'categories' );
+    
+
+if ($options{'help'} or $options{'h'} or $options{'?'} or (!$options{'all'} and !$options{'profiles'} and !$options{'categories'} and !$options{'p'} and !$options{'c'} and !$options{'m'})) {
+ print $MAN_PAGE;
+ exit 0;
+}
+
+#modfilesPath = "/galileo/home/userinternal/sgiulian/prod/opt/modulefiles";
+$modfilesPath = "/cineca/prod/opt/modulefiles/";
+
+if($options{'all'}){
+ $contModfilesPath = `ls -l $modfilesPath`;
+ @subdirs = split /\n/, $contModfilesPath;
+
+ foreach $subdir (@subdirs){
+     if ($subdir=~ m/^total/){
+        next;
+     }else{
+        @profileNames = split /\s+/, $subdir;
+        $profileName = pop @profileNames;
+        push @profiles, $profileName;
+     }
+
+ }
+
+ foreach $profile (@profiles){
+        if ($profile=~ m/profiles/ || $profile=~ m/candidate/){
+           next;
+        }else{ 
+           print "Profile: $profile\n";
+           $profilesPath="$modfilesPath\/$profile";
+           $contProfilesPath=`ls -l $profilesPath`;
+           @ssdirs = split /\n/, $contProfilesPath;
+           foreach $ssd (@ssdirs){
+              if ($ssd=~ m/sitelocal/ || $ssd=~ m/total/){
+                    next;
+              }else{
+                    if ($ssd=~ m/^d/){
+                       @categoryNames = split /\s+/, $ssd;
+                       $categoryName = pop @categoryNames;
+                       push @categories, $categoryName;
+                       print "\t\t$categoryName\n";
+                           $categoriesPath="$profilesPath\/$categoryName";
+                           $contCategoriesPath=`ls -l $categoriesPath`;
+                           @sssdirs = split /\n/, $contCategoriesPath;
+                           foreach $sssd (@sssdirs){
+                              if ($sssd=~ m/^d/){
+                                 @moduleNames = split /\s+/, $sssd;
+                                 $moduleName = pop @moduleNames;
+                                 push @modules, $moduleName;
+                                 print "\t\t\t$moduleName\n";
+                                 $modulesPath="$categoriesPath\/$moduleName";
+                                 $contModulesPath=`ls -l $modulesPath`;
+                                 @ssssdirs = split /\n/, $contModulesPath;
+                                 foreach $ssssd (@ssssdirs){
+                                    if ($ssssd=~ m/total/){
+                                          next
+                                    }else{
+                                       @moduleVersions = split /\s+/, $ssssd;
+                                       $moduleVersion = pop @moduleVersions;
+                                       push @versions, $moduleVersion;
+                                       print "\t\t\t $moduleVersion\n";
+                                    }
+                                 }
+                              }
+                           }
+                          
+                    }
+              }
+           }
+         }
+
+ }
+
+}elsif($options{'profiles'}){
+ $contModfilesPath = `ls -l $modfilesPath`;
+ @subdirs = split /\n/, $contModfilesPath;
+
+ foreach $subdir (@subdirs){
+     if ($subdir=~ m/^total/){
+        next;
+     }else{
+        @profileNames = split /\s+/, $subdir;
+        $profileName = pop @profileNames;
+        push @profiles, $profileName;
+     }
+
+ }
+
+foreach $profile (@profiles){
+  if ($profile !~ m/candidate/ && $profile !~ m/profiles/){
+         #push @newProfiles, $profile;
+         print "$profile\n";
+  }
+}
+
+  
+}elsif($options{'categories'}){
+ $contModfilesPath = `ls -l $modfilesPath`;
+ @subdirs = split /\n/, $contModfilesPath;
+
+ foreach $subdir (@subdirs){
+     if ($subdir=~ m/^total/){
+        next;
+     }else{
+        @profileNames = split /\s+/, $subdir;
+        $profileName = pop @profileNames;
+        push @profiles, $profileName;
+     }
+
+ }
+
+ foreach $profile (@profiles){
+        if ($profile=~ m/base/){
+           $profilesPath="$modfilesPath\/$profile";
+           $contProfilesPath=`ls -l $profilesPath`;
+           @ssdirs = split /\n/, $contProfilesPath;
+           foreach $ssd (@ssdirs){
+              if ($ssd=~ m/sitelocal/ || $ssd=~ m/total/){
+                    next;
+              }else{
+                    if ($ssd=~ m/^d/){
+                       @categoryNames = split /\s+/, $ssd;
+                       $categoryName = pop @categoryNames;
+                       push @categories, $categoryName;
+                       print "\t\t$categoryName\n";
+                    }
+              }
+           }
+         }
+ }
+
+}elsif($options{'p'}){
+      $profilesPath="$modfilesPath\/$options{'p'}";
+      $contProfilesPath=`ls -l $profilesPath`;
+      @ssdirs = split /\n/, $contProfilesPath;
+      foreach $ssd (@ssdirs){
+              if ($ssd=~ m/sitelocal/ || $ssd=~ m/total/){
+                    next;
+              }else{
+                    if ($ssd=~ m/^d/){
+                       @categoryNames = split /\s+/, $ssd;
+                       $categoryName = pop @categoryNames;
+                       push @categories, $categoryName;
+                       print "\t\t$categoryName\n";
+                       $categoriesPath="$profilesPath\/$categoryName";
+                       $contCategoriesPath=`ls -l $categoriesPath`;
+                       @sssdirs = split /\n/, $contCategoriesPath;
+                       foreach $sssd (@sssdirs){
+                            if ($sssd=~ m/^d/){
+                                @moduleNames = split /\s+/, $sssd;
+                                $moduleName = pop @moduleNames;
+                                push @modules, $moduleName;
+                                print "\t\t\t$moduleName\n";
+                                $modulesPath="$categoriesPath\/$moduleName";
+                                $contModulesPath=`ls -l $modulesPath`;
+                                @ssssdirs = split /\n/, $contModulesPath;
+                                foreach $ssssd (@ssssdirs){
+                                   if ($ssssd=~ m/total/){
+                                         next
+                                   }else{
+                                      @moduleVersions = split /\s+/, $ssssd;
+                                      $moduleVersion = pop @moduleVersions;
+                                      push @versions, $moduleVersion;
+                                      print "\t\t\t $moduleVersion\n";
+                                   }
+                                }
+                             }
+                      }
+                    }
+              }
+      }       
+}elsif($options{'c'}){
+         
+   $contModfilesPath = `ls -l $modfilesPath`;
+   @subdirs = split /\n/, $contModfilesPath;
+
+   foreach $subdir (@subdirs){
+     if ($subdir=~ m/^total/){
+        next;
+     }else{
+        @profileNames = split /\s+/, $subdir;
+        $profileName = pop @profileNames;
+        push @profiles, $profileName;
+     }
+
+   }
+
+  foreach $profile (@profiles){
+       if ($profile=~ m/profiles/ || $profile=~ m/candidate/){
+          next;
+       }else{
+          print "Profiles: $profile\n";
+          $profilesPath="$modfilesPath\/$profile";
+          $contProfilesPath=`ls -l $profilesPath`;
+          @ssdirs = split /\n/, $contProfilesPath;
+          foreach $ssd (@ssdirs){
+             if ($ssd=~ m/$options{'c'}/){
+                  @categoryNames = split /\s+/, $ssd;
+                  $categoryName = pop @categoryNames;
+                  push @categories, $categoryName;
+                  #print "\t$categoryName\n";
+                  $categoriesPath="$profilesPath\/$categoryName";
+                  $contCategoriesPath=`ls -l $categoriesPath`;
+                  @sssdirs = split /\n/, $contCategoriesPath;
+                  foreach $sssd (@sssdirs){
+                          if ($sssd=~ m/^d/){
+                            @moduleNames = split /\s+/, $sssd;
+                            $moduleName = pop @moduleNames;
+                            push @modules, $moduleName;
+                            print "\t\t$moduleName\n";
+                            $modulesPath="$categoriesPath\/$moduleName";
+                            $contModulesPath=`ls -l $modulesPath`;
+                            @ssssdirs = split /\n/, $contModulesPath;
+                            foreach $ssssd (@ssssdirs){
+                              if ($ssssd=~ m/total/){
+                                    next
+                              }else{
+                                    @moduleVersions = split /\s+/, $ssssd;
+                                    $moduleVersion = pop @moduleVersions;
+                                    push @versions, $moduleVersion;
+                                    print "\t\t $moduleVersion\n";
+                              }
+                            }
+                          }
+                  } 
+             }
+          }
+       }
+  }
+}elsif($options{'m'}){
+   $contModfilesPath = `ls -l $modfilesPath`;
+   @subdirs = split /\n/, $contModfilesPath;
+
+   foreach $subdir (@subdirs){
+     if ($subdir=~ m/^total/){
+        next;
+     }else{
+        @profileNames = split /\s+/, $subdir;
+        $profileName = pop @profileNames;
+        push @profiles, $profileName;
+     }
+   }
+
+   foreach $profile (@profiles){
+        if ($profile=~ m/profiles/ || $profile=~ m/candidate/){
+           next;
+        }else{
+           print "Profile: $profile\n";
+           $profilesPath="$modfilesPath\/$profile";
+           $contProfilesPath=`ls -l $profilesPath`;
+           @ssdirs = split /\n/, $contProfilesPath;
+           foreach $ssd (@ssdirs){
+              if ($ssd=~ m/sitelocal/ || $ssd=~ m/total/){
+                    next;
+              }else{
+                    if ($ssd=~ m/^d/){
+                       @categoryNames = split /\s+/, $ssd;
+                       $categoryName = pop @categoryNames;
+                       push @categories, $categoryName;
+                       #print "\t$categoryName\n";
+                       $categoriesPath="$profilesPath\/$categoryName";
+                       $contCategoriesPath=`ls -l $categoriesPath`;
+                       @sssdirs = split /\n/, $contCategoriesPath;
+                       foreach $sssd (@sssdirs){
+                            if ($sssd=~ m/^d/){
+                               @moduleNames = split /\s+/, $sssd;
+                               $moduleName = pop @moduleNames;
+                               if($moduleName=~ m/$options{'m'}/){
+                                   push @modules, $moduleName;
+                                   print "\t\t$moduleName\n";
+                                   $modulesPath="$categoriesPath\/$moduleName";
+                                   $contModulesPath=`ls -l $modulesPath`;
+                                   @ssssdirs = split /\n/, $contModulesPath;
+                                   foreach $ssssd (@ssssdirs){
+                                       if($ssssd=~ m/total/){
+                                         next;
+                                       }else{
+                                         @moduleVersions = split /\s+/, $ssssd;
+                                         $moduleVersion = pop @moduleVersions;
+                                         push @versions, $moduleVersion;
+                                         print "\t\t $moduleVersion\n";
+                                       }
+                                   }
+                               }
+                            }
+                       }
+                    }
+              }
+           }
+        }
+
+   }    
+      
+}
+
+
+
+
+
+

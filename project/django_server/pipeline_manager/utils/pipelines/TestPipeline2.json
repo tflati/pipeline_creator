@@ -1,0 +1,121 @@
+{
+    "cluster": "",
+    "color": "#44df5b",
+    "disabled": false,
+    "files": [
+        {
+            "name": "configuration_converter.py",
+            "url": "/data/Manual/scripts/TestPipeline/configuration_converter.py"
+        },
+        {
+            "name": "configuration_splitter.py",
+            "url": "/data/Manual/scripts/TestPipeline/configuration_splitter.py"
+        },
+        {
+            "name": "create_ontology_tables.R",
+            "url": "/data/Manual/scripts/TestPipeline/create_ontology_tables.R"
+        },
+        {
+            "name": "produce_DEG_table.R",
+            "url": "/data/Manual/scripts/TestPipeline/produce_DEG_table.R"
+        },
+        {
+            "name": "produce_lists_deseq2.py",
+            "url": "/data/Manual/scripts/TestPipeline/produce_lists_deseq2.py"
+        },
+        {
+            "name": "create_foldchange_table.R",
+            "url": "/data/Manual/scripts/TestPipeline/create_foldchange_table.R"
+        }
+    ],
+    "id": "TestPipeline",
+    "modules": [],
+    "remote_path": "",
+    "steps": [
+        {
+            "begin_block": "",
+            "checks": [],
+            "command_chunk_size": 1,
+            "command_group_level": "all",
+            "command_level": "sample",
+            "command_parallelism_level": "sequential",
+            "commandline": "du -csh \"$FILE_DIR/Research Topics.png\"",
+            "conditions": [],
+            "description": "",
+            "description_short": "",
+            "end_block": "",
+            "executable": [],
+            "hpc_directives": {
+                "account": "cin_staff",
+                "cpu": 1,
+                "dependencies": [],
+                "error": "",
+                "job_name": "",
+                "memory": {
+                    "quantity": 1,
+                    "size": "GB"
+                },
+                "mpi_procs": 0,
+                "nodes": 1,
+                "output": "",
+                "queue": "",
+                "walltime": "00:00:30"
+            },
+            "hpc_directives_text": "",
+            "modules": [],
+            "overwrite": false,
+            "script_level": "sample",
+            "skip": false,
+            "tags": [],
+            "title": "",
+            "write_stderr_log": true,
+            "write_stdout_log": true
+        }
+    ],
+    "tags": [],
+    "username": "tflati00",
+    "variables": [
+        {
+            "description": "Variable to use across scripts to refer to a sample in this project",
+            "key": "sample_variable",
+            "key_disabled": true,
+            "value": "SAMPLE"
+        },
+        {
+            "description": "Variable to use across scripts to refer to ALL samples in this project",
+            "key": "all_samples_variable",
+            "key_disabled": true,
+            "value": "ALL_SAMPLES"
+        },
+        {
+            "description": "Variable to use across scripts to refer to this project ID",
+            "key": "project_variable",
+            "key_disabled": true,
+            "value": "PROJECT"
+        },
+        {
+            "description": "Variable to use across scripts to refer to the experiment ID",
+            "key": "experiment_variable",
+            "key_disabled": true,
+            "value": "EXPERIMENT"
+        },
+        {
+            "description": "Variable to use across scripts to refer to the index of this project",
+            "key": "project_index_variable",
+            "key_disabled": true,
+            "value": "PROJECT_INDEX"
+        },
+        {
+            "description": "Variable to use across scripts to refer to the number of CPU defined in a step",
+            "key": "cpu_variable",
+            "key_disabled": true,
+            "value": "CPU"
+        },
+        {
+            "description": "Variable to use across scripts to refer to the name of the step",
+            "key": "step_name_variable",
+            "key_disabled": true,
+            "value": "STEP_NAME"
+        }
+    ]
+}

@@ -1,0 +1,31 @@
+<section layout-padding>
+	<md-subheader class="md-primary">Monitor the progress of
+	your runs</md-subheader>
+
+	<div ng-if="project.runs == undefined || project.runs.length == 0"
+		md-colors="{color:'accent'}">
+		<i class="fas fa-exclamation-triangle"></i> No runs are available at the moment. To create a run:
+		<md-button class="no-margin" ui-sref="project.launch">Go to the launch tab <i class="fas fa-arrow-circle-right"></i></md-button>
+	</div>
+
+	<div ng-repeat="run in project.runs track by $index">
+		<a ui-sref="^.run.all({run_id: run.id})"><b>Run {{$index+1}}: {{run.id}}</b></a>
+
+		<span class="lighter margin-left-5">Created: <span title="Exactly: {{run.creation_date | amParse:'YYYY-MM-DD HH:mm:ss'}}" am-time-ago="run.creation_date | amParse:'YYYY-MM-DD HH:mm:ss'"></span></span>
+		
+		<md-button ng-if="!removing[$index]" class="md-icon-button"
+			ng-click="showDeleteDialog(project.runs, $index, $event, remove_run)"
+			tooltip="Delete run" aria-label="Delete run"> <i
+			class="fas fa-trash"></i> </md-button>
+		<md-button ng-if="removing[$index]" class="md-icon-button"
+			tooltip="Delete run" aria-label="Delete run"> <i
+			class="fas fa-trash fa-spin"></i> </md-button>
+		<md-button class="md-icon-button" ng-click="write_note(run, $event)" tooltip="Add or edit note" aria-label="Add or edit a note">
+			<i class="fas fa-sticky-note fa-2x" style="color: gold;"></i>
+		</md-button>
+		<p class="inline lighter">{{run.note}}</p>
+	</div>
+	
+	<md-button ui-sref="^.run.all({run_id: 'global'})" class="md-button md-raised md-warn">See global view of runs</md-button>
+	
+</section>

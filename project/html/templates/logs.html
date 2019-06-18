@@ -1,0 +1,18 @@
+<section>
+	<md-subheader class="md-primary">Logs</md-subheader>
+	<md-content layout-padding>
+		
+		<md-list flex>
+        <md-subheader class="md-no-sticky">Log events are saved here so that it is easier to track things down.</md-subheader>
+        <md-list-item class="md-3-line" layout="row" layout-align="start center" ng-repeat="log in project.logs | orderBy:log.timestamp:true">
+          <img height="10px" ng-src="imgs/{{log.status}}.png" class="md-avatar" style="border-radius: 0%;" alt="log item" title="{{log.timestamp | amDateFormat:'DD/MM/YYYY HH:mm:ss'}}" />
+			<div class="md-list-item-text" layout="column" layout-align="start start">
+			  <h3><b>{{ log.title }}</b> - {{ log.type }}</h3>
+			  <h4 title="{{log.timestamp | amDateFormat:'DD/MM/YYYY HH:mm:ss'}}" am-time-ago="log.timestamp"></h4>
+			  <p ng-bind-html="log.content"></p>
+			</div>
+        </md-list-item>
+        <md-divider></md-divider>
+        
+	</md-content>
+</section>

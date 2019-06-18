@@ -1,0 +1,41 @@
+{
+    "skip": false, 
+    "command_level": "experiment", 
+    "overwrite": false, 
+    "begin_block": "", 
+    "hpc_directives_text": "", 
+    "title": "DeleteExperimentData", 
+    "hpc_directives": {
+        "account": "cin_staff", 
+        "error": "", 
+        "job_name": "", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [
+            "MergeBams"
+        ], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 1
+        }, 
+        "output": "", 
+        "nodes": 1, 
+        "walltime": "00:05:00", 
+        "cpu": 1, 
+        "mpi_procs": 0
+    }, 
+    "description_short": "", 
+    "checks": [], 
+    "end_block": "", 
+    "command_chunk_size": 1, 
+    "script_level": "experiment", 
+    "description": "", 
+    "tags": [], 
+    "commandline": "for SAMPLE in $(cat samples)\ndo\n    rm $SAMPLE/*fastq\n    rm $SAMPLE/*fq\n    rm $SAMPLE/*bam\n    rm $SAMPLE/*sam\ndone\n\nrm *sam\nrm *bam", 
+    "executable": [], 
+    "write_stdout_log": true, 
+    "conditions": [], 
+    "modules": [], 
+    "write_stderr_log": true, 
+    "command_group_level": "all", 
+    "command_parallelism_level": "sequential"
+}

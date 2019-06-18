@@ -1,0 +1,10 @@
+<section ng-if="!selection" layout-padding>
+	<div layout="row" layout-align="start center">
+		<md-button ui-sref="^.all" title-direction="right" class="md-icon-button md-raised md-warn" title="Go back to all runs" aria-label="Go to all runs">
+	      <i class="fas fa-angle-left"></i>
+	    </md-button>
+		<span class="margin-left-30 text-1-5x"><b>Run</b>: {{run.id}}</span>
+	</div>
+	
+	<ui-view></ui-view>
+</section>

@@ -1,0 +1,44 @@
+{
+    "script_level": "sample", 
+    "type": "per-sample", 
+    "description": "", 
+    "title": "Sorting", 
+    "description_short": "", 
+    "commandline": "$SAMTOOLS_HOME/bin/samtools sort -@ $cpu_variable -o $SAMPLE.bam $SAMPLE.sam", 
+    "write_stderr_log": true, 
+    "modules": [
+        "profile/bioinf", 
+        "samtools/1.7"
+    ], 
+    "command_level": "sample", 
+    "hpc_directives": {
+        "account": "cin_staff", 
+        "error": "sort_err", 
+        "job_name": "sort", 
+        "queue": "gll_usr_prod", 
+        "dependencies": [
+            "MappingPE-Hisat"
+        ], 
+        "memory": {
+            "size": "GB", 
+            "quantity": 115
+        }, 
+        "output": "sort_out", 
+        "nodes": 1, 
+        "walltime": "03:00:00", 
+        "cpu": 36, 
+        "mpi_procs": 0
+    }, 
+    "sequential": true, 
+    "skip": false, 
+    "command_group_level": "all", 
+    "write_stdout_log": true, 
+    "iterate": true, 
+    "conditions": [
+        {
+            "command": "[ -s $SAMPLE.bam ]"
+        }
+    ], 
+    "command_parallelism_level": "sequential", 
+    "hpc_directives_text": ""
+}
