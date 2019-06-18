@@ -1,99 +1,68 @@
 <section>
 
-<!-- 	<md-subheader class="md-primary">Pipeline</md-subheader> -->
+	<md-input-container>
+		<label>Experiment ID</label>
+		<input label="Experiment ID" type="text" ng-model="experiment.id">
+	</md-input-container>
 	
-<!-- 	<label>Associate the pipeline</label> -->
-<!-- 	<md-select ng-model="experiment.dataset.pipeline" aria-label="Specifies the pipeline"> -->
-<!--        	<md-option ng-repeat="pipeline in selected_project.pipelines" ng-value="pipeline.id"> -->
-<!--        		<div flex layout="row" layout-align="left center"> -->
-<!--        				<i class="fa fa-cogs"></i> -->
-<!--        				<p class="margin-left-10" ng-bind="pipeline.id"></p> -->
-<!-- 	       	</div> -->
-<!--        	</md-option> -->
-<!-- 	</md-select> -->
+	<div ng-init="chosenTags = experiment.tags;" ng-include="'templates/tagger.html'"></div>
 	
-	<md-subheader class="md-primary">Study</md-subheader>
-	
-	<label>Study information</label>
-	<md-content layout="column" layout-padding>
-		<table>
-			<tr ng-repeat="(key, value) in experiment.dataset.study">
-				<td><b>{{key}}</b></td>
-				<td>{{value}}</td>
-			</tr>
-		</table>
-		
-<!-- 		<div ng-if="experiment.dataset.paper_id"> -->
-<!-- 			<label>Paper ID</label> -->
-<!-- 			<p>{{experiment.dataset.paper_id}}</p> -->
-<!-- 		</div> -->
-	</md-content>
-	
-	<md-subheader class="md-primary">Library info</md-subheader>
-	
-	<md-switch md-invert ng-model="experiment.dataset.pairedend" aria-label="Library">
-    	Paired-end library {{ pairedend }}
-  	</md-switch>
-  	
-  	<label>Platform</label>
-	<p ng-bind="experiment.dataset.platform"></p>
-  	
-  	<label>Select the genome</label>
-	<md-select ng-model="experiment.dataset.genome" md-on-open="load_genomes(experiment.dataset.cluster)" aria-label="Specifies the genome">
-       	<md-option ng-repeat="genome in genomes" ng-value="genome.id">
-       		<div flex layout="row">
-       			<div>
-       				<img width="40px" ng-src="{{genome.img}}" layout-padding>
-       			</div>
-	       		<div layout="row" layout-align="left center">
-					<span ng-if="genome.organism">{{genome.organism}} -&nbsp;</span><span ng-if="genome.name">{{genome.name}}&nbsp;</span><span class="lighter">({{genome.id}})</span>
-	       		</div>
-	       	</div>
-       	</md-option>
-	</md-select>
-	
-	<md-subheader class="md-primary">Sample info</md-subheader>
-	<md-content layout="column" layout-padding>
-		
-		<label>Sample ID</label>
-		<p ng-bind="experiment.dataset.biosample_id"></p>
-		
-		<label>Sample attributes</label>
-		<table>
-			<tr ng-repeat="(key, value) in experiment.dataset.attributes">
-				<td><b>{{key}}</b></td>
-				<td>{{value}}</td>
-			</tr>
-		</table>
-	</md-content>
-	
-	<label>Dataset information</label>
-	<md-content layout="column" layout-padding>
-		<md-input-container>
-			<label>Experiment ID</label>
-			<input label="Experiment ID" type="text" ng-model="experiment.id">
-		</md-input-container>
-		
-		<md-subheader class="md-primary">Run IDS <span class="lighter">(<span ng-bind="experiment.dataset.sample_ids.length"></span> sample<span ng-if="experiment.dataset.sample_ids.length>1">s</span> defined)</span></md-subheader>
-		<p class="margin-0" ng-repeat="run in experiment.dataset.sample_ids">{{run["id"]}}</p>
-		
-		<md-subheader class="md-primary">
-			Load one or more XLS files or specify the sample IDs manually in the textarea (one per line)
-		</md-subheader>
-		<md-input-container>
-			<textarea max-rows="3" rows="3" label="Sample IDS" ng-model="text" aria-label="Sample IDs"></textarea>
-			<md-button class="md-button md-warn md-raised" ng-click="samples_changed(experiment.dataset, text)">Set run IDs</md-button>
-		</md-input-container>
-		<md-input-container>
-			<input type="file" import-sheet-js="xls_loaded" multiple aria-label="Load sample IDS from a file"/>
-		</md-input-container>
-		
-<!-- 		<md-input-container> -->
-<!-- 			<label>Base directory</label> -->
-<!-- 			<input label="Basedir" type="text" ng-model="experiment.dataset.basedir"> -->
-<!-- 			<md-checkbox ng-model="experiment.dataset.create_per_sample_directory" aria-label="Create a directory for each sample"> -->
-<!-- 				<span>Create a directory for each sample</span> -->
-<!-- 			</md-checkbox> -->
-<!-- 		</md-input-container> -->
-	</md-content>
+	<md-button class="md-button md-warn md-raised" ng-click="add_empty_run(experiment)" tooltip="Add an empty run to this experiment" aria-label="Add an empty new run">
+         	<span class="fa-layers fa-fw">
+			<i class="fas fa-list-ol"></i>
+			<i class="fas fa-plus" data-fa-transform="shrink-4 down-8 right-10"></i>
+		</span>
+		Add a new run
+	</md-button>
+   
+   	<pagination list="experiment.dataset.sample_ids">
+	   	<v-accordion class="vAccordion--default padding-10" multiple onexpand="select_run(index)">
+	     		<v-pane ng-repeat="run in displayed">
+		    	<v-pane-header ng-class="{disabled_pane: run.disabled}">
+		    	
+		    		<span md-truncate flex><b>Run. {{begin+$index+1}}: {{run.id}}</b></span>
+		    	
+		    		<md-chips layout="row" layout-align="left center" ng-model="run.tags" readonly="true" class="mdchips-inline">
+						<md-chip-template layout="row" layout-align="left center" class="text-small">
+					        <div>
+					          <div><strong>{{$chip.name}}</strong></div>
+					          <div><em class="category">({{$chip.type}})</em></div>
+					        </div>
+						</md-chip-template>
+			    	</md-chips>
+			    	
+				    	<md-button ng-if="run.disabled" tooltip="This run is disabled. Click to enable this run" class="md-icon-button" ng-click="$event.stopPropagation(); run.disabled = !run.disabled" aria-label="Click to enable this run">
+				    		<i class="fas fa-toggle-on fa-2x" data-fa-transform="flip-h" style="color: red;"></i>
+				    	</md-button>
+				    	<md-button ng-if="!run.disabled" tooltip="This run is enabled. Click to disable this run" class="md-icon-button" ng-click="$event.stopPropagation(); run.disabled = !experiment.run" aria-label="Click to disable this run">
+				    		<i class="fas fa-toggle-on fa-2x" style="color: green;"></i>
+				    	</md-button>
+			    	
+			    	<md-button class="md-icon-button" ng-click="write_note(run, $event)" tooltip="Add or edit note" aria-label="Add or edit a note">
+						<i class="fas fa-sticky-note fa-2x" style="color: gold;"></i>
+					</md-button>
+			    	
+			    	<md-button class="md-icon-button" ng-click="showDeleteDialog(experiment.dataset.sample_ids, $index, $event)" tooltip="Delete run" aria-label="Delete run">
+				      <ng-md-icon icon="delete"></ng-md-icon>
+				    </md-button>
+				    
+				    <md-button class="md-icon-button" ng-click="add_to_list(clone(experiment.dataset.sample_ids, $index, $event), experiment.dataset.sample_ids)" tooltip="Clone run" aria-label="Clone run">
+				      <ng-md-icon icon="content_copy"></ng-md-icon>
+				    </md-button>
+				    
+				    <md-button class="md-icon-button" ng-click="move_item(experiment.dataset.sample_ids, $index, -1, $event)" tooltip="Move up this run" aria-label="Move up this run">
+				      <ng-md-icon icon="keyboard_arrow_up"></ng-md-icon>
+				    </md-button>
+				    
+				    <md-button class="md-icon-button" ng-click="move_item(experiment.dataset.sample_ids, $index, 1, $event)" tooltip="Move down this run" aria-label="Move down this run">
+				      <ng-md-icon icon="keyboard_arrow_down"></ng-md-icon>
+				    </md-button>
+		    	
+	    		</v-pane-header>
+	    		<v-pane-content>
+	    			<div ng-include="'templates/run.html'"></div>
+	   			</v-pane-content>
+			</v-pane>
+	    </v-accordion>
+    </pagination>
 </section>

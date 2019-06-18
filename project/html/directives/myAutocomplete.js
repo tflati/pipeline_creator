@@ -5,11 +5,14 @@ app.directive('myAutocomplete', function() {
 	transclude: true,
 	scope: {
 		label: '@',
-        url: '=',
-        data: '=',
+        url: '=?',
+        data: '=?',
+        urlFx: '&?',
+        context: '=?',
         onSelect: '&',
         target: '=?',
-        deselectOnClick: '=?'
+        deselectOnClick: '=?',
+        cache: '@?'
     }
   };
 });

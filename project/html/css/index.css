@@ -2,6 +2,141 @@ body {
 	height: 100%;
 }
 
+.pagination ul {
+	list-style-type: none;
+}
+.pagination li {
+	display: inline;
+	background-color: lightgrey;
+	border: 4px grey solid;
+	margin: 0px 5px 0px 5px;
+}
+.pagination li a {
+	padding: 5px 10px 5px 10px;
+	text-decoration: none;
+}
+
+.inline {
+	display: inline-block;
+}
+
+.loading {
+	color: firebrick;
+}
+
+.drop-box {
+    background: #F8F8F8;
+    border: 5px dashed #DDD;
+    width: 170px;
+    text-align: center;
+    padding: 50px 10px;
+    margin-left: 10px;
+}
+
+.image-cropper {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 50%;
+}
+
+.image-cropper img {
+	display: inline;
+/* 	  margin: 0 auto; */
+/* 	  margin-left: -25%; */
+	  height: 100%;
+	  width: auto;
+}
+
+.small_cropper {
+	width: 75px;
+	height: 75px;
+}
+
+
+main-container .ng-enter {
+	transition: all linear 0.5s;
+	opacity: 0;
+}
+main-container .ng-enter-active {
+	opacity: 1;
+}
+
+main-container .ng-leave {
+	transition: all linear 0.5s;
+	opacity: 1;
+}
+main-container .ng-leave-active {
+	opacity: 0;
+}
+
+.landing {
+	position: relative;
+    color: white;
+}
+
+.text-1-5x{
+	font-size: 1.5em;
+}
+
+.text-2x{
+	font-size: 2em;
+}
+
+.landing-title {
+	text-align: center;
+	font-size: 2em;
+	width: 100%;
+	position: absolute;
+    bottom: 75px;
+}
+
+.split {
+  height: 100%;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  overflow-x: hidden;
+}
+
+.left {
+	width: 50%;
+	left: 0;
+}
+
+/* Control the right side */
+.right {
+	width: 50%;
+	right: 0;
+}
+
+
+.login-tools {
+	top: 20px;
+	position: absolute;
+	right: 20px;
+	display: inline-block;
+}
+
+.login-tools .md-button {
+/* 	padding: 5px 20px; */
+}
+
+.login-tools .md-button b{
+	margin: 10px;
+}
+
+
+
+.disable-link {
+	text-decoration: none;
+}
+
+a.disable-link {
+  color: inherit;
+}
+
 .angular-tooltip {
   position: absolute;
   background: #000000;
@@ -19,6 +154,19 @@ body {
 
 .main-content {
 	
+}
+
+my-autocomplete {
+	width: 100%;
+}
+
+.small-checkbox {
+	margin: 5px !important;
+}
+
+.side-filters {
+	min-width: 30%;
+	background-color: #e7e7e7;
 }
 
 .line-height-small {
@@ -163,10 +311,19 @@ my-autocomplete md-content {
 	padding: 10px;
 	margin-top: 10px;
 	margin-bottom: 10px;
+	overflow-wrap: normal; white-space: pre;
 }
 
 .margin-0 {
 	margin: 0px;
+}
+
+.margin-5 {
+	margin: 5px;
+}
+
+.margin-30 {
+	margin: 30px;
 }
 
 .margin-small {
@@ -181,8 +338,16 @@ my-autocomplete md-content {
 	padding: 15px;
 }
 
+.margin-left-5 {
+	margin-left: 5px;
+}
+
 .margin-left-10 {
 	margin-left: 10px;
+}
+
+.margin-left-30 {
+	margin-left: 30px;
 }
 
 .vertically-centered {
@@ -282,4 +447,31 @@ spacer {
   background-color: white;
   border-radius: 20px;
   border: 3px solid white;
+}
+
+.node rect {
+  stroke: #999;
+  fill: #fff;
+  stroke-width: 1.5px;
+}
+
+.edgePath path {
+  stroke: #333;
+  stroke-width: 1.5px;
+}
+
+g.top > rect {
+  fill: #ffad33;
+}
+
+g.project > rect {
+  fill: #17e1f0;
+}
+
+g.experiment > rect {
+  fill: #00d400;
+}
+
+g.sample > rect {
+  fill: #f66;
 }

@@ -20,6 +20,11 @@
 			<p>Select the step(s) to copy:</p>
 		</div>
 		
+		<md-input-container class="full-width">
+			<label>Filter</label>
+			<input placeholder="Filter the steps by name" type="text" ng-model="filter_expression">
+		</md-input-container>
+		
 <!-- 		<div ng-repeat="step in item"> -->
 <!-- 			<v-accordion class="vAccordion--default" multiple> -->
 <!-- 			  <v-pane> -->
@@ -28,7 +33,7 @@
 <!-- 			    </v-pane-header> -->
 <!-- 			    <v-pane-content> -->
 			    	<v-accordion class="vAccordion--default padding-10" multiple>
-			    		<v-pane ng-repeat="step in item">
+			    		<v-pane ng-repeat="step in item | regex:'title':filter_expression">
 			    			<v-pane-header>
 			    				<md-checkbox ng-checked="exists(step, checked)" ng-click="toggle(step, checked, $event)" aria-label="Select this step">
 								</md-checkbox>

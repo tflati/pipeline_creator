@@ -1,0 +1,165 @@
+<div ng-include="'templates/header.html'"></div>
+
+<div ng-if="loggedUser.loggedIn" ng-cloak>
+
+		<md-button href="create-new-project" class="md-raised md-accent md-hue-3" aria-label="Create a new project">
+		  <i class="fas fa-plus" md-colors="{color:'warn'}"></i> <b>Create a new project</b>
+		</md-button>
+		
+		<div ng-if="projects.length == 0" layout="column" layout-align="center center" style="padding: 30px;">
+			<p style="font-size: 1.2em;">It seems you have no existing projects right now...</p>
+			<img src="images/empty_desk.jpg">
+		</div>
+		
+		<div layout="row" layout-margin>
+			<md-input-container>
+		        <label>Filter projects:</label>
+		        <input ng-model="filterExpression"/>
+	        </md-input-container>
+	        
+	        <md-input-container>
+		        <label>Sort projects by:</label>
+		        <md-select style="min-width: 300px" ng-model="sortByField" aria-label="Specifies the field to sort projects by">
+			       	<md-option ng-selected="key == 'last_modified' ? true : false" ng-repeat="(key, value) in projects[0]" ng-value="key">
+						<span>{{key}}</span>
+			       	</md-option>
+				</md-select>
+	        </md-input-container>
+	        
+	        <md-input-container>
+		        <md-checkbox ng-model="reverseOrder" aria-label="Sets the sort in descending order">
+		        	Ascending
+				</md-checkbox>
+	        </md-input-container>
+	    </div>
+	    
+	    <div ng-if="loading" layout="column" layout-align="center center" style="color: cadetblue;">
+			<i class="fas fa-spinner fa-spin fa-3x fa-fw"></i>
+			<p><b>Loading projects</b></p>
+		</div>
+	    
+		<div ng-if="projects.length > 0" layout="column" layout-align="center start" style="padding: 10px 50px;">
+			<md-content class="full-width">
+				<md-list>
+					<md-divider></md-divider>
+					<md-list-item ng-repeat="project in projects | orderBy : sortByField:!reverseOrder | filter:filterExpression">
+						<div class="full-width" layout="row" layout-align="start center">
+							<a ng-href="{{project.id}}">
+								<div class="image-cropper small_cropper">
+									<img title="Open this project" ng-src="{{project.img || 'imgs/project.png'}}" alt="{{project.title}}" />
+								</div>
+							</a>
+							<div class="margin-small margin-left-30 full-width" layout="column" layout-align="center start">
+								<h3 class="no-margin" title="Open this project">
+									<a class="disable-link" ui-sref="project({project_id: project.id})">{{ project.title || "Project without title" }}</a>
+								</h3>
+							    <h4 class="no-margin" ng-if="project.subtitle">{{ project.subtitle }}</h4>
+							    <h5 class="lighter margin-0 line-height-small" ng-if="project.description"><b>Description: </b>{{ project.description }}</h5>
+							    <h5 class="lighter margin-0 line-height-small"><b>ID: </b>{{ project.id }}</h5>
+							    <h5 class="lighter margin-0 line-height-small"><b>Modified: </b>{{ project.last_modified | amDateFormat:'DD MMMM YYYY' }}</h5>
+							    <h5 class="lighter margin-0 line-height-small"><b>Created: </b><span>{{ project.creation_date | amDateFormat:'DD MMMM YYYY' }}</span></h5>
+							    <h5 class="lighter margin-0 line-height-small"><b>Size: </b><span title="Exactly {{project.size}} bytes">{{project.size | byteFormatter}}</span></h5>
+							    <h5 class="lighter margin-0 line-height-small" ng-if="project.creator"><b>Creator: </b>{{project.creator}}</h5>
+						  	</div>
+							<md-button ng-click="showDeleteProjectDialog(project, $event)" class="md-icon-button" tooltip="Delete this project" aria-label="Delete this project">
+								<ng-md-icon icon="delete"></ng-md-icon>
+							</md-button>
+						</div>
+						<md-divider></md-divider>
+					</md-list-item>
+				</md-list>
+			</md-content>
+	
+	<!-- 		<table cellpadding="5"> -->
+	<!-- 			<thead> -->
+	<!-- 				<tr> -->
+	<!-- 					<th></th> -->
+	<!-- 					<th></th> -->
+	<!-- 					<th></th> -->
+	<!-- 					<th ng-repeat="(key, value) in projects[0]">{{key | replace:'_':' '}}</th> -->
+	<!-- 				</tr> -->
+	<!-- 			</thead> -->
+	<!-- 			<tbody> -->
+	<!-- 				<tr ng-repeat="project in projects | filter: filterExpression | orderBy: project.creation_date.date : true track by $index"> -->
+	<!-- 					<td> -->
+	<!-- 						<a href="search/{{project.project_id}}" title="Click here to edit data of this project" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Search"> -->
+	<!-- 						  <i class="fas fa-search fa-2x" md-colors="{color:'primary'}"></i> -->
+	<!-- 						</a> -->
+	<!-- 					</td> -->
+	<!-- 					<td> -->
+	<!-- 						<a href="delete-project/{{project.project_id}}" title="Click here to delete this project" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Delete"> -->
+	<!-- 						  <i class="fas fa-trash fa-2x" md-colors="{color:'warn'}"></i> -->
+	<!-- 						</a> -->
+	<!-- 					</td> -->
+	<!-- 					<td> -->
+	<!-- 						<a href="share-project/{{project.project_id}}" title="Click here to share this project" class="md-raised md-accent md-hue-3 toolbar-button" aria-label="Share"> -->
+	<!-- 						  <i class="fas fa-share-alt-square fa-2x" style="color: green;"></i> -->
+	<!-- 						</a> -->
+	<!-- 					</td> -->
+	<!-- 					<td ng-repeat="f in project"> -->
+	<!-- 						<span ng-if="!f.title">{{f}}</span> -->
+	<!-- 						<span ng-if="f.title" title="{{f.title}}">{{f.value}}</span> -->
+	<!-- 					</td> -->
+	<!-- 				</tr> -->
+	<!-- 			</tbody> -->
+	<!-- 		</table> -->
+		</div>
+	
+<!-- 		<md-sidenav md-is-locked-open="keep_sidenav_open" style="height: 1000px;" md-whiteframe="4" class="md-sidenav-left" md-component-id="sidenav"> -->
+<!-- 			<md-toolbar class="md-theme-indigo"> -->
+<!-- 			 	<div class="md-toolbar-tools"> -->
+<!-- 					<h1 flex md-truncate>Project list</h1> -->
+<!-- 					<md-button ng-click="showAddProjectDialog()" class="md-icon-button" tooltip="Create a new project" aria-label="Add a new project"> -->
+<!-- 			          	<ng-md-icon icon="add_circle" style="fill: white;"></ng-md-icon> -->
+<!-- 					</md-button> -->
+<!-- 				</div> -->
+<!-- 		 	</md-toolbar> -->
+<!-- 			<md-content flex> -->
+<!-- 				<div layout-margin> -->
+<!-- 					<md-checkbox ng-model="keep_sidenav_open" aria-label="Keep sidenav open"> -->
+<!-- 						<span>Keep side menu open</span> -->
+<!-- 					</md-checkbox> -->
+<!-- 				</div> -->
+<!-- 				<md-list flex> -->
+<!-- 					<md-divider ></md-divider> -->
+<!-- 					<md-list-item class="md-3-line" ng-repeat="project in projects | orderBy : '-creation_date'" ng-click="select_project(project)"> -->
+<!-- 						<img ng-src="{{project.img}}" class="md-avatar" alt="{{project.title}}" /> -->
+<!-- 						<div class="md-list-item-text" layout="column"> -->
+<!-- 							<h3>{{ project.title }}</h3> -->
+<!-- 						    <h4>{{ project.subtitle }}</h4> -->
+<!-- 						    <h5 class="lighter margin-0 line-height-small">{{ project.creation_date | amDateFormat:'DD MMMM YYYY' }}</h5> -->
+<!-- 						    <h5 class="lighter margin-0 line-height-small" tooltip="{{project.size}} bytes">({{project.size | byteFormatter}})</h5> -->
+<!-- 					  	</div> -->
+<!-- 					  	<md-button ng-click="showDeleteProjectDialog(project, $event)" class="md-icon-button" tooltip="Delete this project" aria-label="Delete this project"> -->
+<!-- 							<ng-md-icon icon="delete"></ng-md-icon> -->
+<!-- 						</md-button> -->
+<!-- 						<md-divider ></md-divider> -->
+<!-- 					</md-list-item> -->
+<!-- 					<md-divider ></md-divider> -->
+<!-- 				</md-list> -->
+<!-- 		    </md-content> -->
+<!-- 		</md-sidenav> -->
+		
+<!-- 		<div> -->
+<!-- 			<div> -->
+<!-- 				<div ng-controller="conditionController as c" data-drag="true" jqyoui-draggable layout="row" layout-align="center center" class="md-raised md-whiteframe-5dp binary-condition"> -->
+<!-- 					<div ng-controller="conditionController as c" data-drop="true" jqyoui-droppable="{onOver:'onOver', onOut:'onOut', onDrop:'onDrop'}" class="condition" ng-model="condition" ng-class="{'over-condition': over, 'normal-condition': !over}"></div> -->
+<!-- 					<span style="padding:0px 10px;">AND</span> -->
+<!-- 					<div ng-controller="conditionController as c" data-drop="true" jqyoui-droppable="{onOver:'onOver', onOut:'onOut', onDrop:'onDrop'}" class="condition" ng-model="condition" ng-class="{'over-condition': over, 'normal-condition': !over}"></div> -->
+<!-- 				</div> -->
+				
+<!-- 				<div ng-controller="conditionController as c" data-drag="true" jqyoui-draggable layout="row" layout-align="center center" class="md-raised md-whiteframe-5dp binary-condition"> -->
+<!-- 					<div ng-controller="conditionController as c" data-drop="true" jqyoui-droppable="{onOver:'onOver', onOut:'onOut', onDrop:'onDrop'}" class="condition" ng-model="condition" ng-class="{'over-condition': over, 'normal-condition': !over}"></div> -->
+<!-- 					<span style="padding:0px 10px;">OR</span> -->
+<!-- 					<div ng-controller="conditionController as c" data-drop="true" jqyoui-droppable="{onOver:'onOver', onOut:'onOut', onDrop:'onDrop'}" class="condition" ng-model="condition" ng-class="{'over-condition': over, 'normal-condition': !over}"></div> -->
+<!-- 				</div> -->
+				
+<!-- 				<div style="width: 20px;" data-drag="true" jqyoui-draggable class="md-whiteframe-5dp simple-condition-container"> -->
+<!-- 					<div ng-controller="conditionController as c" data-drop="true" jqyoui-droppable="{onOver:'onOver', onOut:'onOut', onDrop:'onDrop'}" class="simple-condition" ng-model="condition" ng-class="{'over-condition': over, 'normal-condition': !over}"></div> -->
+<!-- 				</div> -->
+<!-- 			</div> -->
+			
+<!-- 			<ng-include src="'templates/projects.html'" layout="column" layout-align="start stretch" flex></ng-include> -->
+<!-- 		</div> -->
+<!-- 	</section> -->
+</div>

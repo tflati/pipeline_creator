@@ -2,11 +2,8 @@
 	class="md-input-has-placeholder"
 	md-select-on-match>
 	
-	<div ng-if="sending" style="text-align: center; color: cadetblue;">
-		<i class="fas fa-spinner fa-spin fa-3x fa-fw"></i>
-	</div>
-	
 	<md-autocomplete
+		  md-input-id="pipelinerAutocomplete"
 		  md-no-cache="true"
 	      md-select-on-match
 		  md-match-case-insensitive
@@ -25,7 +22,7 @@
 	        	<span style="padding-bottom: 5px;" md-highlight-text="searchText" md-highlight-flags="^i">
 	          		{{item.label}}
 				</span>
-				<span ng-if="item.extra" style="margin: 0px; color: grey">({{item.extra}})</span>
+				<span ng-if="item.extra" class="lighter" style="margin: 0px;">({{item.extra}})</span>
 				<md-chips ng-if="item.tags.length > 0" ng-style="{'background-color': item.color}" ng-model="item.tags" readonly="true" class="mdchips-inline">
 					<md-chip-template class="text-small" style="height: 15px;">
 				        <div>
@@ -38,10 +35,9 @@
         </md-item-template>
         <md-not-found>
 			<span ng-if="!sending">No items matching "{{searchText}}" were found.</span>
-         	<span ng-if="sending">
-         		<i class="fas fa-spinner fa-2x fa-spin fa-fw"></i>
-         		Loading data...
-         	</span>
        </md-not-found>
       </md-autocomplete>
 </md-content>
+<md-button ng-if="cache" ng-click="clear_cache()" class="md-button md-raised md-warn">
+ Clear cache
+</md-button>

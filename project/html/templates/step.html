@@ -1,19 +1,30 @@
-<div layout="row">
-	<div>
-		<label>Title</label>
-		<input ng-model="step.title">
-	</div>
-	
-	<div>
-		<label>Description (short)</label>
-		<input ng-model="step.description_short">
-	</div>
-	
-	<div>
-		<label>Description</label>
-		<input ng-model="step.description">
+<div layout="column">
+	<div layout-padding layout="row" layout-align="start center">
+		<md-subheader class="md-primary">Step name:</md-subheader>
+		<p>{{step.title}}</p>
+		<md-button tooltip="Rename this step." class="md-icon-button md-raised md-warn" ng-click="showRenameStepDialog(steps, step, $event)" tooltip="Change step ID (rename)" aria-label="Change step ID">
+			<i class="fas fa-pencil-alt"></i>	
+   		</md-button>
+   		<div ng-if="!step.title" md-colors="{color:'accent'}">
+   			<i class="fas fa-exclamation-triangle"></i>
+   			It seems your step is unnamed. Click on the yellow button to give it a name.
+   		</div>
+ 	</div>
+ 	
+ 	<div layout="row">
+		<div>
+			<label>Description (short)</label>
+			<input ng-model="step.description_short">
+		</div>
+		
+		<div>
+			<label>Description</label>
+			<input ng-model="step.description">
+		</div>
 	</div>
 </div>
+
+<tagger tags="tags" target="step.tags"></tagger>
 
 <!-- <h3>How this step of the pipeline will be executed</h3> -->
 <!-- <md-select ng-model="step.type" aria-label="Specifies the type of analysis for this step"> -->
@@ -35,10 +46,15 @@
 <!-- </md-select> -->
 
 <h3>Skip this step if the following conditions are satisfied</h3>
+<md-switch md-invert ng-model="step.overwrite" aria-label="Overwrite">
+  	Overwrite (conditions are skipped) {{ step.overwrite }}
+</md-switch>
+  	
 <md-button class="md-icon-button" ng-click="create_condition(step.conditions)" tooltip="Add condition" aria-label="Add condition">
 <!--   <i class="fas fa-plus-circle"></i> -->
 	<ng-md-icon icon="add_circle" style="fill:lightsalmon;"></ng-md-icon>
 </md-button>
+
 <div ng-repeat="condition in step.conditions">
 	<label><b>Condition {{$index+1}}.</b></label>
 	<md-button class="md-icon-button" ng-click="delete_condition(step.conditions, $index)" tooltip="Delete condition" aria-label="Delete condition">
@@ -48,44 +64,61 @@
 	<textarea class="code padding-10" ng-model="condition.command" rows="3" style="width: 90%;"></textarea>
 </div>
 
-<h3>Additional executables</h3>
-<md-button class="md-button md-warn md-raised" ng-click="add_executable(step)" tooltip="Add an executable to this step" aria-label="Add an executable to this step">
-	Add executable
-</md-button>
+<!-- <h3>Additional executables</h3> -->
+<!-- <md-button class="md-button md-warn md-raised" ng-click="add_executable(step)" tooltip="Add an executable to this step" aria-label="Add an executable to this step"> -->
+<!-- 	Add executable -->
+<!-- </md-button> -->
 
-<md-list flex>
-<!-- 	<md-subheader class="md-no-sticky">3 line item (with hover)</md-subheader> -->
-	<md-list-item class="md-2-line padding-30" ng-repeat="exec in step.executables">
-		<div layout="column">
-			<img src="imgs/script.png" class="md-avatar" alt="Script" />
-		  	<span class="fa-layers fa-fw" title="Remove this script from the list" ng-click="remove_from_list(step.executables, $index)" layout-margin>
-			    <i class="fas fa-circle" style="color:Tomato"></i>
-			    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i>
-			</span>	
-		</div>
-		<div class="md-list-item-text" layout="column">
-   			<label>Filename</label>
-			<input ng-model="exec.filename" style="width: 90%;"></textarea>
+<!-- <md-list flex> -->
+<!-- 	<md-list-item class="md-2-line padding-30" ng-repeat="exec in step.executables"> -->
+<!-- 		<div layout="column"> -->
+<!-- 			<img src="imgs/script.png" class="md-avatar" alt="Script" /> -->
+<!-- 		  	<span class="fa-layers fa-fw" title="Remove this script from the list" ng-click="delete_from_array(step.executables, $index)" layout-margin> -->
+<!-- 			    <i class="fas fa-circle" style="color:Tomato"></i> -->
+<!-- 			    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i> -->
+<!-- 			</span>	 -->
+<!-- 		</div> -->
+<!-- 		<div class="md-list-item-text" layout="column"> -->
+<!--    			<label>Filename</label> -->
+<!-- 			<input ng-model="exec.filename" style="width: 90%;"></textarea> -->
 
-			<label>Script</label>
-			<textarea ng-model="exec.command" rows="5" style="width: 90%;"></textarea>
-		</div>
-		<md-divider></md-divider>
-	</md-list-item>
-</md-list>
-        
+<!-- 			<label>Script</label> -->
+<!-- 			<textarea ng-model="exec.command" rows="5" style="width: 90%;"></textarea> -->
+<!-- 		</div> -->
+<!-- 		<md-divider></md-divider> -->
+<!-- 	</md-list-item> -->
+<!-- </md-list> -->
 
-<h3>Command line</h3>
+<div>
+	<md-button ng-click="show_begin_end_blocks = !show_begin_end_blocks" class="md-button md-raised">Show begin/end blocks</md-button>
+</div>
+
+<div ng-if="show_begin_end_blocks">
+	<h3>Begin block</h3>
+	<label>A block of code which will be performed <i>before</i> performing the commands over each entity.</label>
+	<textarea ng-model="step.begin_block" rows="5" style="width: 90%;"></textarea>        
+</div>
+
+<h3>Command block</h3>
 <textarea ng-model="step.commandline" rows="5" style="width: 90%;"></textarea>
+
+<div ng-if="show_begin_end_blocks">
+	<h3>End block</h3>
+	<label>A block of code which will be performed <i>after</i> performing the commands over each entity.</label>
+	<textarea ng-model="step.end_block" rows="5" style="width: 90%;"></textarea>
+</div>
 
 <h3>Modules</h3>
 <div layout="row">
 	<div layout="row" layout-padding>
-		<my-autocomplete flex on-select="add_to_list(elem.label, list)" target="step.modules" label="Search in modules" url="module_url"></my-autocomplete>
+		<my-autocomplete flex cache="true" on-select="add_to_list(elem, list)" target="step.modules" label="Search in modules" url-fx="get_module_url(context)" context="pipeline"></my-autocomplete>
 		<div layout="column" layout-align="center start">
+			<div ng-if="pipeline" ng-repeat="module in pipeline.modules track by $index" layout="row" layout-align="start center">
+				<b md-colors="{color:'accent'}" title-direction="right" title="This module is inherited from the pipeline (global)" ng-bind="module.label"></b>
+			</div>
 			<div ng-repeat="module in step.modules track by $index" layout="row" layout-align="start center">
-				<b ng-bind="module"></b>
-				<span class="fa-layers fa-fw" ng-click="remove_from_list(step.modules, $index)" layout-margin>
+				<b ng-bind="module.label || module"></b>
+				<span class="fa-layers fa-fw" title="Remove this module" ng-click="delete_from_array(step.modules, $index)" layout-margin>
 				    <i class="fas fa-circle" style="color:Tomato"></i>
 				    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i>
 				</span>
@@ -99,57 +132,6 @@
 		</div>
 	</div>
 </div>
-
-<h3>Checks</h3>
-<div layout="row">
-	<div layout="column" layout-padding>
-		<my-autocomplete flex on-select="add_to_list(elem, list)" target="step.checks" data="globalService['templates']" label="Search in templates"></my-autocomplete>
-		<div layout="column" layout-align="center start">
-			<div ng-repeat="check in step.checks track by $index" layout="row" layout-align="start center">
-				<div layout="column">
-					<div layout="row" layout-align="start center">
-						<b ng-bind="check.title" tooltip="{{check.description_short}}"></b>
-						<span class="fa-layers fa-fw" ng-click="remove_from_list(step.checks, $index)" layout-margin>
-						    <i class="fas fa-circle" style="color:Tomato"></i>
-						    <i class="fa-inverse fas fa-times" data-fa-transform="shrink-6"></i>
-						</span>
-						<md-button class="md-icon-button" ng-click="move_item(step.checks, $index, -1, $event)">
-					      <ng-md-icon icon="keyboard_arrow_up" aria-label="Move up this check"></ng-md-icon>
-					    </md-button>
-					    <md-button class="md-icon-button" ng-click="move_item(step.checks, $index, 1, $event)">
-					      <ng-md-icon icon="keyboard_arrow_down" aria-label="Move down this check"></ng-md-icon>
-					    </md-button>
-				    </div>
-				    <div layout="column">
-				    	<div class="code padding-medium">{{check.commandline}}</div>
-				    	<div layout="row" layout-align="start center" ng-repeat="variable in check.variables">
-				    		<b class="margin-small">{{variable.key}}</b>
-				    		<input ng-model="variable.value"></input>
-				    	</div>
-				    </div>
-			    </div>
-			</div>
-		</div>
-	</div>
-</div>
-
-<!-- <div> -->
-<!-- 	<md-button class="md-button md-warn md-raised" ng-click="add_check(step)" tooltip="Add a check to this step" aria-label="Add a new check"> -->
-<!--        	<span class="fa-layers fa-fw"> -->
-<!-- 			<i class="fas fa-check"></i> -->
-<!-- 			<i class="fas fa-plus" data-fa-transform="shrink-8 down-8 right-10"></i> -->
-<!-- 		</span> -->
-<!-- 		Add a check -->
-<!-- 	</md-button> -->
-	
-<!-- 	<div ng-repeat="check in step.checks"> -->
-<!-- 		<label><b>Check {{$index+1}}.</b></label> -->
-<!-- 		<md-button class="md-icon-button" ng-click="delete_check(step.checks, check)" tooltip="Delete check" aria-label="Delete check"> -->
-<!-- 			<ng-md-icon icon="remove_circle" style="fill:red;"></ng-md-icon> -->
-<!-- 		</md-button> -->
-<!-- 		<textarea ng-model="check.file" rows="2" style="width: 90%;"></textarea> -->
-<!-- 	</div> -->
-<!-- </div> -->
 
 <h3>Step settings</h3>
 
@@ -171,17 +153,17 @@
 	<md-radio-button value="specific">Specific data</md-radio-button>
 </md-radio-group>
 
-<h4>Internal script parallelism</h4>
-<md-radio-group ng-model="step.command_parallelism_level">
-	<md-radio-button value="sequential">Sequential <span class="lighter">(this command will be applied iteratively to all items, but in a serial manner)</span></md-radio-button>
-	<md-radio-button value="parallel">Parallel <span class="lighter">(this command will be applied concurrently to all items, in parallel)</span></md-radio-button>
-</md-radio-group>
+<!-- <h4>Internal script parallelism</h4> -->
+<!-- <md-radio-group ng-model="step.command_parallelism_level"> -->
+<!-- 	<md-radio-button value="sequential">Sequential <span class="lighter">(this command will be applied iteratively to all items, but in a serial manner)</span></md-radio-button> -->
+<!-- 	<md-radio-button value="parallel">Parallel <span class="lighter">(this command will be applied concurrently to all items, in parallel)</span></md-radio-button> -->
+<!-- </md-radio-group> -->
 
-<h4>Internal script grouping</h4>
-<md-radio-group ng-model="step.command_group_level">
-	<md-radio-button value="all">All items <span class="lighter">(this command will be applied iteratively to all items)</span></md-radio-button>
-	<md-radio-button value="chunks">Divide in chunks <span class="lighter">(this command will be applied in chunks of <input style="pointer-events: all; width: 50px;" type="number" ng-model="step.command_chunk_size"> items)</span></md-radio-button>
-</md-radio-group>
+<!-- <h4>Internal script grouping</h4> -->
+<!-- <md-radio-group ng-model="step.command_group_level"> -->
+<!-- 	<md-radio-button value="all">All items <span class="lighter">(this command will be applied iteratively to all items)</span></md-radio-button> -->
+<!-- 	<md-radio-button value="chunks">Divide in chunks <span class="lighter">(this command will be applied in chunks of <input style="pointer-events: all; width: 50px;" type="number" ng-model="step.command_chunk_size"> items)</span></md-radio-button> -->
+<!-- </md-radio-group> -->
 
 <!-- <md-switch ng-model="step.iterate" aria-label="Iterate samples"> -->
 <!-- 	Iterate through samples: {{ step.iterate }} <span style="color: grey;">(if enabled, the command is repeated over all sample, individually)</span> -->
@@ -189,42 +171,62 @@
 <!-- <md-switch ng-model="step.sequential" aria-label="Analysis mode"> -->
 <!-- 	Sequential analysis: {{ step.sequential }} <span style="color: grey;">(if enabled, each sample is analyzed after the other)</span> -->
 <!-- </md-switch> -->
-<md-switch ng-model="step.write_stdout_log" aria-label="Stdout to log">
-	Write stdout of this command to log: {{ step.write_stdout_log }}
-</md-switch>
-<md-switch ng-model="step.write_stderr_log" aria-label="Stderr to log">
-	Write stderr of this command to log: {{ step.write_stderr_log }}
-</md-switch>
 
-<h3>SLURM directives</h3>
 
-<div layout="column">
-	<div layout-padding>
-		<md-button class="md-raised md-warn md-icon-button" ng-click="copy_hpc_directives(step)" tooltip="Copy settings from other steps" aria-label="Copy settings from other steps">
-			<i class="fas fa-copy"></i>
- 		</md-button>
-  		<span>Copy settings from other steps (if available)</span>
-	</div>
-<div>
+<h3>HPC directives</h3>
+
+<!-- <div layout="column"> -->
+<!-- 	<div layout-padding> -->
+<!-- 		<md-button class="md-raised md-warn md-icon-button" ng-click="copy_hpc_directives(step)" tooltip="Copy settings from other steps" aria-label="Copy settings from other steps"> -->
+<!-- 			<i class="fas fa-copy"></i> -->
+<!--  		</md-button> -->
+<!--   		<span>Copy settings from other steps (if available)</span> -->
+<!-- 	</div> -->
+<!-- <div> -->
 
 <h4>Dependencies</h4>
-<div ng-if="pipeline.steps.length <= 1">
+<div ng-if="steps.length <= 1">
 	No dependencies available to select.
 </div>
-<md-input-container layout="row" ng-if="pipeline.steps.length > 1">
+<md-input-container layout="row" ng-if="steps.length > 1">
 	<md-select ng-model="step.hpc_directives.dependencies" multiple aria-label="Dependencies for this step">
-        <md-option ng-repeat="s in pipeline.steps" ng-value="s.title" ng-if="s != step">
+        <md-option ng-repeat="s in steps" ng-value="s.title" ng-if="s != step">
           {{s.title}}
         </md-option>
 	</md-select>
 </md-input-container>
 
-<h4>Scheduler information</h4>
+<h4>Scheduler information* (mandatory fields)</h4>
 <md-content layout="row" layout-padding layout-wrap>
 	<md-input-container>
 		<label>Walltime</label>
-  			<input type="text" ng-model="step.hpc_directives.walltime">
-  		</md-input-container>
+		<input required type="text" ng-model="step.hpc_directives.walltime">
+	</md-input-container>
+	<md-input-container>
+		<label>Number of nodes</label>
+		<input required type="number" min="0" ng-model="step.hpc_directives.nodes">
+	</md-input-container>
+	<md-input-container>
+		<label>Number of CPU</label>
+		<input required type="number" min="0" ng-model="step.hpc_directives.cpu">
+	</md-input-container>
+	<md-input-container>
+		<label>Memory (RAM)</label>
+		<input required type="number" min="0" ng-model="step.hpc_directives.memory.quantity">
+	</md-input-container>
+	<md-input-container>
+		<label>Memory (MB, GB, TB)</label>
+		<md-select ng-model="step.hpc_directives.memory.size">
+            <md-option ng-repeat="size in ['MB', 'GB', 'TB']" ng-value="size">
+              {{size}}
+            </md-option>
+      		</md-select>
+	</md-input-container>
+</md-content>
+
+<h4>Additional parameters</h4>
+<p>Set these parameters only if you haven't set them up at the global level or if you need different values for this particular step.</p>
+<md-content layout="row" layout-padding layout-wrap>
 	<md-input-container>
 		<label>Account name</label>
 		<input type="text" ng-model="step.hpc_directives.account">
@@ -233,10 +235,10 @@
 		<label>Job name</label>
 		<input type="text" ng-model="step.hpc_directives.job_name">
 	</md-input-container>
-	<md-input-container>
+	<md-input-container ng-if="pipeline">
 		<label>Queue/Partition</label>
 <!-- 		<input type="text" ng-model="step.hpc_directives.queue"> -->
-		<md-select md-on-open="load_qos(pipeline.cluster)" ng-model="step.hpc_directives.queue" aria-label="Specifies the cluster">
+		<md-select md-on-open="load_qos(pipeline.username, pipeline.cluster)" ng-model="step.hpc_directives.queue" aria-label="Specifies the cluster">
 	       	<md-option ng-repeat="qos in queues" ng-value="qos.id">
 	       		<div flex layout="row">
 		       		<div layout="row" layout-align="left center">
@@ -251,33 +253,21 @@
 		<input type="text" ng-model="step.hpc_directives.group_list">
 	</md-input-container>
 	<md-input-container>
-		<label>Number of nodes</label>
-		<input type="number" min="0" ng-model="step.hpc_directives.nodes">
-	</md-input-container>
-	<md-input-container>
-		<label>Number of CPU</label>
-		<input type="number" min="0" ng-model="step.hpc_directives.cpu">
-	</md-input-container>
-	<md-input-container>
 		<label>MPI processes</label>
 		<input type="number" min="0" ng-model="step.hpc_directives.mpi_procs">
-	</md-input-container>
-	<md-input-container>
-		<label>Memory (RAM)</label>
-		<input type="number" min="0" ng-model="step.hpc_directives.memory.quantity">
-	</md-input-container>
-	<md-input-container>
-		<label>Memory (MB, GB, TB)</label>
-		<md-select ng-model="step.hpc_directives.memory.size">
-            <md-option ng-repeat="size in ['MB', 'GB', 'TB']" ng-value="size">
-              {{size}}
-            </md-option>
-      		</md-select>
 	</md-input-container>
 </md-content>
 
 <h4>Input/Output files</h4>
 <md-content layout="row" layout-padding layout-wrap>
+	<div layout="column" layout-align="start start">
+		<md-switch ng-model="step.write_stdout_log" aria-label="Stdout to log">
+			Write stdout of this command to log: {{ step.write_stdout_log }}
+		</md-switch>
+		<md-switch ng-model="step.write_stderr_log" aria-label="Stderr to log">
+			Write stderr of this command to log: {{ step.write_stderr_log }}
+		</md-switch>
+	</div>
 	<md-input-container>
 		<label>Standard output</label>
 		<input type="text" ng-model="step.hpc_directives.output">

@@ -9,7 +9,7 @@
 			"command_parallelism_level": "sequential",
 			"conditions": [],
 			"description": "",
-			"description_short": "Validates a fastq (R1)",
+			"extra": "Validates a fastq (R1)",
 			"hpc_directives": {
 				"account": "cin_staff",
 				"cpu": 1,
@@ -50,7 +50,7 @@
 			"command_parallelism_level": "sequential",
 			"conditions": [],
 			"description": "",
-			"description_short": "Validates a fastq (R2)",
+			"extra": "Validates a fastq (R2)",
 			"hpc_directives": {
 				"account": "cin_staff",
 				"cpu": 1,
@@ -91,7 +91,7 @@
 			"command_parallelism_level": "sequential",
 			"conditions": [],
 			"description": "",
-			"description_short": "Validates a fastq (single end)",
+			"extra": "Validates a fastq (single end)",
 			"hpc_directives": {
 				"account": "cin_staff",
 				"cpu": 1,
@@ -131,7 +131,7 @@
 			"command_parallelism_level": "sequential",
 			"conditions": [],
 			"description": "",
-			"description_short": "Checks the existence of a file",
+			"extra": "Checks the existence of a file",
 			"hpc_directives": {
 				"account": "cin_staff",
 				"cpu": 1,

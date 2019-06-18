@@ -34,23 +34,25 @@
 	<link rel="stylesheet" href="css/index.css">
 </head>
 
-<body md-theme="big-data-theme">
+<body md-theme="default">
 
-	<toaster-container toaster-options="{'position-class': 'toast-top-right'}"></toaster-container>
+	<toaster-container toaster-options="{'position-class': 'toast-bottom-right'}"></toaster-container>
+
+	<ui-view></ui-view>
 	
-	<div class="main-content full-height" ng-view>
-<!-- 		<div ng-controller="mainController as ctrl" ng-include="'templates/home.html'"></div> -->
-	</div>
 	
-	<script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js" integrity="sha384-kW+oWsYx3YpxvjtZjFXqazFpA7UP/MbiY4jvs+RWZo2+N94PFZ36T6TFkc9O3qoB" crossorigin="anonymous"></script>
+	
+	<script defer src="https://use.fontawesome.com/releases/v5.6.3/js/all.js" integrity="sha384-EIHISlAOj4zgYieurP0SdoiBYfGJKkgWedPHH4jCzpCXLmzVsw1ouK59MuUtP4a1" crossorigin="anonymous"></script>
 	
 	<script type="text/javascript" src="bower_components/angular/angular.js"></script>
 	<script type="text/javascript" src="bower_components/angular-aria/angular-aria.min.js"></script>
+	<script type="text/javascript" src="bower_components/angular-cookies/angular-cookies.js"></script>
 	<script type="text/javascript" src="bower_components/angular-animate/angular-animate.min.js"></script>
 	<script type="text/javascript" src="bower_components/angular-material/angular-material.min.js"></script>
 	<script type="text/javascript" src="bower_components/angular-material-icons/angular-material-icons.min.js"></script>
 	<script type="text/javascript" src="bower_components/angular-sanitize/angular-sanitize.min.js"></script>
 	<script type="text/javascript" src="bower_components/angular-route/angular-route.min.js"></script>
+	<script type="text/javascript" src="bower_components/angular-ui-router/release/angular-ui-router.min.js"></script>
 	<script type="text/javascript" src="bower_components/angular-messages/angular-messages.min.js"></script>
 	<script type="text/javascript" src="bower_components/ng-file-upload/ng-file-upload-all.min.js"></script>
 	<script type="text/javascript" src="bower_components/AngularJS-Toaster/toaster.min.js"></script>
@@ -75,24 +77,65 @@
 	<script type="text/javascript" src="https://cdn.rawgit.com/zenorocha/clipboard.js/master/dist/clipboard.min.js"></script>
 	<script type="text/javascript" src="bower_components/ngclipboard/dist/ngclipboard.min.js"></script>
 	
+	<script type="text/javascript" src="bower_components/angularUtils-pagination/dirPagination.js"></script>
+	
+	<script type="text/javascript" src="bower_components/lodash/dist/lodash.min.js"></script>
+	<script type="text/javascript" src="bower_components/graphlib/dist/graphlib.core.min.js"></script>
+	<script type="text/javascript" src="bower_components/dagre/dist/dagre.core.min.js"></script>
+	<script type="text/javascript" src="bower_components/d3/d3.min.js"></script>
+	<script type="text/javascript" src="bower_components/dagre-d3/dist/dagre-d3.core.min.js"></script>
+
+	<script type="text/javascript" src="node_modules/d3-save-svg/build/d3-save-svg.min.js"></script>
+<!-- 	<script type="text/javascript" src="bower_components/file-saver/dist/FileSaver.min.js"></script> -->
+	<script type="text/javascript" src="bower_components/save-svg-as-png/saveSvgAsPng.js"></script>
+	
+	<script type="text/javascript" src="bower_components/angular-filter/dist/angular-filter.min.js"></script>
+	
 	<script type="text/javascript" src="config.js"></script>
 
 	<script type="text/javascript" src="services/apiService.js"></script>
-	<script type="text/javascript" src="services/globalService.js"></script>
 	<script type="text/javascript" src="services/messageService.js"></script>
+	<script type="text/javascript" src="services/userService.js"></script>
+	<script type="text/javascript" src="services/utilsService.js"></script>
+	
+	<script type="text/javascript" src="controllers/headerController.js"></script>
+	<script type="text/javascript" src="controllers/loginController.js"></script>
+	<script type="text/javascript" src="controllers/logoutController.js"></script>
+	<script type="text/javascript" src="controllers/registerController.js"></script>
+	<script type="text/javascript" src="controllers/stepController.js"></script>
+	<script type="text/javascript" src="controllers/pipelineController.js"></script>
+	<script type="text/javascript" src="controllers/stepRepositoryController.js"></script>
+	<script type="text/javascript" src="controllers/pipelineRepositoryController.js"></script>
+	<script type="text/javascript" src="controllers/usersController.js"></script>
+	<script type="text/javascript" src="controllers/taggerController.js"></script>
+	<script type="text/javascript" src="controllers/autocompleteController.js"></script>
+	<script type="text/javascript" src="controllers/paginationController.js"></script>
+	<script type="text/javascript" src="controllers/homeController.js"></script>
+	<script type="text/javascript" src="controllers/projectsController.js"></script>
+	<script type="text/javascript" src="controllers/createProjectController.js"></script>
 	<script type="text/javascript" src="controllers/mainController.js"></script>
 	<script type="text/javascript" src="controllers/dialogController.js"></script>
-	<script type="text/javascript" src="controllers/autocompleteController.js"></script>
 	<script type="text/javascript" src="controllers/conditionController.js"></script>
+	<script type="text/javascript" src="controllers/runJobsOfStepController.js"></script>
+	<script type="text/javascript" src="controllers/runJobController.js"></script>
+	<script type="text/javascript" src="controllers/runJobsController.js"></script>
+	<script type="text/javascript" src="controllers/chartController.js"></script>
+	<script type="text/javascript" src="controllers/runListController.js"></script>
 	
 	<script type="text/javascript" src="directives/myAutocomplete.js"></script>
+	<script type="text/javascript" src="directives/pagination.js"></script>
 	<script type="text/javascript" src="directives/xls.js"></script>
+	<script type="text/javascript" src="directives/myAutofocus.js"></script>
+	<script type="text/javascript" src="directives/tagger.js"></script>
 	
-	<script type="text/javascript" src="filters/joiner.js"></script>
+	<script type="text/javascript" src="filters/capitalise.js"></script>
 	<script type="text/javascript" src="filters/count.js"></script>
 	<script type="text/javascript" src="filters/prepend.js"></script>
 	<script type="text/javascript" src="filters/min.js"></script>
 	<script type="text/javascript" src="filters/byteFormatter.js"></script>
+	<script type="text/javascript" src="filters/regex.js"></script>
+	<script type="text/javascript" src="filters/notEmpty.js"></script>
+	<script type="text/javascript" src="filters/skipKey.js"></script>
 </body>
 
 </html>

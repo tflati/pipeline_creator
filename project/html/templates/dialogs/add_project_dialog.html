@@ -18,19 +18,26 @@
 		  	<img ng-src="{{item.img}}" class="md-avatar" alt="{{item.title}}" />
 		      <div class="md-list-item-text">
 		      	<h3>ID</h3>
-		      	<input ng-model="item.id">
+		      	<input md-autofocus ng-model="item.id">
 		      	
 		      	<h3>Title</h3>
-		        <input ng-model="item.title">
+		        <input md-autofocus ng-model="item.title">
 		        
 		        <h3>Subtitle</h3>
-		        <input ng-model="item.subtitle">
+		        <input md-autofocus ng-model="item.subtitle">
 		        
 		        <h3>Description</h3>
-		        <input ng-model="item.description">
+		        <input md-autofocus ng-model="item.description">
+
+				<h3>Project type</h3>
+				<md-select md-autofocus ng-model="item.project_type" aria-label="Specifies the project type">
+			       	<md-option ng-repeat="type in item.project_types" ng-value="type">
+						<span>{{type}}</span>
+			       	</md-option>
+				</md-select>
 		        
 		        <h3>Creator</h3>
-		        <input ng-model="item.creator">
+		        <input md-autofocus ng-model="item.creator">
 		        
 		      </div>
 		  </md-list-item>

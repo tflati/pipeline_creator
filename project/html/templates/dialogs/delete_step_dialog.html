@@ -22,7 +22,7 @@
 		        <h2>{{item.title}}</h2>
 		        <p>{{item.description_short}}</p>
 		        <p>{{item.description}}</p>
-		        <div class="code padding-30" ng-if="item.commandline">{{item.commandline}}</div>
+		        <div ng-if="item.commandline" class="code padding-30">{{item.commandline}}</div>
 		      </div>
 		  </md-list-item>
 		</md-list>

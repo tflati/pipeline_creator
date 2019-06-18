@@ -27,11 +27,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 102400000
+# 204 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 204800000
 
 # Application definition
 
 INSTALLED_APPS = [
+    'pipeline_manager',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

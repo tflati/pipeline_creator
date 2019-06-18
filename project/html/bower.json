@@ -30,6 +30,14 @@
     "md-color-picker": "^0.2.6",
     "angular-chart.js": "^1.1.1",
     "angular-dragdrop": "^1.0.13",
-    "ngclipboard": "^2.0.0"
+    "ngclipboard": "^2.0.0",
+    "angularUtils-pagination": "angular-utils-pagination#^0.11.1",
+    "dagre": "^0.8.2",
+    "dagre-d3": "^0.6.1",
+    "file-saver": "^2.0.0",
+    "save-svg-as-png": "^1.2.0",
+    "angular-filter": "^0.5.17",
+    "angular-ui-router": "^1.0.20",
+    "angular-cookies": "^1.7.7"
   }
 }
