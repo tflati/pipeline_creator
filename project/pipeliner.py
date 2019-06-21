@@ -25,8 +25,9 @@ GENOME = "ig_UCSC_Homo_sapiens/hg38" # or "/path/to/the/genome/"
 PARTITION = 1
 PARTITION_TAGS = [{"type": "experiment"}]
 PARALLELISM = "10"
+PORT="7580"
 
-base_url = "http://localhost/pipeline_manager_api/pipeline_manager/"
+base_url = "http://localhost:"+PORT+"/pipeline_manager/"
 
 
 ##########################################
