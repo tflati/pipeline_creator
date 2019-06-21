@@ -1,17 +1,7 @@
 django
 Bio
 lxml
-
-shutil
-stat
 networkx
 openpyxl
-zipfile
 passlib
 uuid
-copy
-itertools
-collections
-getpass
-traceback
-csv
